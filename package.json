@@ -1,0 +1,25 @@
+{
+  "name": "pintarin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PINTARIN - AI-powered education aid prioritization platform",
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:api": "npm --workspace apps/api run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "start:api": "npm --workspace apps/api run start"
+  },
+  "keywords": [
+    "pintarin",
+    "education",
+    "ai",
+    "risk-scoring",
+    "capstone"
+  ],
+  "author": "CC26-PSU211",
+  "license": "MIT"
+}
