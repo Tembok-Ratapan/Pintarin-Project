@@ -1,24 +1,35 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+} from "lucide-react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import Badge from "../../components/ui/Badge";
+import BrandLogo from "../../components/brand/BrandLogo";
 import Button from "../../components/ui/Button";
-import { Card, CardContent } from "../../components/ui/Card";
-import Grainient from "../../components/ui/Grainient";
 import { useAuth } from "./useAuth";
+import BandungBoundaryVisual from "./components/BandungBoundaryVisual";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated, isLoading } = useAuth();
 
   const [identifier, setIdentifier] = useState("admin_1");
   const [password, setPassword] = useState("Pintarin@2026");
+  const [remember, setRemember] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const redirectPath = location.state?.from?.pathname || "/dashboard";
+
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   const handleSubmit = async (event) => {
@@ -33,7 +44,7 @@ export default function LoginPage() {
         password,
       });
 
-      navigate("/dashboard", { replace: true });
+      navigate(redirectPath, { replace: true });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message ||
@@ -46,134 +57,122 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative isolate min-h-[calc(100vh-4rem)] overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <Grainient
-          color1="#5EEAD4"
-          color2="#CCFBF1"
-          color3="#F8FAFC"
-          timeSpeed={0.14}
-          colorBalance={-0.05}
-          warpStrength={0.68}
-          warpFrequency={4}
-          warpSpeed={1.15}
-          warpAmplitude={58}
-          blendAngle={-14}
-          blendSoftness={0.16}
-          rotationAmount={280}
-          noiseScale={1.8}
-          grainAmount={0.035}
-          grainScale={1.6}
-          grainAnimated={false}
-          contrast={1.05}
-          gamma={1}
-          saturation={1.02}
-          centerX={0}
-          centerY={-0.04}
-          zoom={0.92}
-          className="h-full w-full opacity-95"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,250,252,0.92)_0%,rgba(204,251,241,0.62)_45%,rgba(248,250,252,0.88)_100%)]" />
-      </div>
+    <main className="min-h-screen overflow-hidden bg-[#F8FAFC]">
+      <div className="grid min-h-screen lg:grid-cols-[0.92fr_1.08fr]">
+        <section className="relative flex min-h-screen items-center justify-center px-5 py-8 sm:px-8 lg:px-12 xl:px-16">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(94,234,212,0.18),transparent_34%),linear-gradient(135deg,#ffffff_0%,#F8FAFC_58%,#ECFEFF_100%)]" />
 
-      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-        <div className="order-2 lg:order-1">
-          <Link
-            to="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-[#0F766E] transition hover:text-[#115E59]"
-          >
-            <ArrowLeft size={17} />
-            Kembali ke landing page
-          </Link>
+          <div className="relative z-10 w-full max-w-[430px]">
+            <Link
+              to="/"
+              className="mb-9 inline-flex items-center gap-2 text-sm font-extrabold text-[#0F766E] transition hover:text-[#115E59]"
+            >
+              <ArrowLeft size={17} />
+              Kembali
+            </Link>
 
-          <Badge variant="green">Secure Workspace</Badge>
+            <div className="mb-10">
+              <BrandLogo />
 
-          <h1 className="font-heading mt-5 max-w-xl text-4xl font-extrabold leading-[1.05] tracking-[-0.05em] text-[#102A43] sm:text-5xl">
-            Masuk ke ruang kerja PINTARIN.
-          </h1>
+              <h1 className="font-heading mt-12 text-4xl font-extrabold uppercase leading-[1.02] tracking-[0.04em] text-[#0B172A] sm:text-5xl">
+                Welcome Back
+              </h1>
 
-          <p className="mt-5 max-w-xl text-sm leading-8 text-[#475569] sm:text-base">
-            Akses dashboard, validasi prediksi AI, dan rekomendasi CSR hanya
-            tersedia untuk pengguna yang memiliki otorisasi.
-          </p>
-
-          <div className="mt-8 grid max-w-xl gap-3">
-            {[
-              "JWT authentication",
-              "Role-aware access control",
-              "Protected API request",
-            ].map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-3 rounded-2xl border border-white/60 bg-white/34 px-4 py-3 text-sm font-semibold text-[#475569] ring-1 ring-white/35 backdrop-blur-2xl"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-                  <ShieldCheck size={18} />
-                </span>
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Card className="order-1 mx-auto w-full max-w-md overflow-hidden lg:order-2">
-          <CardContent className="p-6 sm:p-8">
-            <div className="mb-7 flex items-start justify-between gap-4">
-              <div>
-                <p className="font-heading text-2xl font-extrabold tracking-[-0.035em] text-[#102A43]">
-                  Login
-                </p>
-                <p className="mt-2 text-sm leading-7 text-[#64748B]">
-                  Gunakan akun seed yang sudah aktif.
-                </p>
-              </div>
-
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-                <LockKeyhole size={22} />
-              </div>
+              <p className="mt-4 max-w-sm text-sm font-medium leading-7 text-[#64748B] sm:text-base">
+                Masuk untuk mengakses dashboard, validasi AI, dan rekomendasi
+                bantuan pendidikan PINTARIN.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
                   htmlFor="identifier"
-                  className="text-sm font-bold text-[#102A43]"
+                  className="text-sm font-extrabold tracking-[0.01em] text-[#101828]"
                 >
                   Username atau Email
                 </label>
-                <input
-                  id="identifier"
-                  type="text"
-                  value={identifier}
-                  onChange={(event) => setIdentifier(event.target.value)}
-                  autoComplete="username"
-                  className="mt-2 h-12 w-full rounded-2xl border border-white/65 bg-white/55 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl transition placeholder:text-[#94A3B8] focus:border-[#5EEAD4] focus:ring-[#5EEAD4]/70"
-                  placeholder="admin_1"
-                  required
-                />
+
+                <div className="relative mt-2">
+                  <Mail
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+                  />
+
+                  <input
+                    id="identifier"
+                    type="text"
+                    value={identifier}
+                    onChange={(event) => setIdentifier(event.target.value)}
+                    autoComplete="username"
+                    className="h-12 w-full rounded-2xl border border-[#D6DEE8] bg-white px-11 text-sm font-semibold text-[#102A43] outline-none transition placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:ring-4 focus:ring-[#5EEAD4]/24"
+                    placeholder="admin_1"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
                 <label
                   htmlFor="password"
-                  className="text-sm font-bold text-[#102A43]"
+                  className="text-sm font-extrabold tracking-[0.01em] text-[#101828]"
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="current-password"
-                  className="mt-2 h-12 w-full rounded-2xl border border-white/65 bg-white/55 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl transition placeholder:text-[#94A3B8] focus:border-[#5EEAD4] focus:ring-[#5EEAD4]/70"
-                  placeholder="Masukkan password"
-                  required
-                />
+
+                <div className="relative mt-2">
+                  <LockKeyhole
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+                  />
+
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                    className="h-12 w-full rounded-2xl border border-[#D6DEE8] bg-white px-11 pr-12 text-sm font-semibold text-[#102A43] outline-none transition placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:ring-4 focus:ring-[#5EEAD4]/24"
+                    placeholder="Masukkan password"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-[#64748B] transition hover:bg-slate-100 hover:text-[#0F766E]"
+                    aria-label={
+                      showPassword
+                        ? "Sembunyikan password"
+                        : "Tampilkan password"
+                    }
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <label className="flex cursor-pointer items-center gap-2 font-semibold text-[#475569]">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                    className="h-4 w-4 rounded border-[#CBD5E1] text-[#0F766E] focus:ring-[#5EEAD4]"
+                  />
+                  Remember me
+                </label>
+
+                <button
+                  type="button"
+                  className="font-extrabold text-[#0F766E] transition hover:text-[#115E59]"
+                >
+                  Forgot password
+                </button>
               </div>
 
               {errorMessage && (
-                <div className="rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 text-sm font-semibold leading-6 text-red-700">
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-700">
                   {errorMessage}
                 </div>
               )}
@@ -181,21 +180,37 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full"
+                className="h-12 w-full rounded-2xl bg-[#0F766E] shadow-lg shadow-[#0F766E]/18 hover:bg-[#115E59]"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Memproses..." : "Masuk"}
+                {isSubmitting ? "Memproses..." : "Sign in"}
                 {!isSubmitting && <ArrowRight size={18} />}
               </Button>
 
-              <p className="text-center text-xs leading-6 text-[#64748B]">
-                Development password:{" "}
-                <span className="font-bold text-[#0F766E]">Pintarin@2026</span>
-              </p>
+              <div className="relative py-1">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="h-px w-full bg-[#E2E8F0]" />
+                </div>
+
+                <div className="relative flex justify-center">
+                  <span className="bg-[#F8FAFC] px-3 text-xs font-bold uppercase tracking-[0.16em] text-[#94A3B8]">
+                    Development
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#D6DEE8] bg-white px-4 py-3 text-center text-xs font-medium leading-6 text-[#64748B]">
+                Default password:{" "}
+                <span className="font-extrabold text-[#0F766E]">
+                  Pintarin@2026
+                </span>
+              </div>
             </form>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+        </section>
+
+        <BandungBoundaryVisual />
+      </div>
     </main>
   );
 }
