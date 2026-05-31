@@ -1,12 +1,18 @@
 const express = require('express')
-const predictionsController = require('./predictions.controller')
+
 const authMiddleware = require('../../middlewares/authMiddleware')
 const roleGuard = require('../../middlewares/roleGuard')
-const { ROLES } = require('../../constants/roles')
+const { ALL_ROLES, ROLES } = require('../../constants/roles')
+const predictionsController = require('./predictions.controller')
 
 const router = express.Router()
 
-router.get('/latest', predictionsController.getLatestPredictions)
+router.get(
+  '/latest',
+  authMiddleware,
+  roleGuard(ALL_ROLES),
+  predictionsController.getLatestPredictions
+)
 
 router.get(
   '/pending-review',

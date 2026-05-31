@@ -2,6 +2,7 @@ const express = require("express");
 
 const authMiddleware = require("../../middlewares/authMiddleware");
 const roleGuard = require("../../middlewares/roleGuard");
+const { roleGroups } = require("../../constants/permissions");
 const schoolRequestController = require("./schoolRequest.controller");
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware,
-  roleGuard(["admin", "officer", "school_operator"]),
+  roleGuard(roleGroups.SCHOOL_WORKERS),
   schoolRequestController.listRequests,
 );
 
@@ -23,7 +24,7 @@ router.post(
 router.patch(
   "/:id/review",
   authMiddleware,
-  roleGuard(["admin", "officer"]),
+  roleGuard(roleGroups.DECISION_MAKERS),
   schoolRequestController.reviewRequest,
 );
 

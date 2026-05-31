@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS csr_aid_proposals (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-INSERT INTO school_need_requests (
+INSERT IGNORE INTO school_need_requests (
   request_code,
   school_id,
   region_id,
@@ -147,19 +147,17 @@ SELECT
     ELSE 'Diajukan'
   END
 FROM schools s
-JOIN (
+CROSS JOIN (
   SELECT id
   FROM users
   WHERE role IN ('school_operator', 'admin')
   ORDER BY role = 'school_operator' DESC
   LIMIT 1
 ) u
-LIMIT 8
-ON DUPLICATE KEY UPDATE
-  updated_at = CURRENT_TIMESTAMP;
+LIMIT 8;
 
 
-INSERT INTO csr_aid_proposals (
+INSERT IGNORE INTO csr_aid_proposals (
   proposal_code,
   submitted_by,
   allocation_type,
@@ -190,12 +188,10 @@ FROM (
   WHERE role IN ('csr_partner', 'admin')
   ORDER BY role = 'csr_partner' DESC
   LIMIT 1
-) u
-ON DUPLICATE KEY UPDATE
-  updated_at = CURRENT_TIMESTAMP;
+) u;
 
 
-INSERT INTO csr_aid_proposals (
+INSERT IGNORE INTO csr_aid_proposals (
   proposal_code,
   submitted_by,
   allocation_type,
@@ -227,17 +223,15 @@ FROM (
   ORDER BY role = 'csr_partner' DESC
   LIMIT 1
 ) u
-JOIN (
+CROSS JOIN (
   SELECT id, region_id
   FROM schools
   ORDER BY id ASC
   LIMIT 1
-) s
-ON DUPLICATE KEY UPDATE
-  updated_at = CURRENT_TIMESTAMP;
+) s;
 
 
-INSERT INTO csr_aid_proposals (
+INSERT IGNORE INTO csr_aid_proposals (
   proposal_code,
   submitted_by,
   allocation_type,
@@ -269,11 +263,9 @@ FROM (
   ORDER BY role = 'csr_partner' DESC
   LIMIT 1
 ) u
-JOIN (
+CROSS JOIN (
   SELECT id
   FROM regions
   ORDER BY id ASC
   LIMIT 1
-) r
-ON DUPLICATE KEY UPDATE
-  updated_at = CURRENT_TIMESTAMP;
+) r;

@@ -1,4 +1,5 @@
 const express = require('express')
+
 const regionsController = require('./regions.controller')
 
 const router = express.Router()

@@ -46,9 +46,16 @@ const createRequest = async ({ user, payload }) => {
     ? payload.urgency
     : "Sedang";
 
+  const isSchoolOperator = user.role === "school_operator";
+
+  const safeSchoolId = isSchoolOperator ? null : payload.school_id || null;
+  const safeRegionId = isSchoolOperator
+    ? user.region_id || null
+    : payload.region_id || user.region_id || null;
+
   const id = await schoolRequestRepository.createRequest({
-    schoolId: payload.school_id,
-    regionId: payload.region_id || user.region_id,
+    schoolId: safeSchoolId,
+    regionId: safeRegionId,
     submittedBy: user.id,
     category,
     title,

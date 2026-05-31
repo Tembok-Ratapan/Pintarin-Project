@@ -1,29 +1,27 @@
-const { errorResponse } = require('../utils/apiResponse')
-const { ROLES } = require('../constants/roles')
-
 const roleGuard = (allowedRoles = []) => {
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
-
   return (req, res, next) => {
-    if (!req.user) {
-      return errorResponse(res, {
-        statusCode: 401,
-        message: 'Unauthorized. Please login first.',
-      })
+    const userRole = req.user?.role;
+
+    if (!userRole) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. User role is missing.",
+      });
     }
 
-    const isAllowed = roles.includes(req.user.role)
-    const isAdmin = req.user.role === ROLES.ADMIN
-
-    if (!isAllowed && !isAdmin) {
-      return errorResponse(res, {
-        statusCode: 403,
-        message: 'Forbidden. You do not have permission to access this resource.',
-      })
+    if (userRole === "admin") {
+      return next();
     }
 
-    next()
-  }
-}
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden. You do not have access to this resource.",
+      });
+    }
 
-module.exports = roleGuard
+    return next();
+  };
+};
+
+module.exports = roleGuard;
