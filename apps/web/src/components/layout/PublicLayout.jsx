@@ -1,15 +1,24 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../../features/auth/useAuth";
 import BrandLogo from "../brand/BrandLogo";
 import Button from "../ui/Button";
 
 const navItems = [
-  { label: "Peta Risiko", href: "#risk-map" },
-  { label: "Produk", href: "#product" },
-  { label: "Alur Sistem", href: "#workflow" },
+  { label: "Peta Risiko", href: "/#risk-map" },
+  { label: "Produk", href: "/#product" },
+  { label: "Alur Sistem", href: "/#workflow" },
 ];
 
 export default function PublicLayout() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-[#f8fafc]">
       <header className="sticky top-0 z-50 border-b border-white/55 bg-white/40 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/34">
@@ -35,11 +44,36 @@ export default function PublicLayout() {
                 {item.label}
               </a>
             ))}
+
+            {isAuthenticated && (
+              <Link
+                to="/dashboard"
+                className="rounded-full px-4 py-2 transition hover:bg-white/50 hover:text-[#0F766E]"
+              >
+                Dashboard
+              </Link>
+            )}
           </nav>
 
-          <Button size="sm" className="shrink-0">
-            Masuk
-          </Button>
+          {isAuthenticated ? (
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                to="/dashboard"
+                className="hidden max-w-[9rem] truncate text-sm font-bold text-[#102A43] sm:block"
+                title={user?.full_name}
+              >
+                {user?.full_name || "Dashboard"}
+              </Link>
+
+              <Button size="sm" variant="secondary" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <Link to="/login" className="shrink-0">
+              <Button size="sm">Masuk</Button>
+            </Link>
+          )}
         </div>
       </header>
 
