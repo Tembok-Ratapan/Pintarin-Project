@@ -14,6 +14,11 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 const csrRoutes = require('./modules/csr/csr.routes')
+const profileRoutes = require("./modules/profiles/profile.routes");
+
+const schoolRequestRoutes = require("./modules/schoolRequests/schoolRequest.routes");
+const csrAidRoutes = require("./modules/csrAid/csrAid.routes");
+const schoolRoutes = require("./modules/schools/school.routes");
 
 app.use(helmet());
 
@@ -44,6 +49,10 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/regions", regionsRoutes);
 app.use("/api/predictions", predictionsRoutes);
 app.use('/api/csr', csrRoutes)
+app.use("/api/profiles", profileRoutes);
+app.use("/api/school-requests", schoolRequestRoutes);
+app.use("/api/csr-aid", csrAidRoutes);
+app.use("/api/schools", schoolRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

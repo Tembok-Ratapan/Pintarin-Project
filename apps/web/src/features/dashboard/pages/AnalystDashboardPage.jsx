@@ -503,9 +503,9 @@ export default function AnalystDashboardPage() {
 
   return (
     <DashboardShell
-      badge="Analytics View"
-      title="Dashboard kerja untuk Data Analyst."
-      description="Analyst membaca pola risiko, confidence score, distribusi wilayah, dan kualitas insight untuk mendukung keputusan berbasis data."
+      badge="Ruang Analitik"
+      title="Ruang Analitik"
+      description="Baca pola, risiko, dan kualitas data."
     >
       {isLoading ? (
         <LoadingState label="Mengambil insight analytics dari backend..." />

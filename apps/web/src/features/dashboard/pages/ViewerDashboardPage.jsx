@@ -397,9 +397,9 @@ export default function ViewerDashboardPage() {
 
   return (
     <DashboardShell
-      badge="Read Only"
-      title="Dashboard ringkasan PINTARIN."
-      description="Viewer dapat membaca insight umum PINTARIN tanpa akses ke aksi sensitif seperti validasi, override, matching, atau pengelolaan user."
+      badge="Ruang Pantau"
+      title="Ruang Pantau"
+      description="Lihat ringkasan tanpa mengubah data."
     >
       {isLoading ? (
         <LoadingState label="Mengambil ringkasan viewer dari backend..." />

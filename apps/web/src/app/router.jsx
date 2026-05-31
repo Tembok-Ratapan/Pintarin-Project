@@ -13,6 +13,7 @@ import {
   PublicLayout,
   SchoolDashboardPage,
   ViewerDashboardPage,
+  ProfilePage,
 } from "./lazyRouteComponents";
 import RouteSuspense from "./RouteSuspense";
 
@@ -58,6 +59,16 @@ const router = createBrowserRouter([
         element: (
           <RouteSuspense label="Mengarahkan dashboard sesuai role...">
             <DashboardRedirect />
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <RouteSuspense label="Menyiapkan profil...">
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
           </RouteSuspense>
         ),
       },

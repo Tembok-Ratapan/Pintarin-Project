@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 
 export default function DashboardErrorBanner({
-  title = "Sebagian data belum bisa dimuat.",
+  title = "Data belum bisa dimuat.",
   description = "Pastikan backend berjalan dan endpoint dapat diakses.",
 }) {
   return (
@@ -12,7 +12,9 @@ export default function DashboardErrorBanner({
 
       <div>
         <p className="font-extrabold">{title}</p>
-        <p className="mt-1 text-sm leading-7 text-red-600">{description}</p>
+        <p className="mt-1 text-sm font-medium leading-7 text-red-600">
+          {description}
+        </p>
       </div>
     </div>
   );

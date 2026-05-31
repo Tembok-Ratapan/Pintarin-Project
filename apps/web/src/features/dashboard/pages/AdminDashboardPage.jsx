@@ -28,6 +28,8 @@ import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import DashboardTable from "../components/DashboardTable";
 import { dashboardService } from "../dashboardService";
+import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
+import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
 
 const getArray = (value) => {
   return Array.isArray(value) ? value : [];
@@ -385,9 +387,9 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardShell
-      badge="Full Access"
-      title="Dashboard kerja untuk Administrator."
-      description="Admin memantau seluruh alur PINTARIN: analytics, validasi AI, prioritas wilayah, dan rekomendasi CSR."
+      badge="Pusat Kendali"
+      title="Pusat Kendali"
+      description="Pantau data, ajuan, dan bantuan."
     >
       {isLoading ? (
         <LoadingState label="Mengambil data dashboard dari backend..." />
@@ -405,6 +407,10 @@ export default function AdminDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <SchoolRequestReviewPanel />
+
+          <CsrAidReviewPanel />
 
           <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
             <DashboardSection

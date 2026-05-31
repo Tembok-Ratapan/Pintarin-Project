@@ -41,3 +41,7 @@ export const SchoolDashboardPage = lazy(
 export const ViewerDashboardPage = lazy(
   () => import("../features/dashboard/pages/ViewerDashboardPage"),
 );
+
+export const ProfilePage = lazy(
+  () => import("../features/dashboard/pages/ProfilePage"),
+);

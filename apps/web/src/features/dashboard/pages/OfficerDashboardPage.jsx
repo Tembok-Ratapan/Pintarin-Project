@@ -22,6 +22,8 @@ import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import { dashboardService } from "../dashboardService";
+import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
+import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
 
 const riskOptions = ["Rendah", "Sedang", "Tinggi"];
 
@@ -384,9 +386,9 @@ export default function OfficerDashboardPage() {
 
   return (
     <DashboardShell
-      badge="Validation Control"
-      title="Dashboard kerja untuk Petugas Dinas."
-      description="Petugas memvalidasi prediksi AI, mengecek confidence rendah, dan memastikan keputusan bantuan tidak hanya bergantung pada model."
+      badge="Ruang Dinas"
+      title="Ruang Dinas"
+      description="Validasi ajuan dan penyaluran."
       actions={
         <Button
           variant="secondary"
@@ -414,6 +416,10 @@ export default function OfficerDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <SchoolRequestReviewPanel />
+
+          <CsrAidReviewPanel />
 
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <DashboardSection

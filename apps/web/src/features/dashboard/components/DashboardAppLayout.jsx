@@ -1,130 +1,58 @@
 import { useState } from "react";
-import {
-  BarChart3,
-  Building2,
-  Eye,
-  GraduationCap,
-  HandHeart,
-  Home,
-  LayoutDashboard,
-  LogOut,
-  MapPinned,
-  Menu,
-  ShieldCheck,
-  UserRoundCog,
-  X,
-} from "lucide-react";
+import { Building2, LogOut, Menu, UserRoundCog, X } from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import BrandLogo from "../../../components/brand/BrandLogo";
 import Button from "../../../components/ui/Button";
 import { useAuth } from "../../auth/useAuth";
+import {
+  dashboardUtilityNav,
+  getDashboardNavItems,
+  getDashboardRoleMeta,
+} from "../dashboardNavigation";
 import { getDashboardPathByRole } from "../dashboardRoutes";
 
-const roleLabels = {
-  admin: "Administrator",
-  officer: "Petugas Dinas",
-  analyst: "Data Analyst",
-  csr_partner: "Mitra CSR",
-  school_operator: "Operator Sekolah",
-  viewer: "Viewer",
-};
+function SidebarLink({ item, onNavigate }) {
+  const Icon = item.icon;
 
-const dashboardNavByRole = {
-  admin: [
-    {
-      label: "Admin Overview",
-      path: "/dashboard/admin",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Human Review",
-      path: "/dashboard/officer",
-      icon: ShieldCheck,
-    },
-    {
-      label: "Analytics",
-      path: "/dashboard/analyst",
-      icon: BarChart3,
-    },
-    {
-      label: "CSR Matching",
-      path: "/dashboard/csr",
-      icon: HandHeart,
-    },
-    {
-      label: "School Context",
-      path: "/dashboard/school",
-      icon: GraduationCap,
-    },
-    {
-      label: "Viewer Mode",
-      path: "/dashboard/viewer",
-      icon: Eye,
-    },
-  ],
-  officer: [
-    {
-      label: "Review Queue",
-      path: "/dashboard/officer",
-      icon: ShieldCheck,
-    },
-  ],
-  analyst: [
-    {
-      label: "Analytics Overview",
-      path: "/dashboard/analyst",
-      icon: BarChart3,
-    },
-  ],
-  csr_partner: [
-    {
-      label: "CSR Matching",
-      path: "/dashboard/csr",
-      icon: HandHeart,
-    },
-  ],
-  school_operator: [
-    {
-      label: "School Context",
-      path: "/dashboard/school",
-      icon: GraduationCap,
-    },
-  ],
-  viewer: [
-    {
-      label: "Read-only Summary",
-      path: "/dashboard/viewer",
-      icon: Eye,
-    },
-  ],
-};
+  if (item.isAnchor) {
+    return (
+      <a
+        href={item.path}
+        onClick={onNavigate}
+        className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold text-[#475569] transition hover:bg-white/58 hover:text-[#0F766E]"
+      >
+        <Icon size={18} />
+        <span>{item.label}</span>
+      </a>
+    );
+  }
 
-const utilityNavItems = [
-  {
-    label: "Landing Page",
-    path: "/",
-    icon: Home,
-  },
-  {
-    label: "Peta Risiko",
-    path: "/#risk-map",
-    icon: MapPinned,
-    isAnchor: true,
-  },
-];
-
-const getRoleLabel = (role) => roleLabels[role] || roleLabels.viewer;
-
-const getDashboardNavItems = (role) => {
-  return dashboardNavByRole[role] || dashboardNavByRole.viewer;
-};
+  return (
+    <NavLink
+      to={item.path}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        [
+          "flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold transition",
+          isActive
+            ? "bg-[#0F766E] text-white shadow-lg shadow-[#0F766E]/18"
+            : "text-[#475569] hover:bg-white/58 hover:text-[#0F766E]",
+        ].join(" ")
+      }
+    >
+      <Icon size={18} />
+      <span>{item.label}</span>
+    </NavLink>
+  );
+}
 
 function SidebarContent({ onNavigate }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const role = user?.role || "viewer";
+  const roleMeta = getDashboardRoleMeta(role);
   const dashboardPath = getDashboardPathByRole(role);
   const roleNavItems = getDashboardNavItems(role);
 
@@ -146,7 +74,7 @@ function SidebarContent({ onNavigate }) {
       </div>
 
       <div className="px-4">
-        <div className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 shadow-sm shadow-slate-200/20 ring-1 ring-white/40 backdrop-blur-2xl">
+        <div className="rounded-[1.5rem] border border-white/70 bg-white/48 p-4 shadow-sm shadow-slate-200/20 ring-1 ring-white/40 backdrop-blur-2xl">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
               <UserRoundCog size={18} />
@@ -156,8 +84,13 @@ function SidebarContent({ onNavigate }) {
               <p className="truncate text-sm font-extrabold text-[#102A43]">
                 {user?.full_name || user?.username || "PINTARIN User"}
               </p>
-              <p className="mt-1 truncate text-xs font-semibold text-[#64748B]">
-                {getRoleLabel(role)}
+
+              <p className="mt-1 truncate text-xs font-bold text-[#0F766E]">
+                {roleMeta.workspace}
+              </p>
+
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-[#64748B]">
+                {roleMeta.tagline}
               </p>
             </div>
           </div>
@@ -167,70 +100,33 @@ function SidebarContent({ onNavigate }) {
       <nav className="mt-6 flex-1 space-y-7 overflow-y-auto px-4 pb-4">
         <div>
           <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
-            Workspace
+            Menu
           </p>
 
           <div className="space-y-1.5">
-            {roleNavItems.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onNavigate}
-                  className={({ isActive }) =>
-                    [
-                      "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition",
-                      isActive
-                        ? "bg-[#0F766E] text-white shadow-lg shadow-[#0F766E]/18"
-                        : "text-[#475569] hover:bg-white/55 hover:text-[#0F766E]",
-                    ].join(" ")
-                  }
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
+            {roleNavItems.map((item) => (
+              <SidebarLink
+                key={item.path}
+                item={item}
+                onNavigate={onNavigate}
+              />
+            ))}
           </div>
         </div>
 
         <div>
           <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
-            Navigation
+            Umum
           </p>
 
           <div className="space-y-1.5">
-            {utilityNavItems.map((item) => {
-              const Icon = item.icon;
-
-              if (item.isAnchor) {
-                return (
-                  <a
-                    key={item.path}
-                    href={item.path}
-                    onClick={onNavigate}
-                    className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-[#475569] transition hover:bg-white/55 hover:text-[#0F766E]"
-                  >
-                    <Icon size={18} />
-                    <span>{item.label}</span>
-                  </a>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={onNavigate}
-                  className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-[#475569] transition hover:bg-white/55 hover:text-[#0F766E]"
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            {dashboardUtilityNav.map((item) => (
+              <SidebarLink
+                key={item.path}
+                item={item}
+                onNavigate={onNavigate}
+              />
+            ))}
           </div>
         </div>
       </nav>
@@ -242,7 +138,7 @@ function SidebarContent({ onNavigate }) {
           onClick={handleLogout}
         >
           <LogOut size={17} />
-          Logout
+          Keluar
         </Button>
       </div>
     </div>
@@ -253,9 +149,11 @@ export default function DashboardAppLayout() {
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const roleMeta = getDashboardRoleMeta(user?.role);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_12%_0%,rgba(94,234,212,0.24),transparent_32%),radial-gradient(circle_at_85%_14%,rgba(15,118,110,0.10),transparent_28%),linear-gradient(135deg,rgba(248,250,252,0.98)_0%,rgba(236,254,255,0.76)_42%,rgba(255,255,255,0.96)_100%)]" />
+      <div className="pintarin-page-bg pointer-events-none fixed inset-0 -z-10" />
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl lg:block">
         <SidebarContent />
@@ -302,10 +200,11 @@ export default function DashboardAppLayout() {
 
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#94A3B8]">
-                  PINTARIN Workspace
+                  {roleMeta.label}
                 </p>
+
                 <p className="mt-0.5 text-sm font-extrabold text-[#102A43]">
-                  {getRoleLabel(user?.role)}
+                  {roleMeta.workspace}
                 </p>
               </div>
             </div>
@@ -319,6 +218,7 @@ export default function DashboardAppLayout() {
                 <p className="truncate text-sm font-extrabold text-[#102A43]">
                   {user?.full_name || user?.username || "PINTARIN User"}
                 </p>
+
                 <p className="truncate text-xs font-semibold text-[#64748B]">
                   {user?.institution || "PINTARIN Workspace"}
                 </p>

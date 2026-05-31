@@ -5,7 +5,7 @@ export default function DashboardTable({
   rows = [],
   getRowKey,
   emptyTitle = "Belum ada data tabel.",
-  emptyDescription,
+  emptyDescription = "Data akan tampil setelah backend mengirim response.",
 }) {
   if (rows.length === 0) {
     return (
@@ -21,11 +21,11 @@ export default function DashboardTable({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[680px] text-left">
           <thead>
-            <tr className="border-b border-white/70 bg-white/38">
+            <tr className="border-b border-white/70 bg-white/44">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-4 py-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]"
+                  className="whitespace-nowrap px-4 py-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[#64748B]"
                 >
                   {column.header}
                 </th>
@@ -36,13 +36,13 @@ export default function DashboardTable({
           <tbody>
             {rows.map((row, index) => (
               <tr
-                key={getRowKey ? getRowKey(row) : index}
+                key={getRowKey ? getRowKey(row, index) : index}
                 className="border-b border-white/55 text-sm last:border-0 hover:bg-white/35"
               >
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className="px-4 py-3 font-medium text-[#475569]"
+                    className="px-4 py-3 font-semibold leading-6 text-[#475569]"
                   >
                     {column.render ? column.render(row, index) : row[column.key]}
                   </td>
