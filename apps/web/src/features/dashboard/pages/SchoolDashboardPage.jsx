@@ -34,6 +34,7 @@ import DashboardTable from "../components/DashboardTable";
 import { dashboardService } from "../dashboardService";
 import { profileService } from "../profileService";
 import { schoolRequestService } from "../schoolRequestService";
+import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
 
 const requestCategories = [
   "Laptop",
@@ -839,6 +840,13 @@ export default function SchoolDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <DashboardChoroplethPanel
+            badge="Peta Wilayah"
+            title="Peta Wilayah"
+            description="Konteks risiko di sekitar wilayah sekolah."
+            topRegions={topRiskRegions}
+          />
 
           <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
             <DashboardSection

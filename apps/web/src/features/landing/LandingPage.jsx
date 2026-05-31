@@ -4,6 +4,7 @@ import HeroSection from "./components/HeroSection";
 import ProductIntroSection from "./components/ProductIntroSection";
 import RiskMapSection from "./components/RiskMapSection";
 import WorkflowSection from "./components/WorkflowSection";
+import LandingFooter from "./components/LandingFooter";
 
 export default function LandingPage() {
   return (
@@ -44,6 +45,7 @@ export default function LandingPage() {
         <RiskMapSection />
         <ProductIntroSection />
         <WorkflowSection />
+        <LandingFooter />
         <Footer />
       </div>
     </main>

@@ -24,6 +24,7 @@ import DashboardShell from "../components/DashboardShell";
 import { dashboardService } from "../dashboardService";
 import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
 import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
+import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
 
 const riskOptions = ["Rendah", "Sedang", "Tinggi"];
 
@@ -256,6 +257,7 @@ export default function OfficerDashboardPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const summary = summaryData?.summary || {};
+  const topRiskRegions = getArray(summaryData?.top_risk_regions);
   const pendingReviews = getArray(pendingPayload.predictions);
   const pendingCount = pendingPayload.count || pendingReviews.length;
 
@@ -416,6 +418,13 @@ export default function OfficerDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <DashboardChoroplethPanel
+            badge="Peta Risiko"
+            title="Peta Risiko"
+            description="Wilayah yang perlu divalidasi dan diprioritaskan."
+            topRegions={topRiskRegions}
+          />
 
           <SchoolRequestReviewPanel />
 

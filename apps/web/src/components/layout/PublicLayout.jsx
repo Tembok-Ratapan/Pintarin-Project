@@ -9,6 +9,7 @@ const navItems = [
   { label: "Peta Risiko", href: "/#risk-map" },
   { label: "Produk", href: "/#product" },
   { label: "Alur Sistem", href: "/#workflow" },
+  { label: "Tim", href: "/#team" },
 ];
 
 export default function PublicLayout() {

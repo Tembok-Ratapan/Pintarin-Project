@@ -30,6 +30,7 @@ import DashboardTable from "../components/DashboardTable";
 import { dashboardService } from "../dashboardService";
 import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
 import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
+import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
 
 const getArray = (value) => {
   return Array.isArray(value) ? value : [];
@@ -407,6 +408,13 @@ export default function AdminDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <DashboardChoroplethPanel
+            badge="Peta Bantuan"
+            title="Peta Bantuan"
+            description="Wilayah prioritas untuk keputusan bantuan."
+            topRegions={topRiskRegions}
+          />
 
           <SchoolRequestReviewPanel />
 

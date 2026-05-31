@@ -24,6 +24,7 @@ import DashboardShell from "../components/DashboardShell";
 import { csrAidService } from "../csrAidService";
 import { dashboardService } from "../dashboardService";
 import { schoolCatalogService } from "../schoolCatalogService";
+import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
 
 const aidTypes = [
   "Laptop",
@@ -429,6 +430,7 @@ export default function CsrDashboardPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const summary = summaryData?.summary || {};
+  const topRiskRegions = getArray(summaryData?.top_risk_regions);
   const proposals = getArray(proposalsPayload.proposals);
 
   const stats = useMemo(() => {
@@ -651,6 +653,13 @@ export default function CsrDashboardPage() {
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
           </div>
+
+          <DashboardChoroplethPanel
+            badge="Peta Kebutuhan"
+            title="Peta Kebutuhan"
+            description="Wilayah prioritas untuk penyaluran bantuan CSR."
+            topRegions={topRiskRegions}
+          />
 
           <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <DashboardSection

@@ -110,3 +110,13 @@ a {
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.1);
   backdrop-filter: blur(28px);
 }
+
+.pintarin-map-tooltip {
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #102a43 !important;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12) !important;
+  backdrop-filter: blur(16px);
+  font-weight: 800;
+}
