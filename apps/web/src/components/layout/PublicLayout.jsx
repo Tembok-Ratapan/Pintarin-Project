@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../features/auth/useAuth";
+import { getDashboardPathByRole } from "../../features/dashboard/dashboardRoutes";
 import BrandLogo from "../brand/BrandLogo";
 import Button from "../ui/Button";
 
@@ -13,6 +14,8 @@ const navItems = [
 export default function PublicLayout() {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
+
+  const dashboardPath = getDashboardPathByRole(user?.role);
 
   const handleLogout = async () => {
     await logout();
@@ -47,7 +50,7 @@ export default function PublicLayout() {
 
             {isAuthenticated && (
               <Link
-                to="/dashboard"
+                to={dashboardPath}
                 className="rounded-full px-4 py-2 transition hover:bg-white/50 hover:text-[#0F766E]"
               >
                 Dashboard
@@ -58,11 +61,11 @@ export default function PublicLayout() {
           {isAuthenticated ? (
             <div className="flex shrink-0 items-center gap-2">
               <Link
-                to="/dashboard"
+                to={dashboardPath}
                 className="hidden max-w-[9rem] truncate text-sm font-bold text-[#102A43] sm:block"
-                title={user?.full_name}
+                title={user?.full_name || user?.username || "Dashboard"}
               >
-                {user?.full_name || "Dashboard"}
+                {user?.full_name || user?.username || "Dashboard"}
               </Link>
 
               <Button size="sm" variant="secondary" onClick={handleLogout}>
