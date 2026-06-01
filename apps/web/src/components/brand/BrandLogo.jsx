@@ -4,18 +4,16 @@ import pintarinLogo from "../../assets/brand/PintarinIcon.svg";
 export default function BrandLogo({ showSubtitle = true, className = "" }) {
   return (
     <div className={`flex min-w-0 items-center gap-3 ${className}`.trim()}>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/30 ring-1 ring-white/50 backdrop-blur-xl">
-        <img
-          src={pintarinLogo}
-          alt={`${APP_NAME} logo`}
-          className="h-8 w-8 object-contain"
-          loading="eager"
-          draggable="false"
-        />
-      </span>
+      <img
+        src={pintarinLogo}
+        alt={`${APP_NAME} logo`}
+        className="h-11 w-auto max-w-[2.75rem] shrink-0 object-contain"
+        loading="eager"
+        draggable="false"
+      />
 
       <span className="min-w-0 leading-none">
-        <span className="block truncate text-sm font-extrabold tracking-[-0.02em] text-[#102A43]">
+        <span className="block truncate text-sm font-extrabold text-[#102A43]">
           {APP_NAME}
         </span>
 

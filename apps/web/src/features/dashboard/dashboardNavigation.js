@@ -1,15 +1,20 @@
 import {
   BarChart3,
+  Bot,
   Building2,
+  ClipboardCheck,
   Eye,
+  FileClock,
+  FilePlus2,
   GraduationCap,
   HandHeart,
-  Home,
   LayoutDashboard,
   MapPinned,
   ShieldCheck,
   UserRoundCog,
 } from "lucide-react";
+
+import { normalizeDashboardRole } from "./dashboardRoutes";
 
 export const dashboardRoleMeta = {
   admin: {
@@ -45,9 +50,16 @@ export const dashboardRoleMeta = {
 };
 
 const profileNavItem = {
-  label: "Profil",
+  label: "Profile",
   path: "/dashboard/profile",
   icon: UserRoundCog,
+};
+
+const productNavItem = {
+  label: "Tentang Produk",
+  path: "/#product",
+  icon: Building2,
+  isAnchor: true,
 };
 
 export const dashboardNavByRole = {
@@ -59,7 +71,7 @@ export const dashboardNavByRole = {
     },
     {
       label: "Ruang Dinas",
-      path: "/dashboard/officer",
+      path: "/dashboard/officer/overview",
       icon: ShieldCheck,
     },
     {
@@ -69,12 +81,12 @@ export const dashboardNavByRole = {
     },
     {
       label: "Ruang Bantuan",
-      path: "/dashboard/csr",
+      path: "/dashboard/csr/map-risk",
       icon: HandHeart,
     },
     {
       label: "Ruang Sekolah",
-      path: "/dashboard/school",
+      path: "/dashboard/school/overview",
       icon: GraduationCap,
     },
     {
@@ -83,15 +95,47 @@ export const dashboardNavByRole = {
       icon: Eye,
     },
     profileNavItem,
+    productNavItem,
   ],
 
   officer: [
     {
-      label: "Ruang Dinas",
-      path: "/dashboard/officer",
-      icon: ShieldCheck,
+      label: "Overview",
+      path: "/dashboard/officer/overview",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Map Risk",
+      path: "/dashboard/officer/map-risk",
+      icon: MapPinned,
+    },
+    {
+      label: "Analitik",
+      path: "/dashboard/officer/analytic",
+      icon: BarChart3,
+    },
+    {
+      label: "Validasi CSR",
+      path: "/dashboard/officer/validasi-csr",
+      icon: HandHeart,
+    },
+    {
+      label: "Validasi Sekolah",
+      path: "/dashboard/officer/validasi-sekolah",
+      icon: GraduationCap,
+    },
+    {
+      label: "Review",
+      path: "/dashboard/officer/review",
+      icon: ClipboardCheck,
+    },
+    {
+      label: "Gen AI",
+      path: "/dashboard/officer/gen-ai",
+      icon: Bot,
     },
     profileNavItem,
+    productNavItem,
   ],
 
   analyst: [
@@ -101,24 +145,67 @@ export const dashboardNavByRole = {
       icon: BarChart3,
     },
     profileNavItem,
+    productNavItem,
   ],
 
   csr_partner: [
     {
-      label: "Ruang Bantuan",
-      path: "/dashboard/csr",
-      icon: HandHeart,
+      label: "Map Risk",
+      path: "/dashboard/csr/map-risk",
+      icon: MapPinned,
+    },
+    {
+      label: "AI Matching",
+      path: "/dashboard/csr/ai-matching",
+      icon: Bot,
+    },
+    {
+      label: "Analitik",
+      path: "/dashboard/csr/analytic",
+      icon: BarChart3,
+    },
+    {
+      label: "Pengajuan",
+      path: "/dashboard/csr/pengajuan",
+      icon: FilePlus2,
+    },
+    {
+      label: "Riwayat Pengajuan",
+      path: "/dashboard/csr/riwayat",
+      icon: FileClock,
+    },
+    {
+      label: "Gen AI",
+      path: "/dashboard/csr/gen-ai",
+      icon: Bot,
     },
     profileNavItem,
+    productNavItem,
   ],
 
   school_operator: [
     {
-      label: "Ruang Sekolah",
-      path: "/dashboard/school",
-      icon: GraduationCap,
+      label: "Overview",
+      path: "/dashboard/school/overview",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Pengajuan",
+      path: "/dashboard/school/pengajuan",
+      icon: FilePlus2,
+    },
+    {
+      label: "Riwayat Pengajuan",
+      path: "/dashboard/school/riwayat",
+      icon: FileClock,
     },
     profileNavItem,
+    {
+      label: "Gen AI",
+      path: "/dashboard/school/gen-ai",
+      icon: Bot,
+    },
+    productNavItem,
   ],
 
   viewer: [
@@ -128,33 +215,16 @@ export const dashboardNavByRole = {
       icon: Eye,
     },
     profileNavItem,
+    productNavItem,
   ],
 };
 
-export const dashboardUtilityNav = [
-  {
-    label: "Landing",
-    path: "/",
-    icon: Home,
-  },
-  {
-    label: "Peta Publik",
-    path: "/#risk-map",
-    icon: MapPinned,
-    isAnchor: true,
-  },
-  {
-    label: "Tentang Produk",
-    path: "/#product",
-    icon: Building2,
-    isAnchor: true,
-  },
-];
+export const dashboardUtilityNav = [];
 
 export const getDashboardRoleMeta = (role) => {
-  return dashboardRoleMeta[role] || dashboardRoleMeta.viewer;
+  return dashboardRoleMeta[normalizeDashboardRole(role)] || dashboardRoleMeta.viewer;
 };
 
 export const getDashboardNavItems = (role) => {
-  return dashboardNavByRole[role] || dashboardNavByRole.viewer;
+  return dashboardNavByRole[normalizeDashboardRole(role)] || dashboardNavByRole.viewer;
 };

@@ -48,7 +48,7 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-extrabold uppercase tracking-[-0.02em] text-[#102A43]">
+            <h3 className="text-lg font-extrabold uppercase text-[#102A43]">
               {getRegionName(prediction)}
             </h3>
 
@@ -106,7 +106,7 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
             Risk Score
           </p>
-          <p className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
             {score.toFixed(1)}
           </p>
         </div>
@@ -115,7 +115,7 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
             Priority Score
           </p>
-          <p className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
             {Number(prediction.priority_score || 0).toFixed(1)}
           </p>
         </div>
@@ -124,7 +124,7 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
             Confidence
           </p>
-          <p className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
             {formatPercent(confidencePercent)}
           </p>
         </div>
@@ -156,7 +156,7 @@ function OverrideModal({ prediction, isSubmitting, onClose, onConfirm }) {
               Override Prediksi
             </p>
 
-            <h3 className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+            <h3 className="mt-2 text-2xl font-extrabold text-[#102A43]">
               {getRegionName(prediction)}
             </h3>
 
@@ -293,7 +293,11 @@ export default function PredictionReviewQueuePanel({
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchPendingReviews(controller.signal);
+    const loadPendingReviews = async () => {
+      await fetchPendingReviews(controller.signal);
+    };
+
+    loadPendingReviews();
 
     return () => controller.abort();
   }, [fetchPendingReviews]);

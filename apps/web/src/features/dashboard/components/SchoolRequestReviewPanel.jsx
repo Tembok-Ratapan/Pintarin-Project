@@ -83,7 +83,7 @@ function ReviewModal({
             Review Ajuan
           </p>
 
-          <h3 className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <h3 className="mt-2 text-2xl font-extrabold text-[#102A43]">
             {request.title}
           </h3>
 

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../../components/ui/Button";
 import LoadingState from "../../../components/feedback/LoadingState";
@@ -21,6 +22,7 @@ import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
+import ComingSoonPanel from "../components/ComingSoonPanel";
 import { csrAidService } from "../csrAidService";
 import { dashboardService } from "../dashboardService";
 import { schoolCatalogService } from "../schoolCatalogService";
@@ -99,6 +101,41 @@ const getStatusBadgeClass = (status) => {
   }
 
   return "border-sky-200 bg-sky-50 text-sky-700";
+};
+
+const defaultCsrSection = "map-risk";
+
+const csrSectionMeta = {
+  "map-risk": {
+    badge: "Map Risk",
+    title: "Map Risk",
+    description: "Lihat wilayah prioritas untuk penyaluran bantuan CSR.",
+  },
+  "ai-matching": {
+    badge: "AI Matching",
+    title: "AI Matching",
+    description: "Temukan wilayah yang paling sesuai dengan fokus CSR.",
+  },
+  analytic: {
+    badge: "Analitik",
+    title: "Analitik CSR",
+    description: "Ringkasan nilai bantuan, proposal aktif, dan pola penyaluran.",
+  },
+  pengajuan: {
+    badge: "Pengajuan",
+    title: "Pengajuan Bantuan",
+    description: "Ajukan bantuan untuk sekolah tertentu atau wilayah prioritas.",
+  },
+  riwayat: {
+    badge: "Riwayat",
+    title: "Riwayat Pengajuan",
+    description: "Pantau status proposal bantuan CSR.",
+  },
+  "gen-ai": {
+    badge: "Gen AI",
+    title: "Gen AI",
+    description: "Coming soon.",
+  },
 };
 
 function SelectField({ label, value, onChange, children, disabled = false }) {
@@ -436,6 +473,11 @@ function CsrGuide() {
 }
 
 export default function CsrDashboardPage() {
+  const { section } = useParams();
+  const navigate = useNavigate();
+  const currentSection = section || defaultCsrSection;
+  const sectionMeta = csrSectionMeta[currentSection];
+
   const [summaryData, setSummaryData] = useState(null);
   const [regions, setRegions] = useState([]);
   const [schools, setSchools] = useState([]);
@@ -653,6 +695,8 @@ export default function CsrDashboardPage() {
       description,
     }));
 
+    navigate("/dashboard/csr/pengajuan");
+
     window.setTimeout(() => {
       document
         .getElementById("csr-aid-proposal-form")
@@ -691,11 +735,113 @@ export default function CsrDashboardPage() {
     },
   ];
 
+  if (!sectionMeta) {
+    return <Navigate to="/dashboard/csr/map-risk" replace />;
+  }
+
+  const renderSectionContent = () => {
+    if (currentSection === "ai-matching") {
+      return (
+        <DashboardSection
+          badge="AI Matching"
+          title="Rekomendasi wilayah CSR"
+          description="Pilih fokus program, lalu gunakan rekomendasi untuk mengisi pengajuan."
+        >
+          <CsrMatchingPanel onUseRecommendation={handleUseRecommendationForAid} />
+        </DashboardSection>
+      );
+    }
+
+    if (currentSection === "analytic") {
+      return (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metricCards.map((metric) => (
+              <DashboardMetricCard key={metric.label} {...metric} />
+            ))}
+          </div>
+
+          <DashboardSection
+            badge="Panduan"
+            title="Cara memilih bantuan"
+            description="Gunakan jenis penyaluran sesuai kondisi CSR."
+          >
+            <CsrGuide />
+          </DashboardSection>
+        </>
+      );
+    }
+
+    if (currentSection === "pengajuan") {
+      return (
+        <div className="grid gap-6 xl:grid-cols-[1.08fr_0.72fr]">
+          <div id="csr-aid-proposal-form">
+            <DashboardSection
+              badge="Ajukan"
+              title="Buat bantuan"
+              description="Pilih tujuan bantuan CSR."
+            >
+              <AidProposalForm
+                form={aidForm}
+                schools={schools}
+                regions={regions}
+                isSubmitting={isSubmittingAid}
+                onChange={updateAidField}
+                onSubmit={handleSubmitAid}
+              />
+            </DashboardSection>
+          </div>
+
+          <DashboardSection
+            badge="Panduan"
+            title="Cara memilih bantuan"
+            description="Gunakan jenis penyaluran sesuai kondisi CSR."
+          >
+            <CsrGuide />
+          </DashboardSection>
+        </div>
+      );
+    }
+
+    if (currentSection === "riwayat") {
+      return (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metricCards.map((metric) => (
+              <DashboardMetricCard key={metric.label} {...metric} />
+            ))}
+          </div>
+
+          <DashboardSection
+            badge="Riwayat"
+            title="Riwayat bantuan"
+            description="Pantau status bantuan CSR."
+          >
+            <AidHistory proposals={proposals} />
+          </DashboardSection>
+        </>
+      );
+    }
+
+    if (currentSection === "gen-ai") {
+      return <ComingSoonPanel />;
+    }
+
+    return (
+      <DashboardChoroplethPanel
+        badge="Peta Kebutuhan"
+        title="Peta Kebutuhan"
+        description="Wilayah prioritas untuk penyaluran bantuan CSR."
+        topRegions={topRiskRegions}
+      />
+    );
+  };
+
   return (
     <DashboardShell
-      badge="Ruang Bantuan"
-      title="Ruang Bantuan"
-      description="Ajukan bantuan untuk sekolah tertentu atau bantuan fleksibel."
+      badge={sectionMeta.badge}
+      title={sectionMeta.title}
+      description={sectionMeta.description}
       actions={
         <Button
           variant="secondary"
@@ -725,63 +871,7 @@ export default function CsrDashboardPage() {
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {metricCards.map((metric) => (
-              <DashboardMetricCard key={metric.label} {...metric} />
-            ))}
-          </div>
-
-          <DashboardChoroplethPanel
-            badge="Peta Kebutuhan"
-            title="Peta Kebutuhan"
-            description="Wilayah prioritas untuk penyaluran bantuan CSR."
-            topRegions={topRiskRegions}
-          />
-
-          <DashboardSection
-            badge="AI Matching"
-            title="Rekomendasi wilayah CSR"
-            description="Temukan kecamatan paling tepat untuk program CSR berdasarkan hasil prediksi AI terbaru."
-          >
-            <CsrMatchingPanel
-              onUseRecommendation={handleUseRecommendationForAid}
-            />
-          </DashboardSection>
-
-          <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-            <div id="csr-aid-proposal-form">
-              <DashboardSection
-                badge="Ajukan"
-                title="Buat bantuan"
-                description="Pilih tujuan bantuan CSR."
-              >
-                <AidProposalForm
-                  form={aidForm}
-                  schools={schools}
-                  regions={regions}
-                  isSubmitting={isSubmittingAid}
-                  onChange={updateAidField}
-                  onSubmit={handleSubmitAid}
-                />
-              </DashboardSection>
-            </div>
-
-            <DashboardSection
-              badge="Riwayat"
-              title="Riwayat bantuan"
-              description="Pantau status bantuan CSR."
-            >
-              <AidHistory proposals={proposals} />
-            </DashboardSection>
-          </div>
-
-          <DashboardSection
-            badge="Panduan"
-            title="Cara memilih bantuan"
-            description="Gunakan jenis penyaluran sesuai kondisi CSR."
-          >
-            <CsrGuide />
-          </DashboardSection>
+          {renderSectionContent()}
         </>
       )}
     </DashboardShell>

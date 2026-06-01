@@ -42,7 +42,7 @@ export default function DashboardMetricCard({
               {label}
             </p>
 
-            <p className="font-heading mt-3 truncate text-3xl font-extrabold tracking-[-0.045em] text-[#102A43]">
+            <p className="font-heading mt-3 truncate text-2xl font-extrabold text-[#102A43] sm:text-[1.65rem]">
               {value}
             </p>
 

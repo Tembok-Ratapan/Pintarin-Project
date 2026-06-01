@@ -4,6 +4,7 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 
 const env = require('./config/env')
+const { createRateLimiter } = require('./middlewares/rateLimiter')
 const healthRoutes = require('./modules/health/health.routes')
 const authRoutes = require('./modules/auth/auth.routes')
 const profileRoutes = require('./modules/profiles/profile.routes')
@@ -20,17 +21,40 @@ const aiRoutes = require('./modules/ai/ai.routes')
 
 const app = express()
 
+if (env.security.trustProxy) {
+  app.set('trust proxy', 1)
+}
+
 app.use(helmet())
 
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin(origin, callback) {
+      if (!origin || env.clientUrls.includes(origin)) {
+        return callback(null, true)
+      }
+
+      const error = new Error('Not allowed by CORS')
+      error.statusCode = 403
+
+      return callback(error)
+    },
     credentials: true,
   })
 )
 
 app.use(express.json({ limit: '2mb' }))
 app.use(express.urlencoded({ extended: true }))
+
+if (env.security.rateLimitEnabled) {
+  app.use(
+    createRateLimiter({
+      windowMs: env.security.rateLimitWindowMs,
+      max: env.security.rateLimitMax,
+      message: 'Terlalu banyak request. Coba lagi beberapa saat lagi.',
+    })
+  )
+}
 
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'))

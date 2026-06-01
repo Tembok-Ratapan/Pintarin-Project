@@ -131,7 +131,7 @@ function RecommendationCard({ item, rank, onUseRecommendation }) {
               #{rank}
             </span>
 
-            <h3 className="text-lg font-extrabold uppercase tracking-[-0.02em] text-[#102A43]">
+            <h3 className="text-lg font-extrabold uppercase text-[#102A43]">
               {getRegionName(item)}
             </h3>
 
@@ -184,7 +184,7 @@ function RecommendationCard({ item, rank, onUseRecommendation }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
             Risk Score
           </p>
-          <p className="mt-2 text-xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-xl font-extrabold text-[#102A43]">
             {Number(item.predicted_score || 0).toFixed(1)}
           </p>
         </div>
@@ -193,7 +193,7 @@ function RecommendationCard({ item, rank, onUseRecommendation }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
             Priority
           </p>
-          <p className="mt-2 text-xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-xl font-extrabold text-[#102A43]">
             {Number(item.priority_score || 0).toFixed(1)}
           </p>
         </div>
@@ -202,7 +202,7 @@ function RecommendationCard({ item, rank, onUseRecommendation }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
             PIP Coverage
           </p>
-          <p className="mt-2 text-xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-xl font-extrabold text-[#102A43]">
             {formatPercent(Number(item.pip_coverage_pct || 0))}
           </p>
         </div>
@@ -211,7 +211,7 @@ function RecommendationCard({ item, rank, onUseRecommendation }) {
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
             Warga Rentan
           </p>
-          <p className="mt-2 text-xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <p className="mt-2 text-xl font-extrabold text-[#102A43]">
             {formatNumber(item.total_vulnerable_population || 0)}
           </p>
         </div>

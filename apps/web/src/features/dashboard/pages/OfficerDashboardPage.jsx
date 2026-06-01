@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   AlertTriangle,
+  BarChart3,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
@@ -8,6 +9,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
 } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 
 import Button from "../../../components/ui/Button";
 import LoadingState from "../../../components/feedback/LoadingState";
@@ -16,6 +18,7 @@ import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
+import ComingSoonPanel from "../components/ComingSoonPanel";
 import { dashboardService } from "../dashboardService";
 import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
 import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
@@ -36,7 +39,51 @@ const getConfidencePercent = (prediction) => {
   return score <= 1 ? score * 100 : score;
 };
 
+const defaultOfficerSection = "overview";
+
+const officerSectionMeta = {
+  overview: {
+    badge: "Ruang Dinas",
+    title: "Overview Dinas",
+    description: "Ringkasan validasi, prioritas risiko, dan kualitas prediksi.",
+  },
+  "map-risk": {
+    badge: "Map Risk",
+    title: "Map Risk",
+    description: "Pantau wilayah yang perlu divalidasi dan diprioritaskan.",
+  },
+  analytic: {
+    badge: "Analitik",
+    title: "Analitik Dinas",
+    description: "Baca antrean validasi dan confidence prediksi AI.",
+  },
+  "validasi-csr": {
+    badge: "Validasi CSR",
+    title: "Validasi CSR",
+    description: "Review dan validasi bantuan yang diajukan mitra CSR.",
+  },
+  "validasi-sekolah": {
+    badge: "Validasi Sekolah",
+    title: "Validasi Sekolah",
+    description: "Review kebutuhan yang dikirim oleh operator sekolah.",
+  },
+  review: {
+    badge: "Review",
+    title: "Review Prediksi",
+    description: "Validasi prediksi AI yang membutuhkan keputusan manual.",
+  },
+  "gen-ai": {
+    badge: "Gen AI",
+    title: "Gen AI",
+    description: "Coming soon.",
+  },
+};
+
 export default function OfficerDashboardPage() {
+  const { section } = useParams();
+  const currentSection = section || defaultOfficerSection;
+  const sectionMeta = officerSectionMeta[currentSection];
+
   const [summaryData, setSummaryData] = useState(null);
   const [pendingPayload, setPendingPayload] = useState({
     count: 0,
@@ -145,11 +192,190 @@ export default function OfficerDashboardPage() {
     },
   ];
 
+  if (!sectionMeta) {
+    return <Navigate to="/dashboard/officer/overview" replace />;
+  }
+
+  const decisionGuide = (
+    <DashboardSection
+      badge="Decision Guide"
+      title="Prinsip validasi"
+      description="Gunakan AI sebagai bantuan analisis, bukan keputusan tunggal."
+    >
+      <div className="space-y-4">
+        {[
+          {
+            title: "Approve",
+            description: "Pakai saat label AI sesuai konteks data wilayah.",
+            icon: CheckCircle2,
+          },
+          {
+            title: "Override",
+            description: "Pakai saat bukti lapangan lebih kuat dari prediksi.",
+            icon: SlidersHorizontal,
+          },
+          {
+            title: "Audit Trail",
+            description: "Setiap validasi dicatat untuk transparansi.",
+            icon: AlertTriangle,
+          },
+        ].map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <div
+              key={item.title}
+              className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/35"
+            >
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                <Icon size={18} />
+              </div>
+
+              <p className="font-extrabold text-[#102A43]">{item.title}</p>
+
+              <p className="mt-2 text-sm leading-6 text-[#64748B]">
+                {item.description}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </DashboardSection>
+  );
+
+  const renderMetricGrid = () => (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {metricCards.map((metric) => (
+        <DashboardMetricCard key={metric.label} {...metric} />
+      ))}
+    </div>
+  );
+
+  const renderSectionContent = () => {
+    if (currentSection === "map-risk") {
+      return (
+        <DashboardChoroplethPanel
+          badge="Peta Risiko"
+          title="Peta Risiko"
+          description="Wilayah yang perlu divalidasi dan diprioritaskan."
+          topRegions={topRiskRegions}
+        />
+      );
+    }
+
+    if (currentSection === "analytic") {
+      return (
+        <>
+          {renderMetricGrid()}
+
+          <DashboardSection
+            badge="Kualitas Data"
+            title="Kesehatan antrean validasi"
+            description="Gunakan angka ini untuk menentukan prioritas kerja harian."
+          >
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  label: "Antrean",
+                  value: formatNumber(pendingCount),
+                  helper: "Menunggu validasi",
+                  icon: Clock3,
+                },
+                {
+                  label: "Risiko Tinggi",
+                  value: formatNumber(highRiskQueue.length),
+                  helper: "Butuh prioritas",
+                  icon: AlertTriangle,
+                },
+                {
+                  label: "Confidence",
+                  value: formatPercent(avgConfidence),
+                  helper: "Rata-rata prediksi",
+                  icon: BarChart3,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.label}
+                    className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/35"
+                  >
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                      <Icon size={18} />
+                    </div>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#64748B]">
+                      {item.label}
+                    </p>
+                    <p className="font-heading mt-2 text-2xl font-extrabold text-[#102A43]">
+                      {item.value}
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-[#64748B]">
+                      {item.helper}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </DashboardSection>
+        </>
+      );
+    }
+
+    if (currentSection === "validasi-csr") {
+      return <CsrAidReviewPanel />;
+    }
+
+    if (currentSection === "validasi-sekolah") {
+      return <SchoolRequestReviewPanel />;
+    }
+
+    if (currentSection === "review") {
+      return (
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <DashboardSection
+            badge="Human-in-the-Loop"
+            title="Antrian review prediksi"
+            description="Prediksi confidence rendah perlu diperiksa sebelum dipakai sebagai keputusan final."
+          >
+            <PredictionReviewQueuePanel
+              limit={30}
+              onValidated={() => setReloadKey((current) => current + 1)}
+            />
+          </DashboardSection>
+
+          {decisionGuide}
+        </div>
+      );
+    }
+
+    if (currentSection === "gen-ai") {
+      return <ComingSoonPanel />;
+    }
+
+    return (
+      <>
+        {renderMetricGrid()}
+
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <DashboardChoroplethPanel
+            badge="Peta Risiko"
+            title="Peta Risiko"
+            description="Wilayah yang perlu divalidasi dan diprioritaskan."
+            topRegions={topRiskRegions}
+          />
+
+          {decisionGuide}
+        </div>
+      </>
+    );
+  };
+
   return (
     <DashboardShell
-      badge="Ruang Dinas"
-      title="Ruang Dinas"
-      description="Validasi ajuan, bantuan CSR, dan prediksi AI yang membutuhkan review manual."
+      badge={sectionMeta.badge}
+      title={sectionMeta.title}
+      description={sectionMeta.description}
       actions={
         <Button
           variant="secondary"
@@ -172,85 +398,7 @@ export default function OfficerDashboardPage() {
             />
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {metricCards.map((metric) => (
-              <DashboardMetricCard key={metric.label} {...metric} />
-            ))}
-          </div>
-
-          <DashboardChoroplethPanel
-            badge="Peta Risiko"
-            title="Peta Risiko"
-            description="Wilayah yang perlu divalidasi dan diprioritaskan."
-            topRegions={topRiskRegions}
-          />
-
-          <SchoolRequestReviewPanel />
-
-          <CsrAidReviewPanel />
-
-          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <DashboardSection
-              badge="Human-in-the-Loop"
-              title="Antrian review prediksi"
-              description="Prediksi confidence rendah perlu diperiksa sebelum dipakai sebagai keputusan final."
-            >
-              <PredictionReviewQueuePanel
-                limit={30}
-                onValidated={() => setReloadKey((current) => current + 1)}
-              />
-            </DashboardSection>
-
-            <DashboardSection
-              badge="Decision Guide"
-              title="Prinsip validasi"
-              description="Gunakan AI sebagai bantuan analisis, bukan sebagai keputusan tunggal."
-            >
-              <div className="space-y-4">
-                {[
-                  {
-                    title: "Approve",
-                    description:
-                      "Gunakan saat label AI sesuai dengan konteks data dan kondisi wilayah.",
-                    icon: CheckCircle2,
-                  },
-                  {
-                    title: "Override",
-                    description:
-                      "Gunakan saat petugas memiliki bukti lapangan yang lebih kuat dari prediksi AI.",
-                    icon: SlidersHorizontal,
-                  },
-                  {
-                    title: "Audit Trail",
-                    description:
-                      "Setiap keputusan validasi akan dicatat sebagai history untuk transparansi dan evaluasi.",
-                    icon: AlertTriangle,
-                  },
-                ].map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <div
-                      key={item.title}
-                      className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/35"
-                    >
-                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-                        <Icon size={18} />
-                      </div>
-
-                      <p className="font-extrabold text-[#102A43]">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-2 text-sm leading-7 text-[#64748B]">
-                        {item.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </DashboardSection>
-          </div>
+          {renderSectionContent()}
         </>
       )}
     </DashboardShell>

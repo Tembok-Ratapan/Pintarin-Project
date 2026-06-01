@@ -11,25 +11,40 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import BrandLogo from "../../components/brand/BrandLogo";
 import Button from "../../components/ui/Button";
+import { getDashboardPathByRole } from "../dashboard/dashboardRoutes";
 import { useAuth } from "./useAuth";
 import BandungBoundaryVisual from "./components/BandungBoundaryVisual";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
 
-  const [identifier, setIdentifier] = useState("admin_1");
-  const [password, setPassword] = useState("Pintarin@2026");
-  const [remember, setRemember] = useState(true);
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const redirectPath = location.state?.from?.pathname || "/dashboard";
+  const requestedRedirectPath = location.state?.from?.pathname;
+
+  const getPostLoginRedirectPath = (nextUser) => {
+    const roleDashboardPath = getDashboardPathByRole(nextUser?.role);
+
+    if (
+      !requestedRedirectPath ||
+      requestedRedirectPath === "/" ||
+      requestedRedirectPath === "/login" ||
+      requestedRedirectPath === "/dashboard"
+    ) {
+      return roleDashboardPath;
+    }
+
+    return requestedRedirectPath;
+  };
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to={redirectPath} replace />;
+    return <Navigate to={getPostLoginRedirectPath(user)} replace />;
   }
 
   const handleSubmit = async (event) => {
@@ -39,12 +54,12 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login({
+      const result = await login({
         identifier: identifier.trim(),
         password,
       });
 
-      navigate(redirectPath, { replace: true });
+      navigate(getPostLoginRedirectPath(result.user), { replace: true });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message ||
@@ -106,7 +121,7 @@ export default function LoginPage() {
                     onChange={(event) => setIdentifier(event.target.value)}
                     autoComplete="username"
                     className="h-12 w-full rounded-2xl border border-[#D6DEE8] bg-white px-11 text-sm font-semibold text-[#102A43] outline-none transition placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:ring-4 focus:ring-[#5EEAD4]/24"
-                    placeholder="admin_1"
+                    placeholder="Masukkan username atau email"
                     required
                   />
                 </div>
@@ -152,25 +167,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <label className="flex cursor-pointer items-center gap-2 font-semibold text-[#475569]">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(event) => setRemember(event.target.checked)}
-                    className="h-4 w-4 rounded border-[#CBD5E1] text-[#0F766E] focus:ring-[#5EEAD4]"
-                  />
-                  Remember me
-                </label>
-
-                <button
-                  type="button"
-                  className="font-extrabold text-[#0F766E] transition hover:text-[#115E59]"
-                >
-                  Forgot password
-                </button>
-              </div>
-
               {errorMessage && (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-700">
                   {errorMessage}
@@ -186,25 +182,6 @@ export default function LoginPage() {
                 {isSubmitting ? "Memproses..." : "Sign in"}
                 {!isSubmitting && <ArrowRight size={18} />}
               </Button>
-
-              <div className="relative py-1">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="h-px w-full bg-[#E2E8F0]" />
-                </div>
-
-                <div className="relative flex justify-center">
-                  <span className="bg-[#F8FAFC] px-3 text-xs font-bold uppercase tracking-[0.16em] text-[#94A3B8]">
-                    Development
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#D6DEE8] bg-white px-4 py-3 text-center text-xs font-medium leading-6 text-[#64748B]">
-                Default password:{" "}
-                <span className="font-extrabold text-[#0F766E]">
-                  Pintarin@2026
-                </span>
-              </div>
             </form>
           </div>
         </section>

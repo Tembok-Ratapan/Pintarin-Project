@@ -285,7 +285,7 @@ function DataSignalGrid({ summary = {} }) {
               {item.label}
             </p>
 
-            <p className="mt-2 text-xl font-extrabold tracking-[-0.03em] text-[#102A43]">
+            <p className="mt-2 text-xl font-extrabold text-[#102A43]">
               {item.value}
             </p>
           </div>

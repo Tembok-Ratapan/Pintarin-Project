@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import Button from "../../../components/ui/Button";
 import LoadingState from "../../../components/feedback/LoadingState";
@@ -31,6 +31,7 @@ import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import DashboardTable from "../components/DashboardTable";
+import ComingSoonPanel from "../components/ComingSoonPanel";
 import { dashboardService } from "../dashboardService";
 import { profileService } from "../profileService";
 import { schoolRequestService } from "../schoolRequestService";
@@ -145,6 +146,31 @@ const getStatusBadgeClass = (status) => {
   return "border-sky-200 bg-sky-50 text-sky-700";
 };
 
+const defaultSchoolSection = "overview";
+
+const schoolSectionMeta = {
+  overview: {
+    badge: "Ruang Sekolah",
+    title: "Overview Sekolah",
+    description: "Ringkasan data sekolah, status wilayah, dan sinyal prioritas.",
+  },
+  pengajuan: {
+    badge: "Pengajuan",
+    title: "Pengajuan Kebutuhan",
+    description: "Kirim kebutuhan sekolah dengan bukti pendukung yang jelas.",
+  },
+  riwayat: {
+    badge: "Riwayat",
+    title: "Riwayat Pengajuan",
+    description: "Pantau status kebutuhan yang sudah dikirim.",
+  },
+  "gen-ai": {
+    badge: "Gen AI",
+    title: "Gen AI",
+    description: "Coming soon.",
+  },
+};
+
 function RegionSelector({
   regions = [],
   selectedRegionId,
@@ -196,7 +222,7 @@ function SchoolDataCard({ profile, region }) {
             Data Sekolah
           </p>
 
-          <h2 className="font-heading mt-2 text-3xl font-extrabold uppercase tracking-[-0.045em] text-[#102A43] sm:text-4xl">
+          <h2 className="font-heading mt-2 text-2xl font-extrabold text-[#102A43] sm:text-[1.75rem]">
             {schoolName}
           </h2>
 
@@ -282,7 +308,7 @@ function EducationSignalPanel({ region }) {
               {signal.label}
             </p>
 
-            <p className="mt-2 text-xl font-extrabold tracking-[-0.03em] text-[#102A43]">
+            <p className="mt-2 text-xl font-extrabold text-[#102A43]">
               {signal.value}
             </p>
           </div>
@@ -533,6 +559,9 @@ function FollowUpGuidance() {
 
 export default function SchoolDashboardPage() {
   const { user } = useAuth();
+  const { section } = useParams();
+  const currentSection = section || defaultSchoolSection;
+  const sectionMeta = schoolSectionMeta[currentSection];
 
   const [profile, setProfile] = useState(null);
   const [summaryData, setSummaryData] = useState(null);
@@ -790,11 +819,119 @@ export default function SchoolDashboardPage() {
     },
   ];
 
+  if (!sectionMeta) {
+    return <Navigate to="/dashboard/school/overview" replace />;
+  }
+
+  const renderSectionContent = () => {
+    if (currentSection === "pengajuan") {
+      return (
+        <div className="grid gap-6 xl:grid-cols-[1.08fr_0.72fr]">
+          <DashboardSection
+            badge="Ajukan"
+            title="Ajukan kebutuhan"
+            description="Masukkan kebutuhan utama sekolah."
+          >
+            <RequestForm
+              form={requestForm}
+              isSubmitting={isSubmittingRequest}
+              onChange={updateRequestField}
+              onSubmit={handleSubmitRequest}
+            />
+          </DashboardSection>
+
+          <DashboardSection
+            badge="Panduan"
+            title="Agar cepat diproses"
+            description="Gunakan data singkat dan bukti jelas."
+          >
+            <FollowUpGuidance />
+          </DashboardSection>
+        </div>
+      );
+    }
+
+    if (currentSection === "riwayat") {
+      return (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metricCards.map((metric) => (
+              <DashboardMetricCard key={metric.label} {...metric} />
+            ))}
+          </div>
+
+          <DashboardSection
+            badge="Riwayat"
+            title="Riwayat ajuan"
+            description="Pantau status ajuan sekolah."
+          >
+            <RequestHistory requests={schoolRequests} />
+          </DashboardSection>
+        </>
+      );
+    }
+
+    if (currentSection === "gen-ai") {
+      return <ComingSoonPanel />;
+    }
+
+    return (
+      <>
+        <SchoolDataCard profile={profile} region={selectedRegion} />
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {metricCards.map((metric) => (
+            <DashboardMetricCard key={metric.label} {...metric} />
+          ))}
+        </div>
+
+        <DashboardChoroplethPanel
+          badge="Peta Wilayah"
+          title="Peta Wilayah"
+          description="Konteks risiko di sekitar wilayah sekolah."
+          topRegions={topRiskRegions}
+        />
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_0.82fr]">
+          <DashboardSection
+            badge="Wilayah"
+            title="Sinyal wilayah"
+            description="Ringkasan kondisi sekitar sekolah."
+          >
+            <EducationSignalPanel region={selectedRegion} />
+          </DashboardSection>
+
+          <DashboardSection
+            badge="Panduan"
+            title="Agar ajuan cepat diproses"
+            description="Gunakan data singkat dan bukti jelas."
+          >
+            <FollowUpGuidance />
+          </DashboardSection>
+        </div>
+
+        <DashboardSection
+          badge="AI"
+          title="Sinyal risiko wilayah"
+          description="Prediksi terbaru terkait wilayah sekolah."
+        >
+          <DashboardTable
+            columns={predictionColumns}
+            rows={regionPredictions}
+            getRowKey={(prediction) => prediction.id}
+            emptyTitle="Belum ada prediksi wilayah."
+            emptyDescription="Prediksi akan tampil saat data tersedia."
+          />
+        </DashboardSection>
+      </>
+    );
+  };
+
   return (
     <DashboardShell
-      badge="Ruang Sekolah"
-      title="Ruang Sekolah"
-      description="Kelola data dan ajukan kebutuhan sekolah."
+      badge={sectionMeta.badge}
+      title={sectionMeta.title}
+      description={sectionMeta.description}
       actions={
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <RegionSelector
@@ -833,75 +970,7 @@ export default function SchoolDashboardPage() {
             </div>
           )}
 
-          <SchoolDataCard profile={profile} region={selectedRegion} />
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {metricCards.map((metric) => (
-              <DashboardMetricCard key={metric.label} {...metric} />
-            ))}
-          </div>
-
-          <DashboardChoroplethPanel
-            badge="Peta Wilayah"
-            title="Peta Wilayah"
-            description="Konteks risiko di sekitar wilayah sekolah."
-            topRegions={topRiskRegions}
-          />
-
-          <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <DashboardSection
-              badge="Ajukan"
-              title="Ajukan kebutuhan"
-              description="Masukkan kebutuhan utama sekolah."
-            >
-              <RequestForm
-                form={requestForm}
-                isSubmitting={isSubmittingRequest}
-                onChange={updateRequestField}
-                onSubmit={handleSubmitRequest}
-              />
-            </DashboardSection>
-
-            <DashboardSection
-              badge="Riwayat"
-              title="Riwayat ajuan"
-              description="Pantau status ajuan sekolah."
-            >
-              <RequestHistory requests={schoolRequests} />
-            </DashboardSection>
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[1fr_0.82fr]">
-            <DashboardSection
-              badge="Wilayah"
-              title="Sinyal wilayah"
-              description="Ringkasan kondisi sekitar sekolah."
-            >
-              <EducationSignalPanel region={selectedRegion} />
-            </DashboardSection>
-
-            <DashboardSection
-              badge="Panduan"
-              title="Agar ajuan cepat diproses"
-              description="Gunakan data singkat dan bukti jelas."
-            >
-              <FollowUpGuidance />
-            </DashboardSection>
-          </div>
-
-          <DashboardSection
-            badge="AI"
-            title="Sinyal risiko wilayah"
-            description="Prediksi terbaru terkait wilayah sekolah."
-          >
-            <DashboardTable
-              columns={predictionColumns}
-              rows={regionPredictions}
-              getRowKey={(prediction) => prediction.id}
-              emptyTitle="Belum ada prediksi wilayah."
-              emptyDescription="Prediksi akan tampil saat data tersedia."
-            />
-          </DashboardSection>
+          {renderSectionContent()}
         </>
       )}
     </DashboardShell>

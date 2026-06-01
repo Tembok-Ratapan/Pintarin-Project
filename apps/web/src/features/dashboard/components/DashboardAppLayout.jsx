@@ -20,10 +20,10 @@ function SidebarLink({ item, onNavigate }) {
       <a
         href={item.path}
         onClick={onNavigate}
-        className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold text-[#475569] transition hover:bg-white/58 hover:text-[#0F766E]"
+        className="flex min-w-0 items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold text-[#475569] transition hover:bg-white/58 hover:text-[#0F766E]"
       >
-        <Icon size={18} />
-        <span>{item.label}</span>
+        <Icon size={18} className="shrink-0" />
+        <span className="truncate">{item.label}</span>
       </a>
     );
   }
@@ -34,15 +34,15 @@ function SidebarLink({ item, onNavigate }) {
       onClick={onNavigate}
       className={({ isActive }) =>
         [
-          "flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold transition",
+          "flex min-w-0 items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold transition",
           isActive
             ? "bg-[#0F766E] text-white shadow-lg shadow-[#0F766E]/18"
             : "text-[#475569] hover:bg-white/58 hover:text-[#0F766E]",
         ].join(" ")
       }
     >
-      <Icon size={18} />
-      <span>{item.label}</span>
+      <Icon size={18} className="shrink-0" />
+      <span className="truncate">{item.label}</span>
     </NavLink>
   );
 }
@@ -114,21 +114,23 @@ function SidebarContent({ onNavigate }) {
           </div>
         </div>
 
-        <div>
-          <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
-            Umum
-          </p>
+        {dashboardUtilityNav.length > 0 && (
+          <div>
+            <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
+              Umum
+            </p>
 
-          <div className="space-y-1.5">
-            {dashboardUtilityNav.map((item) => (
-              <SidebarLink
-                key={item.path}
-                item={item}
-                onNavigate={onNavigate}
-              />
-            ))}
+            <div className="space-y-1.5">
+              {dashboardUtilityNav.map((item) => (
+                <SidebarLink
+                  key={item.path}
+                  item={item}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </nav>
 
       <div className="border-t border-white/60 p-4">
@@ -155,7 +157,7 @@ export default function DashboardAppLayout() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="pintarin-page-bg pointer-events-none fixed inset-0 -z-10" />
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[18rem] border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl lg:block">
         <SidebarContent />
       </aside>
 
@@ -185,7 +187,7 @@ export default function DashboardAppLayout() {
         </div>
       )}
 
-      <div className="lg:pl-[17.5rem]">
+      <div className="lg:pl-[18rem]">
         <header className="sticky top-0 z-30 border-b border-white/60 bg-white/42 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">

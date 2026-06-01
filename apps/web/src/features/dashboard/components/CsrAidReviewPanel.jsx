@@ -94,7 +94,7 @@ function ReviewModal({
             Review Bantuan CSR
           </p>
 
-          <h3 className="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-[#102A43]">
+          <h3 className="mt-2 text-2xl font-extrabold text-[#102A43]">
             {proposal.aid_name}
           </h3>
 

@@ -57,11 +57,6 @@ const getPredictionScore = (prediction) => {
   return Number(prediction?.predicted_score || prediction?.risk_score || 0);
 };
 
-const getConfidencePercent = (prediction) => {
-  const confidence = Number(prediction?.confidence_score || 0);
-  return confidence <= 1 ? confidence * 100 : confidence;
-};
-
 const getPriorityWidth = (ranking) => {
   const rank = Number(ranking || 10);
   return `${Math.max(34, 100 - (rank - 1) * 6)}%`;
@@ -202,7 +197,7 @@ function PublicInsightGrid({ summary = {} }) {
               {item.label}
             </p>
 
-            <p className="mt-2 text-xl font-extrabold tracking-[-0.03em] text-[#102A43]">
+            <p className="mt-2 text-xl font-extrabold text-[#102A43]">
               {item.value}
             </p>
           </div>

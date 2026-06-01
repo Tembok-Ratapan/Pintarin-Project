@@ -84,7 +84,7 @@ function PriorityRegionList({ regions = [] }) {
                       riskStatus,
                     )}`}
                   />
-                  <p className="truncate text-sm font-extrabold uppercase tracking-[-0.01em] text-[#102A43]">
+                  <p className="truncate text-sm font-extrabold uppercase text-[#102A43]">
                     {region.name}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ function AnalyticsGrid({ summary = {} }) {
               {item.label}
             </p>
 
-            <p className="mt-2 text-xl font-extrabold tracking-[-0.03em] text-[#102A43]">
+            <p className="mt-2 text-xl font-extrabold text-[#102A43]">
               {item.value}
             </p>
           </div>
@@ -485,7 +485,7 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
 
-                    <p className="mt-6 text-xl font-extrabold tracking-[-0.03em] text-[#0F766E]">
+                    <p className="mt-6 text-xl font-extrabold text-[#0F766E]">
                       {item.value}
                     </p>
                   </div>

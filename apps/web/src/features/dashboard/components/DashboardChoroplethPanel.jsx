@@ -38,6 +38,14 @@ const getRegionName = (region) => {
   return region?.name || region?.region_name || region?.nama_kecamatan || "";
 };
 
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 const getRiskStatus = (region) => {
   return (
     region?.risk_status ||
@@ -164,6 +172,12 @@ export default function DashboardChoroplethPanel({
     const riskStatus = getRiskStatus(matchedRegion);
     const vulnerable = matchedRegion?.total_vulnerable_population || "-";
     const pipGap = matchedRegion?.pip_gap || "-";
+    const safeFeatureName = escapeHtml(featureName || "Wilayah");
+    const safeRiskStatus = escapeHtml(
+      matchedRegion ? riskStatus : "Belum ada data",
+    );
+    const safeVulnerable = escapeHtml(vulnerable);
+    const safePipGap = escapeHtml(pipGap);
 
     layer.bindTooltip(featureName || "Wilayah", {
       sticky: true,
@@ -173,10 +187,10 @@ export default function DashboardChoroplethPanel({
 
     layer.bindPopup(`
       <div style="min-width: 180px">
-        <p style="margin:0 0 6px;font-weight:800;color:#102A43">${featureName || "Wilayah"}</p>
-        <p style="margin:0;color:#64748B;font-size:12px">Risiko: <b>${matchedRegion ? riskStatus : "Belum ada data"}</b></p>
-        <p style="margin:4px 0 0;color:#64748B;font-size:12px">Warga rentan: <b>${vulnerable}</b></p>
-        <p style="margin:4px 0 0;color:#64748B;font-size:12px">Gap PIP: <b>${pipGap}</b></p>
+        <p style="margin:0 0 6px;font-weight:800;color:#102A43">${safeFeatureName}</p>
+        <p style="margin:0;color:#64748B;font-size:12px">Risiko: <b>${safeRiskStatus}</b></p>
+        <p style="margin:4px 0 0;color:#64748B;font-size:12px">Warga rentan: <b>${safeVulnerable}</b></p>
+        <p style="margin:4px 0 0;color:#64748B;font-size:12px">Gap PIP: <b>${safePipGap}</b></p>
       </div>
     `);
 

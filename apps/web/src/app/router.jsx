@@ -93,6 +93,16 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "officer/:section",
+        element: (
+          <RouteSuspense label="Menyiapkan dashboard petugas dinas...">
+            <ProtectedRoute allowedRoles={["officer", "admin"]}>
+              <OfficerDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
         path: "analyst",
         element: (
           <RouteSuspense label="Menyiapkan dashboard analyst...">
@@ -113,7 +123,27 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "csr/:section",
+        element: (
+          <RouteSuspense label="Menyiapkan dashboard mitra CSR...">
+            <ProtectedRoute allowedRoles={["csr_partner", "admin"]}>
+              <CsrDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
         path: "school",
+        element: (
+          <RouteSuspense label="Menyiapkan dashboard operator sekolah...">
+            <ProtectedRoute allowedRoles={["school_operator", "admin"]}>
+              <SchoolDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "school/:section",
         element: (
           <RouteSuspense label="Menyiapkan dashboard operator sekolah...">
             <ProtectedRoute allowedRoles={["school_operator", "admin"]}>

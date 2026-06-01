@@ -1,34 +1,56 @@
 const TOKEN_KEY = "pintarin_token";
 const USER_KEY = "pintarin_user";
 
+const getStorage = (storageName) => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    return window[storageName];
+  } catch {
+    return null;
+  }
+};
+
+const getSessionStorage = () => {
+  return getStorage("sessionStorage");
+};
+
+const getLegacyLocalStorage = () => {
+  return getStorage("localStorage");
+};
+
 export const authStorage = {
   getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+    return getSessionStorage()?.getItem(TOKEN_KEY) || null;
   },
 
   setToken(token) {
-    localStorage.setItem(TOKEN_KEY, token);
+    getSessionStorage()?.setItem(TOKEN_KEY, token);
+    getLegacyLocalStorage()?.removeItem(TOKEN_KEY);
   },
 
   getUser() {
-    const savedUser = localStorage.getItem(USER_KEY);
+    const savedUser = getSessionStorage()?.getItem(USER_KEY);
 
     if (!savedUser) return null;
 
     try {
       return JSON.parse(savedUser);
     } catch {
-      localStorage.removeItem(USER_KEY);
+      getSessionStorage()?.removeItem(USER_KEY);
       return null;
     }
   },
 
   setUser(user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    getSessionStorage()?.setItem(USER_KEY, JSON.stringify(user));
+    getLegacyLocalStorage()?.removeItem(USER_KEY);
   },
 
   clear() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    getSessionStorage()?.removeItem(TOKEN_KEY);
+    getSessionStorage()?.removeItem(USER_KEY);
+    getLegacyLocalStorage()?.removeItem(TOKEN_KEY);
+    getLegacyLocalStorage()?.removeItem(USER_KEY);
   },
 };
