@@ -25,6 +25,7 @@ import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import DashboardTable from "../components/DashboardTable";
 import { dashboardService } from "../dashboardService";
+import PredictionConfidenceBadge from "../components/PredictionConfidenceBadge";
 
 const riskOrder = ["Tinggi", "Sedang", "Rendah"];
 
@@ -451,8 +452,20 @@ export default function AnalystDashboardPage() {
       key: "confidence",
       header: "Confidence",
       render: (prediction) => (
-        <span className="font-extrabold text-[#0F766E]">
-          {formatPercent(getConfidencePercent(prediction))}
+        <PredictionConfidenceBadge
+          compact
+          confidenceScore={prediction.confidence_score}
+          confidenceLevel={prediction.confidence_level}
+          needsHumanReview={prediction.needs_human_review}
+        />
+      ),
+    },
+    {
+      key: "recommendation",
+      header: "Rekomendasi",
+      render: (prediction) => (
+        <span className="block max-w-[360px] text-xs font-semibold leading-5 text-[#64748B]">
+          {prediction.recommendation_text || "Belum ada rekomendasi AI."}
         </span>
       ),
     },

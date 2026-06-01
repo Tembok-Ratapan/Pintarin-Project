@@ -1,0 +1,63 @@
+{
+  "model_version": "1.0.0",
+  "project": "PINTARIN",
+  "team_id": "CC26-PSU211",
+  "feature_cols": [
+    "Rasio_PIP_per_Rentan",
+    "Rasio_SD_per_Populasi",
+    "Gap_Bantuan",
+    "Urgency_Score",
+    "Total_Pra_Sekolah",
+    "Tahun_norm"
+  ],
+  "label_map": {
+    "Rendah": 0,
+    "Sedang": 1,
+    "Tinggi": 2
+  },
+  "inv_label_map": {
+    "0": "Rendah",
+    "1": "Sedang",
+    "2": "Tinggi"
+  },
+  "n_kecamatan": 30,
+  "kecamatan_list": [
+    "ANDIR",
+    "ANTAPANI",
+    "ARCAMANIK",
+    "ASTANAANYAR",
+    "BABAKAN CIPARAY",
+    "BANDUNG KIDUL",
+    "BANDUNG KULON",
+    "BANDUNG WETAN",
+    "BATUNUNGGAL",
+    "BOJONGLOA KALER",
+    "BOJONGLOA KIDUL",
+    "BUAHBATU",
+    "CIBEUNYING KALER",
+    "CIBEUNYING KIDUL",
+    "CIBIRU",
+    "CICENDO",
+    "CIDADAP",
+    "CINAMBO",
+    "COBLONG",
+    "GEDEBAGE",
+    "KIARACONDONG",
+    "LENGKONG",
+    "MANDALAJATI",
+    "PANYILEUKAN",
+    "RANCASARI",
+    "REGOL",
+    "SUKAJADI",
+    "SUKASARI",
+    "SUMUR BANDUNG",
+    "UJUNG BERUNG"
+  ],
+  "tahun_terakhir": 2025,
+  "tahun_min_fe": 2015,
+  "tahun_max_fe": 2025,
+  "risk_model_file": "pintarin_risk_scoring.keras",
+  "hybrid_model_file": "pintarin_hybrid_recommendation.keras",
+  "scaler_file": "pintarin_scaler.pkl",
+  "le_kecamatan_file": "pintarin_le_kecamatan.pkl"
+}

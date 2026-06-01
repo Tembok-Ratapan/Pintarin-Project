@@ -16,6 +16,7 @@ const schoolRequestRoutes = require('./modules/schoolRequests/schoolRequest.rout
 const csrAidRoutes = require('./modules/csrAid/csrAid.routes')
 const notFoundHandler = require('./middlewares/notFoundHandler')
 const errorHandler = require('./middlewares/errorHandler')
+const aiRoutes = require('./modules/ai/ai.routes')
 
 const app = express()
 
@@ -52,6 +53,7 @@ app.use('/api/csr', csrRoutes)
 app.use('/api/schools', schoolRoutes)
 app.use('/api/school-requests', schoolRequestRoutes)
 app.use('/api/csr-aid', csrAidRoutes)
+app.use('/api/ai', aiRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

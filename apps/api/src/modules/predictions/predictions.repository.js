@@ -1,16 +1,32 @@
 const { pool } = require('../../db/connection')
 
+const AI_ALGORITHM = 'FastAPI-Keras-Risk-Hybrid'
+
 const getLatestPredictionYear = async () => {
-  const [rows] = await pool.query(`
-    SELECT MAX(prediction_year) AS latest_year
-    FROM predictions
-  `)
+  const [rows] = await pool.query(
+    `
+    SELECT
+      COALESCE(
+        (
+          SELECT MAX(prediction_year)
+          FROM predictions
+          WHERE algorithm = ?
+            AND prediction_code LIKE 'AI-%'
+        ),
+        (
+          SELECT MAX(prediction_year)
+          FROM predictions
+        )
+      ) AS latest_year
+    `,
+    [AI_ALGORITHM]
+  )
 
   return rows[0]?.latest_year || null
 }
 
 const getLatestPredictions = async ({ year, limit = 10 }) => {
-  const [rows] = await pool.query(
+  const [aiRows] = await pool.query(
     `
     SELECT
       p.id,
@@ -20,6 +36,7 @@ const getLatestPredictions = async ({ year, limit = 10 }) => {
       p.model_version,
       p.algorithm,
       p.predicted_score,
+      p.priority_score,
       p.actual_score,
       p.predicted_label,
       p.actual_label,
@@ -28,8 +45,51 @@ const getLatestPredictions = async ({ year, limit = 10 }) => {
       p.confidence_level,
       p.needs_human_review,
       p.is_human_validated,
+      p.recommendation_text,
       p.validation_note,
       p.created_at,
+      p.updated_at,
+      r.id AS region_id,
+      r.region_code,
+      r.name AS region_name
+    FROM predictions p
+    JOIN regions r ON r.id = p.region_id
+    WHERE p.prediction_year = ?
+      AND p.algorithm = ?
+      AND p.prediction_code LIKE 'AI-%'
+    ORDER BY p.predicted_score DESC
+    LIMIT ?
+    `,
+    [year, AI_ALGORITHM, limit]
+  )
+
+  if (aiRows.length > 0) {
+    return aiRows
+  }
+
+  const [fallbackRows] = await pool.query(
+    `
+    SELECT
+      p.id,
+      p.prediction_code,
+      p.data_year,
+      p.prediction_year,
+      p.model_version,
+      p.algorithm,
+      p.predicted_score,
+      p.priority_score,
+      p.actual_score,
+      p.predicted_label,
+      p.actual_label,
+      p.final_label,
+      p.confidence_score,
+      p.confidence_level,
+      p.needs_human_review,
+      p.is_human_validated,
+      p.recommendation_text,
+      p.validation_note,
+      p.created_at,
+      p.updated_at,
       r.id AS region_id,
       r.region_code,
       r.name AS region_name
@@ -42,7 +102,7 @@ const getLatestPredictions = async ({ year, limit = 10 }) => {
     [year, limit]
   )
 
-  return rows
+  return fallbackRows
 }
 
 const getPendingReviewPredictions = async ({ limit = 20 }) => {
@@ -56,14 +116,17 @@ const getPendingReviewPredictions = async ({ limit = 20 }) => {
       p.model_version,
       p.algorithm,
       p.predicted_score,
+      p.priority_score,
       p.predicted_label,
       p.final_label,
       p.confidence_score,
       p.confidence_level,
       p.needs_human_review,
       p.is_human_validated,
+      p.recommendation_text,
       p.validation_note,
       p.created_at,
+      p.updated_at,
       r.id AS region_id,
       r.region_code,
       r.name AS region_name
@@ -71,10 +134,12 @@ const getPendingReviewPredictions = async ({ limit = 20 }) => {
     JOIN regions r ON r.id = p.region_id
     WHERE p.needs_human_review = TRUE
       AND p.is_human_validated = FALSE
+      AND p.algorithm = ?
+      AND p.prediction_code LIKE 'AI-%'
     ORDER BY p.confidence_score ASC, p.predicted_score DESC
     LIMIT ?
     `,
-    [limit]
+    [AI_ALGORITHM, limit]
   )
 
   return rows
@@ -91,6 +156,7 @@ const getPredictionById = async (id, connection = pool) => {
       p.model_version,
       p.algorithm,
       p.predicted_score,
+      p.priority_score,
       p.actual_score,
       p.predicted_label,
       p.actual_label,
@@ -99,6 +165,7 @@ const getPredictionById = async (id, connection = pool) => {
       p.confidence_level,
       p.needs_human_review,
       p.is_human_validated,
+      p.recommendation_text,
       p.validation_note,
       p.created_at,
       p.updated_at,

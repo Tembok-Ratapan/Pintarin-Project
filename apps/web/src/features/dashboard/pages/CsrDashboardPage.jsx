@@ -25,6 +25,7 @@ import { csrAidService } from "../csrAidService";
 import { dashboardService } from "../dashboardService";
 import { schoolCatalogService } from "../schoolCatalogService";
 import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
+import CsrMatchingPanel from "../components/CsrMatchingPanel";
 
 const aidTypes = [
   "Laptop",
@@ -46,6 +47,26 @@ const initialAidForm = {
   aid_value: "",
   description: "",
   evidence_url: "",
+};
+
+const aidTypeByFocusArea = {
+  umum: "Dana Fleksibel",
+  beasiswa: "Beasiswa",
+  infrastruktur_sd: "Renovasi",
+  angka_putus_sekolah: "Dana Fleksibel",
+};
+
+const aidValueByBudgetRange = {
+  kecil: "75000000",
+  sedang: "250000000",
+  besar: "750000000",
+};
+
+const focusLabelByValue = {
+  umum: "Umum",
+  beasiswa: "Beasiswa / PIP",
+  infrastruktur_sd: "Infrastruktur SD",
+  angka_putus_sekolah: "Pencegahan Putus Sekolah",
 };
 
 const getArray = (value) => {
@@ -583,6 +604,62 @@ export default function CsrDashboardPage() {
     }
   };
 
+  const handleUseRecommendationForAid = (recommendation, context = {}) => {
+    const focusArea = context.focusArea || "umum";
+    const budgetRange = context.budgetRange || "semua";
+    const regionName = getRegionName(recommendation);
+    const aidType = aidTypeByFocusArea[focusArea] || "Dana Fleksibel";
+    const suggestedValue = aidValueByBudgetRange[budgetRange] || "";
+    const reasons = Array.isArray(recommendation.reasons)
+      ? recommendation.reasons
+          .map((reason, index) => `${index + 1}. ${reason}`)
+          .join("\n")
+      : "";
+
+    const description = [
+      `Rekomendasi AI PINTARIN untuk wilayah ${regionName}.`,
+      `Fokus program: ${focusLabelByValue[focusArea] || focusArea}.`,
+      `Match score: ${Number(recommendation.match_score || 0)}%. Risk score: ${Number(
+        recommendation.predicted_score || 0,
+      ).toFixed(1)}. Priority score: ${Number(
+        recommendation.priority_score || 0,
+      ).toFixed(1)}.`,
+      recommendation.budget_fit
+        ? `Budget fit: ${recommendation.budget_fit}`
+        : "",
+      reasons ? `Alasan rekomendasi:\n${reasons}` : "",
+      recommendation.recommendation_text
+        ? `Catatan AI: ${recommendation.recommendation_text}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    setErrorMessage("");
+    setSuccessMessage(
+      "Rekomendasi AI sudah dimasukkan ke form bantuan. Lengkapi detail lalu ajukan.",
+    );
+
+    setAidForm((current) => ({
+      ...current,
+      allocation_type: "fleksibel",
+      target_school_id: "",
+      target_region_id: recommendation.region_id
+        ? String(recommendation.region_id)
+        : "",
+      aid_name: `Bantuan CSR ${aidType} - ${regionName}`,
+      aid_type: aidType,
+      aid_value: suggestedValue || current.aid_value,
+      description,
+    }));
+
+    window.setTimeout(() => {
+      document
+        .getElementById("csr-aid-proposal-form")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
+
   const metricCards = [
     {
       label: "Nilai CSR",
@@ -661,21 +738,33 @@ export default function CsrDashboardPage() {
             topRegions={topRiskRegions}
           />
 
+          <DashboardSection
+            badge="AI Matching"
+            title="Rekomendasi wilayah CSR"
+            description="Temukan kecamatan paling tepat untuk program CSR berdasarkan hasil prediksi AI terbaru."
+          >
+            <CsrMatchingPanel
+              onUseRecommendation={handleUseRecommendationForAid}
+            />
+          </DashboardSection>
+
           <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-            <DashboardSection
-              badge="Ajukan"
-              title="Buat bantuan"
-              description="Pilih tujuan bantuan CSR."
-            >
-              <AidProposalForm
-                form={aidForm}
-                schools={schools}
-                regions={regions}
-                isSubmitting={isSubmittingAid}
-                onChange={updateAidField}
-                onSubmit={handleSubmitAid}
-              />
-            </DashboardSection>
+            <div id="csr-aid-proposal-form">
+              <DashboardSection
+                badge="Ajukan"
+                title="Buat bantuan"
+                description="Pilih tujuan bantuan CSR."
+              >
+                <AidProposalForm
+                  form={aidForm}
+                  schools={schools}
+                  regions={regions}
+                  isSubmitting={isSubmittingAid}
+                  onChange={updateAidField}
+                  onSubmit={handleSubmitAid}
+                />
+              </DashboardSection>
+            </div>
 
             <DashboardSection
               badge="Riwayat"

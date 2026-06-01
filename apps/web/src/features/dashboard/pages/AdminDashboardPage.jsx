@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   AlertTriangle,
-  CheckCircle2,
   Clock3,
   HandHeart,
   Layers3,
@@ -31,6 +30,8 @@ import { dashboardService } from "../dashboardService";
 import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
 import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
 import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
+import PredictionConfidenceBadge from "../components/PredictionConfidenceBadge";
+import PredictionReviewQueuePanel from "../components/PredictionReviewQueuePanel";
 
 const getArray = (value) => {
   return Array.isArray(value) ? value : [];
@@ -117,55 +118,6 @@ function PriorityRegionList({ regions = [] }) {
   );
 }
 
-function PendingReviewList({ predictions = [] }) {
-  if (predictions.length === 0) {
-    return (
-      <div className="rounded-[1.5rem] border border-white/70 bg-white/44 p-5 ring-1 ring-white/40">
-        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-          <CheckCircle2 size={20} />
-        </div>
-
-        <p className="font-extrabold text-[#102A43]">
-          Tidak ada pending review.
-        </p>
-
-        <p className="mt-2 text-sm leading-7 text-[#64748B]">
-          Semua prediksi prioritas sudah aman untuk saat ini.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {predictions.slice(0, 6).map((prediction) => (
-        <div
-          key={prediction.id}
-          className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/40 backdrop-blur-xl"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="truncate font-extrabold uppercase tracking-[-0.01em] text-[#102A43]">
-                {prediction.region_name || prediction.nama_kecamatan || "-"}
-              </p>
-
-              <p className="mt-1 text-xs leading-5 text-[#64748B]">
-                {prediction.prediction_code || `PRED-${prediction.id}`} ·{" "}
-                {prediction.algorithm || "AI Model"} · Confidence{" "}
-                {formatPercent(Number(prediction.confidence_score || 0) * 100)}
-              </p>
-            </div>
-
-            <span className="shrink-0 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-extrabold text-yellow-800">
-              Review
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function AnalyticsGrid({ summary = {} }) {
   const analyticsItems = [
     {
@@ -232,7 +184,8 @@ export default function AdminDashboardPage() {
   const [summaryData, setSummaryData] = useState(null);
   const [regions, setRegions] = useState([]);
   const [latestPredictions, setLatestPredictions] = useState([]);
-  const [pendingReviews, setPendingReviews] = useState([]);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -263,10 +216,12 @@ export default function AdminDashboardPage() {
               signal: controller.signal,
             }),
             dashboardService.getPendingReviews({
-              limit: 6,
+              limit: 8,
               signal: controller.signal,
             }),
           ]);
+
+        if (controller.signal.aborted) return;
 
         if (summaryResult.status === "fulfilled") {
           setSummaryData(summaryResult.value);
@@ -281,7 +236,10 @@ export default function AdminDashboardPage() {
         }
 
         if (pendingResult.status === "fulfilled") {
-          setPendingReviews(getArray(pendingResult.value?.predictions));
+          setPendingReviewCount(
+            pendingResult.value?.count ||
+              getArray(pendingResult.value?.predictions).length,
+          );
         }
 
         if (summaryResult.status === "rejected") {
@@ -294,14 +252,16 @@ export default function AdminDashboardPage() {
           setErrorMessage("Dashboard belum bisa terhubung ke backend.");
         }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
 
     return () => controller.abort();
-  }, []);
+  }, [reloadKey]);
 
   const metricCards = [
     {
@@ -327,7 +287,7 @@ export default function AdminDashboardPage() {
     },
     {
       label: "Pending Review",
-      value: formatNumber(summary.pending_reviews || pendingReviews.length),
+      value: formatNumber(summary.pending_reviews || pendingReviewCount),
       helper: "Prediksi menunggu validasi",
       icon: Clock3,
       tone: "amber",
@@ -379,8 +339,20 @@ export default function AdminDashboardPage() {
       key: "confidence",
       header: "Confidence",
       render: (prediction) => (
-        <span className="font-extrabold text-[#0F766E]">
-          {formatPercent(Number(prediction.confidence_score || 0) * 100)}
+        <PredictionConfidenceBadge
+          compact
+          confidenceScore={prediction.confidence_score}
+          confidenceLevel={prediction.confidence_level}
+          needsHumanReview={prediction.needs_human_review}
+        />
+      ),
+    },
+    {
+      key: "recommendation",
+      header: "Rekomendasi",
+      render: (prediction) => (
+        <span className="block max-w-[360px] text-xs font-semibold leading-5 text-[#64748B]">
+          {prediction.recommendation_text || "Belum ada rekomendasi AI."}
         </span>
       ),
     },
@@ -390,7 +362,7 @@ export default function AdminDashboardPage() {
     <DashboardShell
       badge="Pusat Kendali"
       title="Pusat Kendali"
-      description="Pantau data, ajuan, dan bantuan."
+      description="Pantau data, ajuan, bantuan, dan prediksi AI."
     >
       {isLoading ? (
         <LoadingState label="Mengambil data dashboard dari backend..." />
@@ -458,7 +430,11 @@ export default function AdminDashboardPage() {
               title="Antrian validasi"
               description="Prediksi yang membutuhkan review manusia sebelum menjadi keputusan final."
             >
-              <PendingReviewList predictions={pendingReviews} />
+              <PredictionReviewQueuePanel
+                limit={8}
+                compact
+                onValidated={() => setReloadKey((current) => current + 1)}
+              />
             </DashboardSection>
           </div>
 
@@ -476,7 +452,7 @@ export default function AdminDashboardPage() {
                 description:
                   "Petugas dapat memvalidasi prediksi confidence rendah.",
                 icon: ShieldCheck,
-                value: formatNumber(summary.pending_reviews),
+                value: formatNumber(summary.pending_reviews || pendingReviewCount),
               },
               {
                 title: "CSR Alignment",
