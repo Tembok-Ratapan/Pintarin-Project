@@ -1,9 +1,16 @@
 import { useState } from "react";
-import { Building2, LogOut, Menu, UserRoundCog, X } from "lucide-react";
+import {
+  Building2,
+  ChevronDown,
+  LogOut,
+  Menu,
+  UserRoundCog,
+  X,
+} from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import BrandLogo from "../../../components/brand/BrandLogo";
-import Button from "../../../components/ui/Button";
+import Grainient from "../../../components/ui/Grainient";
 import { useAuth } from "../../auth/useAuth";
 import {
   dashboardUtilityNav,
@@ -47,19 +54,36 @@ function SidebarLink({ item, onNavigate }) {
   );
 }
 
+const groupNavItems = (items) => {
+  const groups = [];
+  const groupByLabel = new Map();
+
+  items.forEach((item) => {
+    const label = item.group || "Menu";
+
+    if (!groupByLabel.has(label)) {
+      const group = {
+        label,
+        items: [],
+      };
+
+      groups.push(group);
+      groupByLabel.set(label, group);
+    }
+
+    groupByLabel.get(label).items.push(item);
+  });
+
+  return groups;
+};
+
 function SidebarContent({ onNavigate }) {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const role = user?.role || "viewer";
-  const roleMeta = getDashboardRoleMeta(role);
   const dashboardPath = getDashboardPathByRole(role);
   const roleNavItems = getDashboardNavItems(role);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/", { replace: true });
-  };
+  const navGroups = groupNavItems(roleNavItems);
 
   return (
     <div className="flex h-full flex-col">
@@ -73,46 +97,24 @@ function SidebarContent({ onNavigate }) {
         </Link>
       </div>
 
-      <div className="px-4">
-        <div className="rounded-[1.5rem] border border-white/70 bg-white/48 p-4 shadow-sm shadow-slate-200/20 ring-1 ring-white/40 backdrop-blur-2xl">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-              <UserRoundCog size={18} />
-            </div>
+      <nav className="mt-2 flex-1 space-y-5 overflow-y-auto px-4 pb-4">
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
+              {group.label}
+            </p>
 
-            <div className="min-w-0">
-              <p className="truncate text-sm font-extrabold text-[#102A43]">
-                {user?.full_name || user?.username || "PINTARIN User"}
-              </p>
-
-              <p className="mt-1 truncate text-xs font-bold text-[#0F766E]">
-                {roleMeta.workspace}
-              </p>
-
-              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-[#64748B]">
-                {roleMeta.tagline}
-              </p>
+            <div className="space-y-1.5">
+              {group.items.map((item) => (
+                <SidebarLink
+                  key={`${group.label}-${item.path}`}
+                  item={item}
+                  onNavigate={onNavigate}
+                />
+              ))}
             </div>
           </div>
-        </div>
-      </div>
-
-      <nav className="mt-6 flex-1 space-y-7 overflow-y-auto px-4 pb-4">
-        <div>
-          <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
-            Menu
-          </p>
-
-          <div className="space-y-1.5">
-            {roleNavItems.map((item) => (
-              <SidebarLink
-                key={item.path}
-                item={item}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </div>
-        </div>
+        ))}
 
         {dashboardUtilityNav.length > 0 && (
           <div>
@@ -132,17 +134,89 @@ function SidebarContent({ onNavigate }) {
           </div>
         )}
       </nav>
+    </div>
+  );
+}
 
-      <div className="border-t border-white/60 p-4">
-        <Button
-          variant="secondary"
-          className="w-full justify-center"
-          onClick={handleLogout}
+function HeaderUserMenu({ user }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const displayName = user?.full_name || user?.username || "PINTARIN User";
+  const institution = user?.institution || "PINTARIN Workspace";
+
+  const handleLogout = async () => {
+    setIsOpen(false);
+    await logout();
+    navigate("/", { replace: true });
+  };
+
+  return (
+    <div className="relative">
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu akun"
+          className="fixed inset-0 z-30 cursor-default"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="relative z-40 flex max-w-[13rem] items-center gap-3 rounded-2xl px-2.5 py-2 text-left transition hover:bg-white/52 sm:max-w-[18rem]"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+          <Building2 size={18} />
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-extrabold text-[#102A43]">
+            {displayName}
+          </span>
+          <span className="mt-0.5 block truncate text-xs font-semibold text-[#64748B]">
+            {institution}
+          </span>
+        </span>
+
+        <ChevronDown
+          size={16}
+          className={`shrink-0 text-[#64748B] transition ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+0.55rem)] z-50 w-56 overflow-hidden rounded-[1.35rem] border border-white/70 bg-white/90 p-2 shadow-2xl shadow-slate-900/12 ring-1 ring-white/50 backdrop-blur-2xl"
         >
-          <LogOut size={17} />
-          Keluar
-        </Button>
-      </div>
+          <Link
+            to="/dashboard/profile"
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-extrabold text-[#475569] transition hover:bg-[#5EEAD4]/14 hover:text-[#0F766E]"
+          >
+            <UserRoundCog size={17} />
+            Profile
+          </Link>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-extrabold text-red-700 transition hover:bg-red-50"
+          >
+            <LogOut size={17} />
+            Keluar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -154,8 +228,37 @@ export default function DashboardAppLayout() {
   const roleMeta = getDashboardRoleMeta(user?.role);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="pintarin-page-bg pointer-events-none fixed inset-0 -z-10" />
+    <div className="relative isolate min-h-screen overflow-x-hidden bg-transparent">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Grainient
+          color1="#5EEAD4"
+          color2="#CCFBF1"
+          color3="#F8FAFC"
+          timeSpeed={0.16}
+          colorBalance={-0.05}
+          warpStrength={0.7}
+          warpFrequency={4.2}
+          warpSpeed={1.25}
+          warpAmplitude={58}
+          blendAngle={-16}
+          blendSoftness={0.14}
+          rotationAmount={300}
+          noiseScale={1.8}
+          grainAmount={0.038}
+          grainScale={1.7}
+          grainAnimated={false}
+          contrast={1.06}
+          gamma={1}
+          saturation={1.04}
+          centerX={0.02}
+          centerY={-0.06}
+          zoom={0.92}
+          className="h-full w-full opacity-95"
+        />
+
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,250,252,0.90)_0%,rgba(204,251,241,0.58)_42%,rgba(248,250,252,0.84)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(94,234,212,0.30),transparent_28rem),radial-gradient(circle_at_88%_30%,rgba(204,251,241,0.40),transparent_30rem)]" />
+      </div>
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[18rem] border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl lg:block">
         <SidebarContent />
@@ -187,7 +290,7 @@ export default function DashboardAppLayout() {
         </div>
       )}
 
-      <div className="lg:pl-[18rem]">
+      <div className="relative z-10 lg:pl-[18rem]">
         <header className="sticky top-0 z-30 border-b border-white/60 bg-white/42 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
@@ -211,21 +314,7 @@ export default function DashboardAppLayout() {
               </div>
             </div>
 
-            <div className="hidden items-center gap-3 sm:flex">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-                <Building2 size={18} />
-              </div>
-
-              <div className="max-w-[15rem] text-right">
-                <p className="truncate text-sm font-extrabold text-[#102A43]">
-                  {user?.full_name || user?.username || "PINTARIN User"}
-                </p>
-
-                <p className="truncate text-xs font-semibold text-[#64748B]">
-                  {user?.institution || "PINTARIN Workspace"}
-                </p>
-              </div>
-            </div>
+            <HeaderUserMenu user={user} />
           </div>
         </header>
 

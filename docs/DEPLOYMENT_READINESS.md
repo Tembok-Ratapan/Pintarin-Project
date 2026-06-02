@@ -19,6 +19,7 @@ Namun deploy publik baru layak dilakukan setelah item wajib di bawah selesai.
 - Jalankan seed/import sesuai kebutuhan demo production.
 - Pastikan file model AI `.keras` dan `.pkl` tersedia di runtime AI service.
 - Set `AI_SERVICE_URL` pada API ke URL internal/public service AI.
+- Set `GEMINI_API_KEY` jika menu Gen AI diaktifkan.
 - Jalankan `npm run lint:web`, `npm run build:web`, dan `npm run test:api`.
 - Jalankan `npm audit --workspaces --omit=dev --audit-level=high`.
 
@@ -54,6 +55,8 @@ DB_NAME=...
 JWT_SECRET=...
 JWT_EXPIRES_IN=1d
 AI_SERVICE_URL=https://ai-service-domain.example.com
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-2.5-flash
 RATE_LIMIT_ENABLED=true
 ```
 
@@ -84,6 +87,7 @@ Karena `.keras` dan `.pkl` di-ignore oleh git, simpan model sebagai release arti
 - Hindari menampilkan credential demo pada UI production.
 - Pastikan CORS hanya mengizinkan domain frontend resmi.
 - Jangan mengekspos service AI langsung ke publik jika tidak perlu; idealnya akses hanya dari API.
+- Jangan pernah menaruh `GEMINI_API_KEY` di frontend; key hanya boleh berada di API environment.
 
 ## Operational Monitoring
 
@@ -95,6 +99,7 @@ Minimum monitoring yang disarankan:
 - Log gagal login berulang
 - DB connection utilization
 - Latency endpoint AI batch prediction
+- Latency dan error rate endpoint Gen AI `/api/gen-ai/chat`
 - Jumlah pending human review
 
 ## Keputusan Deploy

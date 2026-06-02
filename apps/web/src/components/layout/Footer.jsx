@@ -29,7 +29,7 @@ const footerGroups = [
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-white/55 bg-white/24 backdrop-blur-2xl">
+    <footer className="relative bg-white/18 backdrop-blur-2xl">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.25fr_1fr_1fr_1fr] lg:px-8 lg:py-14">
         <div>
           <BrandLogo />
@@ -40,7 +40,7 @@ export default function Footer() {
             dan transparan.
           </p>
 
-          <div className="mt-5 inline-flex rounded-full border border-white/55 bg-white/28 px-3 py-2 text-xs font-bold text-[#0F766E] ring-1 ring-white/35 backdrop-blur-xl">
+          <div className="mt-5 inline-flex text-xs font-extrabold uppercase tracking-[0.14em] text-[#0F766E]">
             Built for Accessible & Adaptive Learning
           </div>
         </div>
@@ -67,9 +67,9 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="border-t border-white/50">
+      <div className="bg-white/16">
         <div className="mx-auto flex w-full max-w-7xl flex-col justify-between gap-2 px-4 py-5 text-xs font-medium text-[#64748B] sm:flex-row sm:px-6 lg:px-8">
-          <p>© 2026 PINTARIN. Capstone Project CC26-PSU211.</p>
+          <p>&copy; 2026 PINTARIN. Capstone Project CC26-PSU211.</p>
           <p>Education Aid Intelligence Platform.</p>
         </div>
       </div>

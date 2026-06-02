@@ -35,7 +35,7 @@ export default function HeroSection() {
               showCursor
               cursorCharacter="|"
               cursorClassName="text-[#0F766E]"
-              className="font-heading max-w-4xl text-balance text-4xl font-extrabold leading-[1.04] tracking-[-0.055em] text-[#102A43] sm:text-5xl lg:text-6xl"
+              className="font-heading max-w-4xl text-balance text-4xl font-extrabold leading-[1.04] text-[#102A43] sm:text-5xl lg:text-6xl"
             />
           </div>
 
@@ -56,7 +56,7 @@ export default function HeroSection() {
                 staggerDuration={0}
                 staggerFrom="first"
                 splitBy="characters"
-                mainClassName="[grid-area:1/1] inline-flex w-fit min-w-0 justify-self-center overflow-hidden rounded-2xl border border-white/70 bg-[#0F172A] px-4 py-2.5 text-sm text-white shadow-lg shadow-slate-950/10 sm:text-base"
+                mainClassName="[grid-area:1/1] inline-flex w-fit min-w-0 justify-self-center overflow-hidden rounded-2xl bg-[#0F172A] px-4 py-2.5 text-sm text-white shadow-lg shadow-slate-950/10 sm:text-base"
                 splitLevelClassName="flex items-center overflow-hidden"
                 elementLevelClassName="font-bold leading-tight"
                 transition={{ type: "spring", damping: 32, stiffness: 360 }}
@@ -99,7 +99,7 @@ export default function HeroSection() {
             {highlights.map((item) => (
               <div
                 key={item}
-                className="flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/24 px-3 py-2 ring-1 ring-white/30 backdrop-blur-xl"
+                className="flex items-center justify-center gap-2 px-3 py-2"
               >
                 <CheckCircle2 size={17} className="text-[#0F766E]" />
                 <span>{item}</span>

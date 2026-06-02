@@ -22,12 +22,16 @@ import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
-import ComingSoonPanel from "../components/ComingSoonPanel";
+import GenAiPanel from "../components/GenAiPanel";
 import { csrAidService } from "../csrAidService";
 import { dashboardService } from "../dashboardService";
 import { schoolCatalogService } from "../schoolCatalogService";
 import DashboardChoroplethPanel from "../components/DashboardChoroplethPanel";
 import CsrMatchingPanel from "../components/CsrMatchingPanel";
+import {
+  getAiRiskStatus,
+  getRiskTheme,
+} from "../../../components/map/riskMapUtils";
 
 const aidTypes = [
   "Laptop",
@@ -103,9 +107,14 @@ const getStatusBadgeClass = (status) => {
   return "border-sky-200 bg-sky-50 text-sky-700";
 };
 
-const defaultCsrSection = "map-risk";
+const defaultCsrSection = "overview";
 
 const csrSectionMeta = {
+  overview: {
+    badge: "Overview",
+    title: "Overview CSR",
+    description: "Ringkasan bantuan, proposal, dan prioritas wilayah CSR.",
+  },
   "map-risk": {
     badge: "Map Risk",
     title: "Map Risk",
@@ -134,7 +143,7 @@ const csrSectionMeta = {
   "gen-ai": {
     badge: "Gen AI",
     title: "Gen AI",
-    description: "Coming soon.",
+    description: "Asisten Gemini untuk strategi program dan proposal CSR.",
   },
 };
 
@@ -472,6 +481,141 @@ function CsrGuide() {
   );
 }
 
+function CsrOverview({ metricCards, topRiskRegions, proposals, onNavigate }) {
+  const priorityRegions = topRiskRegions.slice(0, 4);
+  const recentProposals = proposals.slice(0, 3);
+
+  const quickActions = [
+    {
+      title: "Map Risk",
+      description: "Baca prioritas wilayah sebelum menentukan bantuan.",
+      path: "/dashboard/csr/map-risk",
+      icon: MapPinned,
+    },
+    {
+      title: "AI Matching",
+      description: "Cocokkan fokus CSR dengan rekomendasi AI.",
+      path: "/dashboard/csr/ai-matching",
+      icon: Sparkles,
+    },
+    {
+      title: "Pengajuan",
+      description: "Kirim proposal bantuan yang sudah siap divalidasi.",
+      path: "/dashboard/csr/pengajuan",
+      icon: Send,
+    },
+  ];
+
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metricCards.map((metric) => (
+          <DashboardMetricCard key={metric.label} {...metric} />
+        ))}
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
+        <DashboardSection
+          badge="Prioritas"
+          title="Wilayah sasaran"
+          description="Ringkasan wilayah yang paling relevan untuk bantuan CSR."
+        >
+          {priorityRegions.length === 0 ? (
+            <DashboardEmptyState
+              title="Belum ada wilayah prioritas."
+              description="Data wilayah prioritas akan tampil setelah analytics tersedia."
+            />
+          ) : (
+            <div className="space-y-3">
+              {priorityRegions.map((region, index) => {
+                const riskStatus = getAiRiskStatus(region);
+                const theme = getRiskTheme(riskStatus);
+
+                return (
+                  <button
+                    key={region.id || region.region_id || region.name || index}
+                    type="button"
+                    onClick={() => onNavigate("/dashboard/csr/map-risk")}
+                    className="flex w-full items-center justify-between gap-4 rounded-[1.2rem] border border-white/70 bg-white/42 p-4 text-left ring-1 ring-white/35 transition duration-200 hover:-translate-y-0.5 hover:bg-white/64"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: theme.fillColor }}
+                        />
+                        <p className="truncate text-sm font-extrabold uppercase text-[#102A43]">
+                          {getRegionName(region)}
+                        </p>
+                      </div>
+
+                      <p className="mt-1 text-xs font-semibold text-[#64748B]">
+                        Warga rentan{" "}
+                        {formatNumber(
+                          region.total_vulnerable_population ||
+                            region.avg_vulnerable_population,
+                        )}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-extrabold ${theme.badgeClass}`}
+                    >
+                      #{region.risk_ranking || index + 1}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </DashboardSection>
+
+        <DashboardSection
+          badge="Aksi"
+          title="Langkah cepat"
+          description="Mulai dari prioritas, cocokkan fokus, lalu ajukan bantuan."
+        >
+          <div className="space-y-3">
+            {quickActions.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => onNavigate(item.path)}
+                  className="flex w-full items-center gap-4 rounded-[1.2rem] border border-white/70 bg-white/42 p-4 text-left ring-1 ring-white/35 transition duration-200 hover:-translate-y-0.5 hover:bg-white/64"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                    <Icon size={18} />
+                  </span>
+
+                  <span className="min-w-0">
+                    <span className="block text-sm font-extrabold text-[#102A43]">
+                      {item.title}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold leading-5 text-[#64748B]">
+                      {item.description}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </DashboardSection>
+      </div>
+
+      <DashboardSection
+        badge="Riwayat"
+        title="Proposal terbaru"
+        description="Status bantuan terbaru dari akun CSR ini."
+      >
+        <AidHistory proposals={recentProposals} />
+      </DashboardSection>
+    </>
+  );
+}
+
 export default function CsrDashboardPage() {
   const { section } = useParams();
   const navigate = useNavigate();
@@ -736,10 +880,21 @@ export default function CsrDashboardPage() {
   ];
 
   if (!sectionMeta) {
-    return <Navigate to="/dashboard/csr/map-risk" replace />;
+    return <Navigate to="/dashboard/csr/overview" replace />;
   }
 
   const renderSectionContent = () => {
+    if (currentSection === "overview") {
+      return (
+        <CsrOverview
+          metricCards={metricCards}
+          topRiskRegions={topRiskRegions}
+          proposals={proposals}
+          onNavigate={navigate}
+        />
+      );
+    }
+
     if (currentSection === "ai-matching") {
       return (
         <DashboardSection
@@ -824,14 +979,38 @@ export default function CsrDashboardPage() {
     }
 
     if (currentSection === "gen-ai") {
-      return <ComingSoonPanel />;
+      return (
+        <GenAiPanel
+          title="Gen AI CSR"
+          description="Bantu susun strategi program CSR dan narasi proposal bantuan."
+          context={{
+            role: "csr_partner",
+            proposal_count: proposals.length,
+            active_proposals: stats.activeCount,
+            flexible_proposals: stats.flexibleCount,
+            specific_school_proposals: stats.specificCount,
+            total_value: stats.totalValue || summary.total_csr_value,
+            top_risk_regions: topRiskRegions.slice(0, 3).map((region) => ({
+              name: getRegionName(region),
+              risk_status: region.risk_status || region.final_label,
+              priority_score: region.priority_score,
+            })),
+          }}
+          starterPrompts={[
+            "Buat rekomendasi strategi CSR berdasarkan konteks dashboard ini.",
+            "Wilayah seperti apa yang paling tepat untuk bantuan fleksibel?",
+            "Susun narasi singkat proposal bantuan CSR yang tetap perlu review manusia.",
+          ]}
+        />
+      );
     }
 
     return (
       <DashboardChoroplethPanel
-        badge="Peta Kebutuhan"
-        title="Peta Kebutuhan"
-        description="Wilayah prioritas untuk penyaluran bantuan CSR."
+        badge="Map Risk"
+        title="Map Risk"
+        description="Klik wilayah untuk membaca prioritas bantuan."
+        regions={regions}
         topRegions={topRiskRegions}
       />
     );

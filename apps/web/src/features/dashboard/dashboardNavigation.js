@@ -3,6 +3,7 @@ import {
   Bot,
   Building2,
   ClipboardCheck,
+  Database,
   Eye,
   FileClock,
   FilePlus2,
@@ -11,7 +12,6 @@ import {
   LayoutDashboard,
   MapPinned,
   ShieldCheck,
-  UserRoundCog,
 } from "lucide-react";
 
 import { normalizeDashboardRole } from "./dashboardRoutes";
@@ -49,53 +49,196 @@ export const dashboardRoleMeta = {
   },
 };
 
-const profileNavItem = {
-  label: "Profile",
-  path: "/dashboard/profile",
-  icon: UserRoundCog,
-};
-
 const productNavItem = {
   label: "Tentang Produk",
-  path: "/#product",
+  path: "/dashboard/about-product",
   icon: Building2,
-  isAnchor: true,
 };
+
+const withGroup = (item, group) => ({
+  ...item,
+  group,
+});
 
 export const dashboardNavByRole = {
   admin: [
-    {
-      label: "Pusat Kendali",
-      path: "/dashboard/admin",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Ruang Dinas",
-      path: "/dashboard/officer/overview",
-      icon: ShieldCheck,
-    },
-    {
-      label: "Ruang Analitik",
-      path: "/dashboard/analyst",
-      icon: BarChart3,
-    },
-    {
-      label: "Ruang Bantuan",
-      path: "/dashboard/csr/map-risk",
-      icon: HandHeart,
-    },
-    {
-      label: "Ruang Sekolah",
-      path: "/dashboard/school/overview",
-      icon: GraduationCap,
-    },
-    {
-      label: "Ruang Pantau",
-      path: "/dashboard/viewer",
-      icon: Eye,
-    },
-    profileNavItem,
-    productNavItem,
+    withGroup(
+      {
+        label: "Pusat Kendali",
+        path: "/dashboard/admin",
+        icon: LayoutDashboard,
+      },
+      "Admin",
+    ),
+    withGroup(
+      {
+        label: "Manage Database",
+        path: "/dashboard/admin/manage-database",
+        icon: Database,
+      },
+      "Admin",
+    ),
+    withGroup(productNavItem, "Admin"),
+    withGroup(
+      {
+        label: "Overview Dinas",
+        path: "/dashboard/admin/dinas/overview",
+        icon: ShieldCheck,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Map Risk",
+        path: "/dashboard/admin/dinas/map-risk",
+        icon: MapPinned,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Analitik",
+        path: "/dashboard/admin/dinas/analytic",
+        icon: BarChart3,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Validasi CSR",
+        path: "/dashboard/admin/dinas/validasi-csr",
+        icon: HandHeart,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Validasi Sekolah",
+        path: "/dashboard/admin/dinas/validasi-sekolah",
+        icon: GraduationCap,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Review",
+        path: "/dashboard/admin/dinas/review",
+        icon: ClipboardCheck,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Gen AI",
+        path: "/dashboard/admin/dinas/gen-ai",
+        icon: Bot,
+      },
+      "Dinas",
+    ),
+    withGroup(
+      {
+        label: "Overview CSR",
+        path: "/dashboard/csr/overview",
+        icon: HandHeart,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Map Risk",
+        path: "/dashboard/csr/map-risk",
+        icon: MapPinned,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "AI Matching",
+        path: "/dashboard/csr/ai-matching",
+        icon: Bot,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Analitik",
+        path: "/dashboard/csr/analytic",
+        icon: BarChart3,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Pengajuan",
+        path: "/dashboard/csr/pengajuan",
+        icon: FilePlus2,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Riwayat Pengajuan",
+        path: "/dashboard/csr/riwayat",
+        icon: FileClock,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Gen AI",
+        path: "/dashboard/csr/gen-ai",
+        icon: Bot,
+      },
+      "CSR",
+    ),
+    withGroup(
+      {
+        label: "Overview Sekolah",
+        path: "/dashboard/school/overview",
+        icon: GraduationCap,
+      },
+      "Sekolah",
+    ),
+    withGroup(
+      {
+        label: "Pengajuan",
+        path: "/dashboard/school/pengajuan",
+        icon: FilePlus2,
+      },
+      "Sekolah",
+    ),
+    withGroup(
+      {
+        label: "Riwayat Pengajuan",
+        path: "/dashboard/school/riwayat",
+        icon: FileClock,
+      },
+      "Sekolah",
+    ),
+    withGroup(
+      {
+        label: "Gen AI",
+        path: "/dashboard/school/gen-ai",
+        icon: Bot,
+      },
+      "Sekolah",
+    ),
+    withGroup(
+      {
+        label: "Ruang Analitik",
+        path: "/dashboard/analyst",
+        icon: BarChart3,
+      },
+      "Publik",
+    ),
+    withGroup(
+      {
+        label: "Ruang Pantau",
+        path: "/dashboard/viewer",
+        icon: Eye,
+      },
+      "Publik",
+    ),
   ],
 
   officer: [
@@ -134,7 +277,6 @@ export const dashboardNavByRole = {
       path: "/dashboard/officer/gen-ai",
       icon: Bot,
     },
-    profileNavItem,
     productNavItem,
   ],
 
@@ -144,11 +286,15 @@ export const dashboardNavByRole = {
       path: "/dashboard/analyst",
       icon: BarChart3,
     },
-    profileNavItem,
     productNavItem,
   ],
 
   csr_partner: [
+    {
+      label: "Overview",
+      path: "/dashboard/csr/overview",
+      icon: LayoutDashboard,
+    },
     {
       label: "Map Risk",
       path: "/dashboard/csr/map-risk",
@@ -179,7 +325,6 @@ export const dashboardNavByRole = {
       path: "/dashboard/csr/gen-ai",
       icon: Bot,
     },
-    profileNavItem,
     productNavItem,
   ],
 
@@ -199,7 +344,6 @@ export const dashboardNavByRole = {
       path: "/dashboard/school/riwayat",
       icon: FileClock,
     },
-    profileNavItem,
     {
       label: "Gen AI",
       path: "/dashboard/school/gen-ai",
@@ -214,7 +358,6 @@ export const dashboardNavByRole = {
       path: "/dashboard/viewer",
       icon: Eye,
     },
-    profileNavItem,
     productNavItem,
   ],
 };

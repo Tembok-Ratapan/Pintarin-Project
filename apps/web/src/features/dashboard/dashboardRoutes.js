@@ -16,7 +16,7 @@ export const dashboardRoleRoutes = {
   admin: "/dashboard/admin",
   officer: "/dashboard/officer/overview",
   analyst: "/dashboard/analyst",
-  csr_partner: "/dashboard/csr/map-risk",
+  csr_partner: "/dashboard/csr/overview",
   school_operator: "/dashboard/school/overview",
   viewer: "/dashboard/viewer",
 };

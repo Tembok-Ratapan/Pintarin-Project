@@ -7,6 +7,7 @@ PINTARIN adalah platform fullstack untuk memprioritaskan bantuan pendidikan Kota
 - `apps/web`: React, Vite, Tailwind CSS, React Router, Leaflet, Recharts
 - `apps/api`: Express.js, MySQL, JWT auth, role-based access control
 - `apps/ai`: FastAPI, TensorFlow/Keras inference service
+- Gemini API: Gen AI assistant untuk dashboard role-based
 - `data/raw`: dataset pendukung untuk seed/import
 
 ## Fitur Utama
@@ -16,6 +17,7 @@ PINTARIN adalah platform fullstack untuk memprioritaskan bantuan pendidikan Kota
 - Confidence score dan flag `needs_human_review`
 - Human-in-the-loop validation untuk prediksi confidence rendah
 - CSR matching engine untuk rekomendasi wilayah bantuan
+- Gen AI assistant berbasis Gemini untuk Sekolah, CSR, dan Dinas
 - Ajuan kebutuhan sekolah dan proposal bantuan CSR
 - Peta choropleth wilayah Kota Bandung
 
@@ -32,6 +34,8 @@ npm install
 ```bash
 copy .env.example apps\api\.env
 ```
+
+Isi `GEMINI_API_KEY` jika fitur Gen AI ingin digunakan.
 
 3. Jalankan migration SQL di `apps/api/src/db/migrations` secara berurutan dari `001` sampai `005`.
 
@@ -65,4 +69,4 @@ npm run test:api
 
 ## Catatan Deploy
 
-Baca [Deployment Readiness](docs/DEPLOYMENT_READINESS.md) sebelum deploy publik. Jangan deploy dengan `JWT_SECRET` default, credential demo terbuka, atau tanpa model artifact AI.
+Baca [Deployment Readiness](docs/DEPLOYMENT_READINESS.md) sebelum deploy publik. Jangan deploy dengan `JWT_SECRET` default, credential demo terbuka, tanpa model artifact AI, atau tanpa `GEMINI_API_KEY` jika Gen AI diaktifkan.

@@ -45,3 +45,11 @@ export const ViewerDashboardPage = lazy(
 export const ProfilePage = lazy(
   () => import("../features/dashboard/pages/ProfilePage"),
 );
+
+export const ProductAboutPage = lazy(
+  () => import("../features/dashboard/pages/ProductAboutPage"),
+);
+
+export const ManageDatabasePage = lazy(
+  () => import("../features/dashboard/pages/ManageDatabasePage"),
+);

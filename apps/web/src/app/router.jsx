@@ -14,6 +14,8 @@ import {
   SchoolDashboardPage,
   ViewerDashboardPage,
   ProfilePage,
+  ProductAboutPage,
+  ManageDatabasePage,
 } from "./lazyRouteComponents";
 import RouteSuspense from "./RouteSuspense";
 
@@ -73,11 +75,51 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "about-product",
+        element: (
+          <RouteSuspense label="Menyiapkan informasi produk...">
+            <ProtectedRoute>
+              <ProductAboutPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
         path: "admin",
         element: (
           <RouteSuspense label="Menyiapkan dashboard administrator...">
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "admin/manage-database",
+        element: (
+          <RouteSuspense label="Menyiapkan manage database...">
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ManageDatabasePage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "admin/dinas",
+        element: (
+          <RouteSuspense label="Menyiapkan dashboard dinas admin...">
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <OfficerDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "admin/dinas/:section",
+        element: (
+          <RouteSuspense label="Menyiapkan dashboard dinas admin...">
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <OfficerDashboardPage />
             </ProtectedRoute>
           </RouteSuspense>
         ),

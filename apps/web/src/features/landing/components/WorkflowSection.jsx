@@ -48,7 +48,7 @@ export default function WorkflowSection() {
       <div className="mx-auto mb-12 max-w-3xl text-center">
         <Badge variant="green">Alur Sistem</Badge>
 
-        <h2 className="font-heading mt-4 text-balance text-3xl font-extrabold leading-[1.08] tracking-[-0.04em] text-[#102A43] sm:text-4xl">
+        <h2 className="font-heading mt-4 text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
           Dari data sampai keputusan bantuan.
         </h2>
 
@@ -122,7 +122,7 @@ function TreePanel({ step, Icon, align = "left" }) {
         </p>
       </div>
 
-      <h3 className="font-heading mt-4 text-xl font-extrabold leading-tight tracking-[-0.03em] text-[#102A43]">
+      <h3 className="font-heading mt-4 text-xl font-extrabold leading-tight text-[#102A43]">
         {step.title}
       </h3>
 

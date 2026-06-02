@@ -18,7 +18,7 @@ import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
-import ComingSoonPanel from "../components/ComingSoonPanel";
+import GenAiPanel from "../components/GenAiPanel";
 import { dashboardService } from "../dashboardService";
 import SchoolRequestReviewPanel from "../components/SchoolRequestReviewPanel";
 import CsrAidReviewPanel from "../components/CsrAidReviewPanel";
@@ -75,7 +75,7 @@ const officerSectionMeta = {
   "gen-ai": {
     badge: "Gen AI",
     title: "Gen AI",
-    description: "Coming soon.",
+    description: "Asisten Gemini untuk insight validasi dan kebijakan.",
   },
 };
 
@@ -85,6 +85,7 @@ export default function OfficerDashboardPage() {
   const sectionMeta = officerSectionMeta[currentSection];
 
   const [summaryData, setSummaryData] = useState(null);
+  const [regions, setRegions] = useState([]);
   const [pendingPayload, setPendingPayload] = useState({
     count: 0,
     predictions: [],
@@ -122,13 +123,15 @@ export default function OfficerDashboardPage() {
       setErrorMessage("");
 
       try {
-        const [summaryResult, pendingResult] = await Promise.allSettled([
-          dashboardService.getAnalyticsSummary(controller.signal),
-          dashboardService.getPendingReviews({
-            limit: 30,
-            signal: controller.signal,
-          }),
-        ]);
+        const [summaryResult, pendingResult, regionsResult] =
+          await Promise.allSettled([
+            dashboardService.getAnalyticsSummary(controller.signal),
+            dashboardService.getPendingReviews({
+              limit: 30,
+              signal: controller.signal,
+            }),
+            dashboardService.getRegions(controller.signal),
+          ]);
 
         if (controller.signal.aborted) return;
 
@@ -138,6 +141,10 @@ export default function OfficerDashboardPage() {
 
         if (pendingResult.status === "fulfilled") {
           setPendingPayload(pendingResult.value);
+        }
+
+        if (regionsResult.status === "fulfilled") {
+          setRegions(getArray(regionsResult.value));
         }
 
         if (pendingResult.status === "rejected") {
@@ -255,9 +262,10 @@ export default function OfficerDashboardPage() {
     if (currentSection === "map-risk") {
       return (
         <DashboardChoroplethPanel
-          badge="Peta Risiko"
-          title="Peta Risiko"
-          description="Wilayah yang perlu divalidasi dan diprioritaskan."
+          badge="Map Risk"
+          title="Map Risk"
+          description="Klik wilayah untuk membaca prioritas validasi."
+          regions={regions}
           topRegions={topRiskRegions}
         />
       );
@@ -350,7 +358,30 @@ export default function OfficerDashboardPage() {
     }
 
     if (currentSection === "gen-ai") {
-      return <ComingSoonPanel />;
+      return (
+        <GenAiPanel
+          title="Gen AI Dinas"
+          description="Bantu susun insight validasi dan rekomendasi kebijakan pendidikan."
+          context={{
+            role: "officer",
+            pending_reviews: pendingCount,
+            high_risk_queue: highRiskQueue.length,
+            low_confidence_queue: lowConfidenceQueue.length,
+            average_confidence: avgConfidence,
+            total_predictions: summary.total_predictions,
+            top_risk_regions: topRiskRegions.slice(0, 3).map((region) => ({
+              name: region.region_name || region.name,
+              risk_status: region.risk_status || region.final_label,
+              priority_score: region.priority_score,
+            })),
+          }}
+          starterPrompts={[
+            "Ringkas prioritas validasi dinas berdasarkan konteks ini.",
+            "Buat rekomendasi kebijakan singkat untuk wilayah risiko tinggi.",
+            "Apa risiko keputusan yang perlu direview manusia sebelum disetujui?",
+          ]}
+        />
+      );
     }
 
     return (
@@ -359,9 +390,10 @@ export default function OfficerDashboardPage() {
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <DashboardChoroplethPanel
-            badge="Peta Risiko"
-            title="Peta Risiko"
-            description="Wilayah yang perlu divalidasi dan diprioritaskan."
+            badge="Map Risk"
+            title="Map Risk"
+            description="Klik wilayah untuk membaca prioritas validasi."
+            regions={regions}
             topRegions={topRiskRegions}
           />
 

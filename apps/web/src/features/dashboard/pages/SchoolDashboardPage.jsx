@@ -31,7 +31,7 @@ import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import DashboardTable from "../components/DashboardTable";
-import ComingSoonPanel from "../components/ComingSoonPanel";
+import GenAiPanel from "../components/GenAiPanel";
 import { dashboardService } from "../dashboardService";
 import { profileService } from "../profileService";
 import { schoolRequestService } from "../schoolRequestService";
@@ -167,7 +167,7 @@ const schoolSectionMeta = {
   "gen-ai": {
     badge: "Gen AI",
     title: "Gen AI",
-    description: "Coming soon.",
+    description: "Asisten Gemini untuk analisis pengajuan sekolah.",
   },
 };
 
@@ -872,7 +872,29 @@ export default function SchoolDashboardPage() {
     }
 
     if (currentSection === "gen-ai") {
-      return <ComingSoonPanel />;
+      return (
+        <GenAiPanel
+          title="Gen AI Sekolah"
+          description="Bantu susun argumen pengajuan dan prioritas kebutuhan sekolah."
+          context={{
+            role: "school_operator",
+            school_name:
+              profile?.school_name ||
+              profile?.organization_name ||
+              profile?.display_name,
+            region_name: profile?.region_name || getRegionName(selectedRegion),
+            risk_status: riskStatus,
+            active_requests: pendingRequests.length,
+            approved_requests: approvedRequests.length,
+            prediction_count: regionPredictions.length,
+          }}
+          starterPrompts={[
+            "Bantu susun ringkasan pengajuan kebutuhan sekolah berdasarkan konteks ini.",
+            "Apa prioritas bantuan yang paling kuat untuk sekolah ini?",
+            "Data bukti apa yang perlu ditambahkan agar pengajuan lebih meyakinkan?",
+          ]}
+        />
+      );
     }
 
     return (
@@ -886,9 +908,10 @@ export default function SchoolDashboardPage() {
         </div>
 
         <DashboardChoroplethPanel
-          badge="Peta Wilayah"
-          title="Peta Wilayah"
-          description="Konteks risiko di sekitar wilayah sekolah."
+          badge="Map Risk"
+          title="Map Risk"
+          description="Klik wilayah untuk melihat detail prioritas AI."
+          regions={regionOptions}
           topRegions={topRiskRegions}
         />
 

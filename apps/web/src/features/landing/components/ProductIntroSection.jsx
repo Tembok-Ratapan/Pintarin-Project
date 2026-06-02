@@ -56,7 +56,7 @@ export default function ProductIntroSection() {
         <div className="lg:sticky lg:top-28">
           <Badge>Produk</Badge>
 
-          <h2 className="font-heading mt-4 max-w-xl text-balance text-3xl font-extrabold leading-[1.08] tracking-[-0.04em] text-[#102A43] sm:text-4xl">
+          <h2 className="font-heading mt-4 max-w-xl text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
             Bukan sekadar dashboard, tapi sistem pendukung keputusan.
           </h2>
 
@@ -117,7 +117,7 @@ function ProductCardContent({ feature }) {
           {feature.eyebrow}
         </p>
 
-        <h3 className="font-heading mt-4 text-balance text-2xl font-extrabold leading-[1.12] tracking-[-0.035em] text-[#102A43] sm:text-3xl">
+        <h3 className="font-heading mt-4 text-balance text-2xl font-extrabold leading-[1.12] text-[#102A43] sm:text-3xl">
           {feature.title}
         </h3>
 
@@ -129,7 +129,7 @@ function ProductCardContent({ feature }) {
           {feature.points.map((point) => (
             <span
               key={point}
-              className="rounded-full border border-white/60 bg-white/42 px-3 py-1 text-xs font-bold text-[#475569] ring-1 ring-white/35 backdrop-blur-xl"
+              className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.08em] text-[#475569] before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#14B8A6] before:content-['']"
             >
               {point}
             </span>
@@ -137,7 +137,7 @@ function ProductCardContent({ feature }) {
         </div>
       </div>
 
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/65 bg-[#5EEAD4]/18 text-[#0F766E] shadow-lg shadow-[#5EEAD4]/20 ring-1 ring-white/50 backdrop-blur-2xl sm:h-14 sm:w-14">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E] shadow-lg shadow-[#5EEAD4]/20 backdrop-blur-2xl sm:h-14 sm:w-14">
         <Icon size={24} />
       </div>
     </div>

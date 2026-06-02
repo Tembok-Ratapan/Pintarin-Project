@@ -111,12 +111,20 @@ a {
   backdrop-filter: blur(28px);
 }
 
-.pintarin-map-tooltip {
-  border: 1px solid rgba(255, 255, 255, 0.72) !important;
-  border-radius: 14px !important;
-  background: rgba(255, 255, 255, 0.82) !important;
-  color: #102a43 !important;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12) !important;
-  backdrop-filter: blur(16px);
-  font-weight: 800;
+.leaflet-container .leaflet-interactive {
+  transition:
+    fill-opacity 180ms ease,
+    stroke-width 180ms ease,
+    opacity 180ms ease;
+  outline: none;
+}
+
+.leaflet-container,
+.leaflet-container:focus,
+.leaflet-container .leaflet-interactive:focus {
+  outline: none !important;
+}
+
+.leaflet-container .leaflet-interactive {
+  cursor: pointer;
 }

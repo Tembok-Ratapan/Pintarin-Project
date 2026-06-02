@@ -1,5 +1,9 @@
 const dotenv = require("dotenv");
+const path = require("path");
 
+dotenv.config({
+  path: path.resolve(__dirname, "../../.env"),
+});
 dotenv.config();
 
 const DEFAULT_JWT_SECRET = "change_this_secret";
@@ -80,6 +84,17 @@ const env = {
     batchSize: toNumber(process.env.AI_BATCH_SIZE, 50),
   },
 
+  genAi: {
+    geminiApiKey: process.env.GEMINI_API_KEY || "",
+    modelName: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    apiBaseUrl:
+      process.env.GEMINI_API_BASE_URL ||
+      "https://generativelanguage.googleapis.com/v1beta/models",
+    timeoutMs: toPositiveInteger(process.env.GEMINI_TIMEOUT_MS, 30000),
+    maxOutputTokens: toPositiveInteger(process.env.GEMINI_MAX_OUTPUT_TOKENS, 700),
+    temperature: toNumber(process.env.GEMINI_TEMPERATURE, 0.4),
+  },
+
   security: {
     trustProxy: toBoolean(process.env.TRUST_PROXY, isProduction),
     rateLimitEnabled: process.env.RATE_LIMIT_ENABLED !== "false",
@@ -94,6 +109,11 @@ const env = {
       process.env.LOGIN_IDENTIFIER_RATE_LIMIT_MAX,
       8,
     ),
+    genAiRateLimitWindowMs: toPositiveInteger(
+      process.env.GEN_AI_RATE_LIMIT_WINDOW_MS,
+      15 * 60 * 1000,
+    ),
+    genAiRateLimitMax: toPositiveInteger(process.env.GEN_AI_RATE_LIMIT_MAX, 30),
   },
 };
 

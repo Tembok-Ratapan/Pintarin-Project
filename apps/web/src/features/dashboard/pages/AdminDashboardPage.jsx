@@ -382,9 +382,10 @@ export default function AdminDashboardPage() {
           </div>
 
           <DashboardChoroplethPanel
-            badge="Peta Bantuan"
-            title="Peta Bantuan"
-            description="Wilayah prioritas untuk keputusan bantuan."
+            badge="Map Risk"
+            title="Map Risk"
+            description="Warna wilayah mengikuti prioritas AI."
+            regions={regions}
             topRegions={topRiskRegions}
           />
 

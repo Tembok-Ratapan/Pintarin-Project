@@ -1,4 +1,5 @@
-import { ArrowUpRight } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 import { Card, CardContent } from "../../../components/ui/Card";
 
@@ -30,9 +31,35 @@ export default function DashboardMetricCard({
   trend,
 }) {
   const theme = toneClass[tone] || toneClass.teal;
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasDetail = Boolean(helper || trend);
+
+  const toggleDetail = () => {
+    if (hasDetail) {
+      setIsExpanded((current) => !current);
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (!hasDetail) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleDetail();
+    }
+  };
 
   return (
-    <Card className="group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:bg-white/64">
+    <Card
+      role={hasDetail ? "button" : undefined}
+      tabIndex={hasDetail ? 0 : undefined}
+      aria-expanded={hasDetail ? isExpanded : undefined}
+      onClick={toggleDetail}
+      onKeyDown={handleKeyDown}
+      className={`group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:bg-white/64 ${
+        hasDetail ? "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F766E]" : ""
+      }`}
+    >
       <CardContent className="relative p-5">
         <div className={`absolute inset-x-0 top-0 h-1 ${theme.accent}`} />
 
@@ -42,18 +69,21 @@ export default function DashboardMetricCard({
               {label}
             </p>
 
-            <p className="font-heading mt-3 truncate text-2xl font-extrabold text-[#102A43] sm:text-[1.65rem]">
+            <p
+              title={String(value ?? "")}
+              className="font-heading mt-3 break-words text-2xl font-extrabold leading-tight text-[#102A43] sm:text-[1.55rem]"
+            >
               {value}
             </p>
 
             {helper && (
-              <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-[#64748B]">
+              <p className="mt-2 text-xs font-medium leading-5 text-[#64748B]">
                 {helper}
               </p>
             )}
 
             {trend && (
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/55 px-2.5 py-1 text-xs font-extrabold text-[#0F766E] ring-1 ring-white/40">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-[#0F766E]">
                 <ArrowUpRight size={14} />
                 {trend}
               </div>
@@ -68,6 +98,27 @@ export default function DashboardMetricCard({
             </div>
           )}
         </div>
+
+        {hasDetail && (
+          <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-[#0F766E] transition group-hover:translate-x-0.5">
+            {isExpanded ? "Tutup detail" : "Klik untuk detail"}
+            <ChevronDown
+              size={14}
+              className={`transition ${isExpanded ? "rotate-180" : ""}`}
+            />
+          </div>
+        )}
+
+        {hasDetail && isExpanded && (
+          <div className="mt-3 rounded-[1rem] bg-white/38 p-3 text-xs font-semibold leading-5 text-[#64748B] shadow-inner shadow-white/40">
+            <p>
+              <span className="font-extrabold text-[#102A43]">{label}:</span>{" "}
+              {value}
+            </p>
+            {helper && <p className="mt-1">{helper}</p>}
+            {trend && <p className="mt-1 text-[#0F766E]">{trend}</p>}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
