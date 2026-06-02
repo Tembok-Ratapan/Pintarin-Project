@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 
 const adminDatabaseService = require("./adminDatabase.service");
+const { tableRegistry } = require("./adminDatabase.registry");
 
 test("admin database exposes whitelisted metadata only", () => {
   const { tables } = adminDatabaseService.listTables();
@@ -32,4 +33,16 @@ test("admin database rejects invalid json field values", () => {
       ),
     /JSON valid/,
   );
+});
+
+test("admin database registry excludes removed legacy tables", () => {
+  const removedTables = [
+    "population_education_records",
+    "risk_records",
+    "csr_programs",
+  ];
+
+  for (const tableName of removedTables) {
+    assert.equal(tableRegistry[tableName], undefined);
+  }
 });

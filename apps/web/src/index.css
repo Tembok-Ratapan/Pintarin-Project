@@ -128,26 +128,3 @@ a {
 .leaflet-container .leaflet-interactive {
   cursor: pointer;
 }
-
-.pintarin-region-label {
-  pointer-events: none;
-}
-
-.pintarin-region-label span {
-  display: block;
-  max-width: 7.5rem;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--label-color, #0f766e);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  padding: 0.22rem 0.48rem;
-  text-align: center;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-  text-transform: uppercase;
-  text-wrap: balance;
-  backdrop-filter: blur(10px);
-}

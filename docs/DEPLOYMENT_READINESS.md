@@ -15,7 +15,7 @@ Namun deploy publik baru layak dilakukan setelah item wajib di bawah selesai.
 - Set `CLIENT_URLS` sesuai domain frontend Vercel/production.
 - Set `TRUST_PROXY=true` ketika API berjalan di Railway/Render/Fly.io di belakang reverse proxy.
 - Pastikan MySQL production memakai user non-root dan password kuat.
-- Jalankan migration SQL berurutan dari `001_init_schema.sql` sampai `005_ai_prediction_bridge.sql`.
+- Jalankan migration SQL berurutan dari `001_init_schema.sql` sampai `006_drop_legacy_unused_tables.sql`.
 - Jalankan seed/import sesuai kebutuhan demo production.
 - Pastikan file model AI `.keras` dan `.pkl` tersedia di runtime AI service.
 - Set `AI_SERVICE_URL` pada API ke URL internal/public service AI.

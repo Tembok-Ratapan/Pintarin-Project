@@ -4,10 +4,7 @@ DROP TABLE IF EXISTS prediction_validations;
 DROP TABLE IF EXISTS csr_match_logs;
 DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS analytics_snapshots;
-DROP TABLE IF EXISTS csr_programs;
 DROP TABLE IF EXISTS predictions;
-DROP TABLE IF EXISTS risk_records;
-DROP TABLE IF EXISTS population_education_records;
 DROP TABLE IF EXISTS schools;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS regions;
@@ -90,75 +87,6 @@ CREATE TABLE schools (
   INDEX idx_schools_npsn (npsn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE population_education_records (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  source_id BIGINT DEFAULT NULL,
-  region_id INT DEFAULT NULL,
-
-  province_code VARCHAR(30),
-  province_name VARCHAR(120),
-
-  bps_city_code VARCHAR(30),
-  bps_city_name VARCHAR(120),
-  bps_district_code VARCHAR(30),
-  bps_district_name VARCHAR(120),
-  bps_village_code VARCHAR(30),
-  bps_village_name VARCHAR(120),
-
-  kemendagri_district_code VARCHAR(30),
-  kemendagri_district_name VARCHAR(120),
-  kemendagri_village_code VARCHAR(30),
-  kemendagri_village_name VARCHAR(120),
-
-  education_type VARCHAR(120) NOT NULL,
-  population_count INT DEFAULT 0,
-  unit VARCHAR(50),
-  semester VARCHAR(30),
-  year SMALLINT NOT NULL,
-
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (region_id) REFERENCES regions(id)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE,
-
-  INDEX idx_population_region_id (region_id),
-  INDEX idx_population_year (year),
-  INDEX idx_population_education_type (education_type),
-  INDEX idx_population_district_name (kemendagri_district_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE risk_records (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  risk_code VARCHAR(30) NOT NULL UNIQUE,
-  region_id INT NOT NULL,
-  year SMALLINT NOT NULL,
-
-  total_population INT DEFAULT 0,
-  total_vulnerable_population DECIMAL(12, 2) DEFAULT 0,
-  total_pip_aid DECIMAL(12, 2) DEFAULT 0,
-  total_pre_school DECIMAL(12, 2) DEFAULT 0,
-  sd_count DECIMAL(10, 2) DEFAULT 0,
-
-  vulnerable_ratio DECIMAL(8, 4) DEFAULT 0,
-  risk_status ENUM('Rendah', 'Sedang', 'Tinggi') NOT NULL,
-  risk_score DECIMAL(8, 4) DEFAULT 0,
-  risk_trend ENUM('Meningkat', 'Menurun', 'Stabil') DEFAULT NULL,
-  notes TEXT,
-
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (region_id) REFERENCES regions(id)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE,
-
-  INDEX idx_risk_region_id (region_id),
-  INDEX idx_risk_year (year),
-  INDEX idx_risk_status (risk_status),
-  INDEX idx_risk_score (risk_score)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE predictions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   prediction_code VARCHAR(30) NOT NULL UNIQUE,
@@ -226,43 +154,6 @@ CREATE TABLE prediction_validations (
   INDEX idx_prediction_validations_prediction_id (prediction_id),
   INDEX idx_prediction_validations_officer_id (officer_id),
   INDEX idx_prediction_validations_action (action)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE csr_programs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  csr_code VARCHAR(30) NOT NULL UNIQUE,
-  company_name VARCHAR(180) NOT NULL,
-  region_id INT NOT NULL,
-  school_id INT DEFAULT NULL,
-
-  aid_type VARCHAR(120) NOT NULL,
-  aid_value DECIMAL(16, 2) DEFAULT 0,
-  recipient_count INT DEFAULT 0,
-  program_year SMALLINT NOT NULL,
-
-  submission_date DATE DEFAULT NULL,
-  realization_date DATE DEFAULT NULL,
-
-  status ENUM('Diajukan', 'Disetujui', 'Disalurkan', 'Selesai', 'Ditolak') NOT NULL DEFAULT 'Diajukan',
-  description TEXT,
-
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (region_id) REFERENCES regions(id)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE,
-
-  FOREIGN KEY (school_id) REFERENCES schools(id)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE,
-
-  INDEX idx_csr_region_id (region_id),
-  INDEX idx_csr_school_id (school_id),
-  INDEX idx_csr_company_name (company_name),
-  INDEX idx_csr_year (program_year),
-  INDEX idx_csr_status (status),
-  INDEX idx_csr_aid_type (aid_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE csr_match_logs (

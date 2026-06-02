@@ -37,7 +37,7 @@ copy .env.example apps\api\.env
 
 Isi `GEMINI_API_KEY` jika fitur Gen AI ingin digunakan.
 
-3. Jalankan migration SQL di `apps/api/src/db/migrations` secara berurutan dari `001` sampai `005`.
+3. Jalankan migration SQL di `apps/api/src/db/migrations` secara berurutan dari `001` sampai `006`.
 
 4. Import seed data:
 

@@ -1,16 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const ExcelJS = require("exceljs");
-const { parse } = require("csv-parse/sync");
 const { pool } = require("../connection");
 
 const rawDataDir = path.resolve(__dirname, "../../../../../data/raw");
 
 const excelPath = path.join(rawDataDir, "PINTARIN_DUMMY_DATA.xlsx");
-const csvPath = path.join(
-  rawDataDir,
-  "jumlah_penduduk_kota_bandung_berdasarkan_jenis_pendidikan_2.csv",
-);
 
 const normalizeKey = (key) => {
   return String(key || "")
@@ -77,15 +72,6 @@ const toRatio = (value, fallback = null) => {
   return number > 1 ? number / 100 : number;
 };
 
-const toSqlDate = (value) => {
-  if (!value) return null;
-
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date.toISOString().slice(0, 10);
-};
-
 const toSqlDateTime = (value) => {
   if (!value) return null;
 
@@ -122,18 +108,6 @@ const normalizeRiskLabel = (value) => {
   if (text.includes("rendah")) return "Rendah";
 
   return "Rendah";
-};
-
-const normalizeRiskTrend = (value) => {
-  const text = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  if (text.includes("meningkat")) return "Meningkat";
-  if (text.includes("menurun")) return "Menurun";
-  if (text.includes("stabil")) return "Stabil";
-
-  return null;
 };
 
 const normalizeSchoolLevel = (value) => {
@@ -183,20 +157,6 @@ const normalizeUserRole = (value) => {
   if (text.includes("officer")) return "officer";
 
   return "viewer";
-};
-
-const normalizeCsrStatus = (value) => {
-  const text = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  if (text.includes("selesai")) return "Selesai";
-  if (text.includes("salur")) return "Disalurkan";
-  if (text.includes("setuju")) return "Disetujui";
-  if (text.includes("tolak")) return "Ditolak";
-  if (text.includes("aju")) return "Diajukan";
-
-  return "Diajukan";
 };
 
 const normalizeAuditStatus = (value) => {
@@ -271,16 +231,6 @@ const readExcelSheet = async (workbook, sheetName) => {
   return rows;
 };
 
-const readCsv = () => {
-  const content = fs.readFileSync(csvPath, "utf8");
-
-  return parse(content, {
-    columns: (headers) => headers.map(normalizeKey),
-    skip_empty_lines: true,
-    trim: true,
-  });
-};
-
 const batchInsert = async (
   connection,
   tableName,
@@ -306,10 +256,11 @@ const resetTables = async (connection) => {
     "csr_match_logs",
     "audit_logs",
     "analytics_snapshots",
-    "csr_programs",
+    "csr_aid_proposals",
+    "school_need_requests",
+    "stakeholder_profiles",
+    "education_indicators",
     "predictions",
-    "risk_records",
-    "population_education_records",
     "schools",
     "users",
     "regions",
@@ -484,122 +435,6 @@ const importSchools = async (connection, rows, regionIdByName) => {
   );
 };
 
-const importPopulationEducation = async (connection, rows, regionIdByName) => {
-  const columns = [
-    "source_id",
-    "region_id",
-    "province_code",
-    "province_name",
-    "bps_city_code",
-    "bps_city_name",
-    "bps_district_code",
-    "bps_district_name",
-    "bps_village_code",
-    "bps_village_name",
-    "kemendagri_district_code",
-    "kemendagri_district_name",
-    "kemendagri_village_code",
-    "kemendagri_village_name",
-    "education_type",
-    "population_count",
-    "unit",
-    "semester",
-    "year",
-  ];
-
-  const values = rows.map((row) => {
-    const regionName = getValue(row, [
-      "kemendagri_nama_kecamatan",
-      "bps_nama_kecamatan",
-      "nama_kecamatan",
-      "kecamatan",
-    ]);
-
-    return [
-      toInteger(getValue(row, ["id"]), null),
-      regionIdByName.get(normalizeName(regionName)) || null,
-      normalizeText(getValue(row, ["kode_provinsi"])),
-      normalizeText(getValue(row, ["nama_provinsi"])),
-      normalizeText(getValue(row, ["bps_kode_kabupaten_kota"])),
-      normalizeText(getValue(row, ["bps_nama_kabupaten_kota"])),
-      normalizeText(getValue(row, ["bps_kode_kecamatan"])),
-      normalizeText(getValue(row, ["bps_nama_kecamatan"])),
-      normalizeText(getValue(row, ["bps_kode_desa_kelurahan"])),
-      normalizeText(
-        getValue(row, ["bps_nama_desa_kelurahan", "bps_desa_kelurahan"]),
-      ),
-      normalizeText(getValue(row, ["kemendagri_kode_kecamatan"])),
-      normalizeText(getValue(row, ["kemendagri_nama_kecamatan"])),
-      normalizeText(getValue(row, ["kemendagri_kode_desa_kelurahan"])),
-      normalizeText(getValue(row, ["kemendagri_nama_desa_kelurahan"])),
-      normalizeText(getValue(row, ["jenis_pendidikan"])),
-      toInteger(getValue(row, ["jumlah_penduduk"])),
-      normalizeText(getValue(row, ["satuan"])),
-      normalizeText(getValue(row, ["semester"])),
-      toInteger(getValue(row, ["tahun"])),
-    ];
-  });
-
-  await batchInsert(
-    connection,
-    "population_education_records",
-    columns,
-    values,
-    1000,
-  );
-};
-
-const importRiskRecords = async (connection, rows, regionIdByName) => {
-  const columns = [
-    "risk_code",
-    "region_id",
-    "year",
-    "total_population",
-    "total_vulnerable_population",
-    "total_pip_aid",
-    "total_pre_school",
-    "sd_count",
-    "vulnerable_ratio",
-    "risk_status",
-    "risk_score",
-    "risk_trend",
-    "notes",
-    "created_at",
-    "updated_at",
-  ];
-
-  const values = rows
-    .map((row) => {
-      const regionName = getValue(row, ["kecamatan", "nama_kecamatan"]);
-      const regionId = regionIdByName.get(normalizeName(regionName));
-
-      if (!regionId) return null;
-
-      return [
-        normalizeText(getValue(row, ["risiko_id", "risk_code"])),
-        regionId,
-        toInteger(getValue(row, ["tahun", "year"])),
-        toInteger(getValue(row, ["total_populasi", "total_population"])),
-        toNumber(
-          getValue(row, ["total_warga_rentan", "total_vulnerable_population"]),
-        ),
-        toNumber(getValue(row, ["total_bantuan_pip", "total_pip_aid"])),
-        toNumber(getValue(row, ["total_pra_sekolah", "total_pre_school"])),
-        toNumber(getValue(row, ["jumlah_sd", "sd_count"])),
-        toNumber(getValue(row, ["rasio_warga_rentan", "vulnerable_ratio"])),
-        normalizeRiskLabel(getValue(row, ["status_resiko", "risk_status"])),
-        toNumber(getValue(row, ["skor_risiko", "risk_score"])),
-        normalizeRiskTrend(getValue(row, ["trend_risiko", "risk_trend"])),
-        normalizeText(getValue(row, ["catatan", "notes"])),
-        toSqlDateTime(getValue(row, ["created_at"])),
-        toSqlDateTime(getValue(row, ["updated_at"])),
-      ];
-    })
-    .filter(Boolean);
-
-  await batchInsert(connection, "risk_records", columns, values);
-};
-
 const importPredictions = async (connection, rows, regionIdByName) => {
   const columns = [
     "prediction_code",
@@ -673,61 +508,6 @@ const importPredictions = async (connection, rows, regionIdByName) => {
     .filter(Boolean);
 
   await batchInsert(connection, "predictions", columns, values);
-};
-
-const importCsrPrograms = async (
-  connection,
-  rows,
-  regionIdByName,
-  schoolIdByCode,
-) => {
-  const columns = [
-    "csr_code",
-    "company_name",
-    "region_id",
-    "school_id",
-    "aid_type",
-    "aid_value",
-    "recipient_count",
-    "program_year",
-    "submission_date",
-    "realization_date",
-    "status",
-    "description",
-    "created_at",
-    "updated_at",
-  ];
-
-  const values = rows
-    .map((row) => {
-      const regionName = getValue(row, ["kecamatan", "nama_kecamatan"]);
-      const regionId = regionIdByName.get(normalizeName(regionName));
-      const schoolCode = normalizeText(
-        getValue(row, ["sekolah_id", "school_code"]),
-      );
-
-      if (!regionId) return null;
-
-      return [
-        normalizeText(getValue(row, ["csr_id", "csr_code"])),
-        normalizeText(getValue(row, ["perusahaan", "company_name"])),
-        regionId,
-        schoolIdByCode.get(schoolCode) || null,
-        normalizeText(getValue(row, ["jenis_bantuan", "aid_type"])),
-        toNumber(getValue(row, ["nilai_bantuan", "aid_value"])),
-        toInteger(getValue(row, ["jumlah_penerima", "recipient_count"])),
-        toInteger(getValue(row, ["tahun", "program_year"])),
-        toSqlDate(getValue(row, ["tanggal_pengajuan", "submission_date"])),
-        toSqlDate(getValue(row, ["tanggal_realisasi", "realization_date"])),
-        normalizeCsrStatus(getValue(row, ["status"])),
-        normalizeText(getValue(row, ["deskripsi", "description"])),
-        toSqlDateTime(getValue(row, ["created_at"])),
-        toSqlDateTime(getValue(row, ["updated_at"])),
-      ];
-    })
-    .filter(Boolean);
-
-  await batchInsert(connection, "csr_programs", columns, values);
 };
 
 const importAuditLogs = async (
@@ -838,17 +618,243 @@ const importAnalyticsSnapshots = async (connection, rows, regionIdByName) => {
   await batchInsert(connection, "analytics_snapshots", columns, values);
 };
 
+const seedStakeholderProfiles = async (connection) => {
+  await connection.query(`
+    INSERT INTO stakeholder_profiles (
+      user_id,
+      profile_type,
+      display_name,
+      organization_name,
+      contact_email,
+      description,
+      region_id,
+      is_verified
+    )
+    SELECT
+      u.id,
+      CASE
+        WHEN u.role = 'officer' THEN 'dinas'
+        WHEN u.role = 'school_operator' THEN 'sekolah'
+        WHEN u.role = 'csr_partner' THEN 'csr'
+        WHEN u.role = 'analyst' THEN 'analitik'
+        WHEN u.role = 'admin' THEN 'admin'
+        ELSE 'viewer'
+      END AS profile_type,
+      u.full_name,
+      COALESCE(u.institution, 'PINTARIN'),
+      u.email,
+      CASE
+        WHEN u.role = 'admin' THEN 'Mengelola data, validasi, dan penyaluran bantuan.'
+        WHEN u.role = 'officer' THEN 'Memvalidasi ajuan dan membantu penyaluran bantuan pendidikan.'
+        WHEN u.role = 'school_operator' THEN 'Mengelola data dan kebutuhan sekolah.'
+        WHEN u.role = 'csr_partner' THEN 'Menyalurkan bantuan pendidikan melalui PINTARIN.'
+        WHEN u.role = 'analyst' THEN 'Menganalisis data dan risiko pendidikan.'
+        ELSE 'Melihat ringkasan data PINTARIN.'
+      END AS description,
+      u.region_id,
+      CASE
+        WHEN u.role IN ('admin', 'officer') THEN TRUE
+        ELSE FALSE
+      END AS is_verified
+    FROM users u
+    ON DUPLICATE KEY UPDATE
+      updated_at = CURRENT_TIMESTAMP
+  `);
+};
+
+const seedSchoolNeedRequests = async (connection) => {
+  await connection.query(`
+    INSERT IGNORE INTO school_need_requests (
+      request_code,
+      school_id,
+      region_id,
+      submitted_by,
+      category,
+      title,
+      description,
+      urgency,
+      requested_value,
+      evidence_url,
+      evidence_note,
+      status
+    )
+    SELECT
+      CONCAT('REQ-SCH-', LPAD(s.id, 4, '0')),
+      s.id,
+      s.region_id,
+      u.id,
+      CASE
+        WHEN MOD(s.id, 4) = 0 THEN 'Internet'
+        WHEN MOD(s.id, 4) = 1 THEN 'Laptop'
+        WHEN MOD(s.id, 4) = 2 THEN 'Renovasi'
+        ELSE 'Beasiswa'
+      END,
+      CASE
+        WHEN MOD(s.id, 4) = 0 THEN 'Bantuan internet belajar'
+        WHEN MOD(s.id, 4) = 1 THEN 'Bantuan perangkat laptop'
+        WHEN MOD(s.id, 4) = 2 THEN 'Perbaikan ruang belajar'
+        ELSE 'Beasiswa siswa rentan'
+      END,
+      CASE
+        WHEN MOD(s.id, 4) = 0 THEN 'Sekolah membutuhkan akses internet yang lebih stabil untuk kegiatan pembelajaran digital.'
+        WHEN MOD(s.id, 4) = 1 THEN 'Sekolah membutuhkan perangkat laptop untuk mendukung kegiatan belajar dan administrasi.'
+        WHEN MOD(s.id, 4) = 2 THEN 'Beberapa ruang belajar membutuhkan perbaikan agar kegiatan belajar lebih nyaman.'
+        ELSE 'Sebagian siswa membutuhkan dukungan biaya agar tetap dapat mengikuti pembelajaran.'
+      END,
+      CASE
+        WHEN MOD(s.id, 3) = 0 THEN 'Tinggi'
+        WHEN MOD(s.id, 3) = 1 THEN 'Sedang'
+        ELSE 'Rendah'
+      END,
+      CASE
+        WHEN MOD(s.id, 4) = 0 THEN 15000000
+        WHEN MOD(s.id, 4) = 1 THEN 35000000
+        WHEN MOD(s.id, 4) = 2 THEN 50000000
+        ELSE 25000000
+      END,
+      NULL,
+      'Dummy evidence: data pendukung akan diganti dengan dokumen asli.',
+      CASE
+        WHEN MOD(s.id, 5) = 0 THEN 'Ditinjau'
+        ELSE 'Diajukan'
+      END
+    FROM schools s
+    CROSS JOIN (
+      SELECT id
+      FROM users
+      WHERE role IN ('school_operator', 'admin')
+      ORDER BY role = 'school_operator' DESC
+      LIMIT 1
+    ) u
+    LIMIT 8
+  `);
+};
+
+const seedCsrAidProposals = async (connection) => {
+  await connection.query(`
+    INSERT IGNORE INTO csr_aid_proposals (
+      proposal_code,
+      submitted_by,
+      allocation_type,
+      target_school_id,
+      target_region_id,
+      aid_name,
+      aid_type,
+      aid_value,
+      description,
+      evidence_url,
+      status
+    )
+    SELECT
+      'CSR-AID-0001',
+      u.id,
+      'fleksibel',
+      NULL,
+      NULL,
+      'Paket Internet Belajar',
+      'Internet',
+      75000000,
+      'Bantuan fleksibel untuk sekolah yang membutuhkan akses internet pembelajaran.',
+      NULL,
+      'Diajukan'
+    FROM (
+      SELECT id
+      FROM users
+      WHERE role IN ('csr_partner', 'admin')
+      ORDER BY role = 'csr_partner' DESC
+      LIMIT 1
+    ) u
+  `);
+
+  await connection.query(`
+    INSERT IGNORE INTO csr_aid_proposals (
+      proposal_code,
+      submitted_by,
+      allocation_type,
+      target_school_id,
+      target_region_id,
+      aid_name,
+      aid_type,
+      aid_value,
+      description,
+      evidence_url,
+      status
+    )
+    SELECT
+      'CSR-AID-0002',
+      u.id,
+      'sekolah_tertentu',
+      s.id,
+      s.region_id,
+      'Bantuan Laptop Sekolah',
+      'Laptop',
+      120000000,
+      'Bantuan perangkat laptop untuk sekolah tertentu.',
+      NULL,
+      'Ditinjau'
+    FROM (
+      SELECT id
+      FROM users
+      WHERE role IN ('csr_partner', 'admin')
+      ORDER BY role = 'csr_partner' DESC
+      LIMIT 1
+    ) u
+    CROSS JOIN (
+      SELECT id, region_id
+      FROM schools
+      ORDER BY id ASC
+      LIMIT 1
+    ) s
+  `);
+
+  await connection.query(`
+    INSERT IGNORE INTO csr_aid_proposals (
+      proposal_code,
+      submitted_by,
+      allocation_type,
+      target_school_id,
+      target_region_id,
+      aid_name,
+      aid_type,
+      aid_value,
+      description,
+      evidence_url,
+      status
+    )
+    SELECT
+      'CSR-AID-0003',
+      u.id,
+      'fleksibel',
+      NULL,
+      r.id,
+      'Dana Beasiswa Wilayah',
+      'Beasiswa',
+      200000000,
+      'Bantuan fleksibel untuk siswa rentan pada wilayah prioritas.',
+      NULL,
+      'Diajukan'
+    FROM (
+      SELECT id
+      FROM users
+      WHERE role IN ('csr_partner', 'admin')
+      ORDER BY role = 'csr_partner' DESC
+      LIMIT 1
+    ) u
+    CROSS JOIN (
+      SELECT id
+      FROM regions
+      ORDER BY id ASC
+      LIMIT 1
+    ) r
+  `);
+};
+
 const main = async () => {
   console.log("Starting PINTARIN data import...");
   console.log(`Excel source: ${excelPath}`);
-  console.log(`CSV source  : ${csvPath}`);
 
   if (!fs.existsSync(excelPath)) {
     throw new Error(`Excel file tidak ditemukan: ${excelPath}`);
-  }
-
-  if (!fs.existsSync(csvPath)) {
-    throw new Error(`CSV file tidak ditemukan: ${csvPath}`);
   }
 
   const workbook = new ExcelJS.Workbook();
@@ -858,12 +864,9 @@ const main = async () => {
     regions: await readExcelSheet(workbook, "Data_Wilayah"),
     users: await readExcelSheet(workbook, "Data_User_Auth"),
     schools: await readExcelSheet(workbook, "Data_Sekolah"),
-    risks: await readExcelSheet(workbook, "Data_Risiko"),
     predictions: await readExcelSheet(workbook, "Data_AI_Prediction"),
-    csrPrograms: await readExcelSheet(workbook, "Data_Bantuan_CSR"),
     auditLogs: await readExcelSheet(workbook, "Data_Audit_Log"),
     analytics: await readExcelSheet(workbook, "Data_Analytics"),
-    populationEducation: readCsv(),
   };
 
   const connection = await pool.getConnection();
@@ -880,25 +883,10 @@ const main = async () => {
       regionIdByName,
     );
 
-    const schoolIdByCode = await importSchools(
-      connection,
-      data.schools,
-      regionIdByName,
-    );
+    await importSchools(connection, data.schools, regionIdByName);
+    await seedStakeholderProfiles(connection);
 
-    await importPopulationEducation(
-      connection,
-      data.populationEducation,
-      regionIdByName,
-    );
-    await importRiskRecords(connection, data.risks, regionIdByName);
     await importPredictions(connection, data.predictions, regionIdByName);
-    await importCsrPrograms(
-      connection,
-      data.csrPrograms,
-      regionIdByName,
-      schoolIdByCode,
-    );
     await importAuditLogs(
       connection,
       data.auditLogs,
@@ -906,6 +894,8 @@ const main = async () => {
       userIdByUsername,
     );
     await importAnalyticsSnapshots(connection, data.analytics, regionIdByName);
+    await seedSchoolNeedRequests(connection);
+    await seedCsrAidProposals(connection);
 
     await connection.commit();
 
@@ -914,10 +904,10 @@ const main = async () => {
       regions: data.regions.length,
       users: data.users.length,
       schools: data.schools.length,
-      population_education_records: data.populationEducation.length,
-      risk_records: data.risks.length,
+      stakeholder_profiles: data.users.length,
       predictions: data.predictions.length,
-      csr_programs: data.csrPrograms.length,
+      school_need_requests: 8,
+      csr_aid_proposals: 3,
       audit_logs: data.auditLogs.length,
       analytics_snapshots: data.analytics.length,
     });

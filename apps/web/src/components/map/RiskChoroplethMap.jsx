@@ -2,7 +2,7 @@ import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GeoJSON, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 
 import { formatNumber, formatPercent } from "../../lib/utils";
 import {
@@ -23,26 +23,6 @@ const formatOptionalNumber = (value) => {
 const formatOptionalPercent = (value) => {
   const number = Number(value || 0);
   return Number.isFinite(number) && number > 0 ? formatPercent(number) : "-";
-};
-
-const escapeHtml = (value) =>
-  String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
-const createRegionLabelIcon = ({ name, riskStatus }) => {
-  const theme = getRiskTheme(riskStatus);
-
-  return L.divIcon({
-    className: "pintarin-region-label",
-    html: `<span style="--label-color:${theme.borderColor};">${escapeHtml(
-      name,
-    )}</span>`,
-    iconAnchor: [0, 0],
-  });
 };
 
 const getFeatureStyle = (feature, regionLookup, isActive = false) => {
@@ -188,31 +168,6 @@ export default function RiskChoroplethMap({
     [geoJson, regions],
   );
 
-  const regionLabels = useMemo(() => {
-    if (!filteredGeoJson?.features?.length) return [];
-
-    return filteredGeoJson.features
-      .map((feature, index) => {
-        const districtName = getFeatureDistrictName(feature) || "Wilayah";
-        const region = getRegionFromFeature(feature, regionLookup);
-        const displayName = getRegionName(region) || districtName;
-        const layer = L.geoJSON(feature);
-        const bounds = layer.getBounds();
-
-        if (!bounds.isValid()) return null;
-
-        const center = bounds.getCenter();
-
-        return {
-          id: `${displayName}-${index}`,
-          name: displayName,
-          position: [center.lat, center.lng],
-          riskStatus: getAiRiskStatus(region),
-        };
-      })
-      .filter(Boolean);
-  }, [filteredGeoJson, regionLookup]);
-
   const onEachFeature = (feature, layer) => {
     const districtName = getFeatureDistrictName(feature) || "Wilayah";
     const region = getRegionFromFeature(feature, regionLookup);
@@ -316,14 +271,6 @@ export default function RiskChoroplethMap({
           />
         )}
 
-        {regionLabels.map((label) => (
-          <Marker
-            key={label.id}
-            position={label.position}
-            icon={createRegionLabelIcon(label)}
-            interactive={false}
-          />
-        ))}
       </MapContainer>
     </div>
   );
