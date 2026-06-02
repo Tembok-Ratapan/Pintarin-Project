@@ -389,13 +389,55 @@ export default function OfficerDashboardPage() {
         {renderMetricGrid()}
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <DashboardChoroplethPanel
-            badge="Map Risk"
-            title="Map Risk"
-            description="Klik wilayah untuk membaca prioritas validasi."
-            regions={regions}
-            topRegions={topRiskRegions}
-          />
+          <DashboardSection
+            badge="Prioritas"
+            title="Fokus kerja hari ini"
+            description="Ringkas antrean yang perlu dibaca sebelum validasi."
+          >
+            <div className="space-y-3">
+              {[
+                {
+                  label: "Prediksi menunggu",
+                  value: formatNumber(pendingCount),
+                  helper: "Masuk ke Review Prediksi untuk keputusan manual.",
+                  icon: Clock3,
+                },
+                {
+                  label: "Risiko tinggi",
+                  value: formatNumber(highRiskQueue.length),
+                  helper: "Utamakan validasi untuk wilayah prioritas.",
+                  icon: AlertTriangle,
+                },
+                {
+                  label: "Confidence rendah",
+                  value: formatNumber(lowConfidenceQueue.length),
+                  helper: "Periksa konteks data sebelum dipakai.",
+                  icon: ShieldCheck,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.label}
+                    className="flex items-center gap-4 rounded-[1.2rem] bg-white/42 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                      <Icon size={19} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-extrabold text-[#102A43]">
+                        {item.label}: {item.value}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-[#64748B]">
+                        {item.helper}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </DashboardSection>
 
           {decisionGuide}
         </div>

@@ -40,8 +40,35 @@ const reviewRequest = asyncHandler(async (req, res) => {
   });
 });
 
+const updateRequest = asyncHandler(async (req, res) => {
+  const data = await schoolRequestService.updateRequest({
+    user: req.user,
+    id: req.params.id,
+    payload: req.body,
+  });
+
+  return successResponse(res, {
+    message: "School request updated successfully",
+    data,
+  });
+});
+
+const deleteRequest = asyncHandler(async (req, res) => {
+  const data = await schoolRequestService.deleteRequest({
+    user: req.user,
+    id: req.params.id,
+  });
+
+  return successResponse(res, {
+    message: "School request deleted successfully",
+    data,
+  });
+});
+
 module.exports = {
   createRequest,
+  deleteRequest,
   listRequests,
   reviewRequest,
+  updateRequest,
 };

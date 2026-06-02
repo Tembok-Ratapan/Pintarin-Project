@@ -34,7 +34,8 @@ dan rekomendasi kebijakan berbasis data.
 
 Aturan jawaban:
 - Jawab dalam bahasa Indonesia.
-- Ringkas, padat, dan gunakan poin-poin.
+- Jawab lengkap, terstruktur, dan tetap padat.
+- Gunakan poin-poin agar mudah dibaca.
 - Jangan mengarang angka jika data tidak diberikan.
 - Jika data konteks tidak cukup, sebutkan data apa yang perlu ditambahkan.
 - Ingatkan bahwa hasil AI tetap perlu review manusia.

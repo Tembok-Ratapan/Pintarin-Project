@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import Button from "../../../components/ui/Button";
+import SelectField from "../../../components/ui/Select";
 import DashboardEmptyState from "./DashboardEmptyState";
 import DashboardErrorBanner from "./DashboardErrorBanner";
 import PredictionConfidenceBadge from "./PredictionConfidenceBadge";
@@ -180,24 +181,19 @@ function OverrideModal({ prediction, isSubmitting, onClose, onConfirm }) {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="text-sm font-extrabold text-[#102A43]">
-              Label koreksi
-            </label>
-
-            <select
-              value={correctedLabel}
-              onChange={(event) => setCorrectedLabel(event.target.value)}
-              className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
-            >
-              <option value="">Pilih label final</option>
-              {riskOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SelectField
+            label="Label koreksi"
+            value={correctedLabel}
+            onChange={setCorrectedLabel}
+            placeholder="Pilih label final"
+          >
+            <option value="">Pilih label final</option>
+            {riskOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </SelectField>
 
           <div>
             <label className="text-sm font-extrabold text-[#102A43]">

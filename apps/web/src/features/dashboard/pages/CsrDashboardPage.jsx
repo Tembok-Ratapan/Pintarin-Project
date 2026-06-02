@@ -15,8 +15,13 @@ import {
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../../components/ui/Button";
+import SelectField from "../../../components/ui/Select";
 import LoadingState from "../../../components/feedback/LoadingState";
-import { formatCurrency, formatNumber } from "../../../lib/utils";
+import {
+  formatCompactCurrency,
+  formatCurrency,
+  formatNumber,
+} from "../../../lib/utils";
 import DashboardEmptyState from "../components/DashboardEmptyState";
 import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
@@ -146,23 +151,6 @@ const csrSectionMeta = {
     description: "Asisten Gemini untuk strategi program dan proposal CSR.",
   },
 };
-
-function SelectField({ label, value, onChange, children, disabled = false }) {
-  return (
-    <div>
-      <label className="text-sm font-extrabold text-[#102A43]">{label}</label>
-
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        disabled={disabled}
-        className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl transition focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {children}
-      </select>
-    </div>
-  );
-}
 
 function TextField({
   label,
@@ -508,7 +496,7 @@ function CsrOverview({ metricCards, topRiskRegions, proposals, onNavigate }) {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         {metricCards.map((metric) => (
           <DashboardMetricCard key={metric.label} {...metric} />
         ))}
@@ -852,6 +840,10 @@ export default function CsrDashboardPage() {
     {
       label: "Nilai CSR",
       value: formatCurrency(stats.totalValue || summary.total_csr_value),
+      displayValue: formatCompactCurrency(
+        stats.totalValue || summary.total_csr_value,
+      ),
+      detailValue: formatCurrency(stats.totalValue || summary.total_csr_value),
       helper: "Total bantuan CSR",
       icon: HandHeart,
       tone: "teal",
@@ -910,7 +902,7 @@ export default function CsrDashboardPage() {
     if (currentSection === "analytic") {
       return (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             {metricCards.map((metric) => (
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}
@@ -961,7 +953,7 @@ export default function CsrDashboardPage() {
     if (currentSection === "riwayat") {
       return (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             {metricCards.map((metric) => (
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}

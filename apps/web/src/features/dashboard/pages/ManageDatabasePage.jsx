@@ -12,6 +12,7 @@ import {
 
 import Button from "../../../components/ui/Button";
 import Badge from "../../../components/ui/Badge";
+import SelectField from "../../../components/ui/Select";
 import LoadingState from "../../../components/feedback/LoadingState";
 import DashboardEmptyState from "../components/DashboardEmptyState";
 import DashboardErrorBanner from "../components/DashboardErrorBanner";
@@ -85,11 +86,10 @@ function FieldInput({ field, value, onChange, mode }) {
 
   if (field.type === "enum") {
     return (
-      <select
+      <SelectField
         value={value}
-        required={isRequired}
-        onChange={(event) => onChange(field.name, event.target.value)}
-        className="mt-2 h-11 w-full rounded-2xl border border-white/70 bg-white/70 px-3 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 transition focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
+        onChange={(nextValue) => onChange(field.name, nextValue)}
+        placeholder={isRequired ? "Pilih" : "Kosong"}
       >
         <option value="">{field.nullable ? "Kosong" : "Pilih"}</option>
         {(field.options || []).map((option) => (
@@ -97,7 +97,7 @@ function FieldInput({ field, value, onChange, mode }) {
             {option}
           </option>
         ))}
-      </select>
+      </SelectField>
     );
   }
 
@@ -550,17 +550,16 @@ export default function ManageDatabasePage() {
               contentClassName="p-4"
             >
               <div className="mb-4 xl:hidden">
-                <select
+                <SelectField
                   value={selectedTableKey}
-                  onChange={(event) => handleSelectTable(event.target.value)}
-                  className="h-11 w-full rounded-2xl border border-white/70 bg-white/70 px-3 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40"
+                  onChange={handleSelectTable}
                 >
                   {tables.map((table) => (
                     <option key={table.key} value={table.key}>
                       {table.label}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
 
               <div className="hidden space-y-5 xl:block">

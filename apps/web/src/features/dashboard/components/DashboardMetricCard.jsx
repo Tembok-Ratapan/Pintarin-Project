@@ -26,6 +26,8 @@ export default function DashboardMetricCard({
   icon: Icon,
   label,
   value,
+  displayValue,
+  detailValue,
   helper,
   tone = "teal",
   trend,
@@ -70,10 +72,10 @@ export default function DashboardMetricCard({
             </p>
 
             <p
-              title={String(value ?? "")}
+              title={String(detailValue ?? value ?? "")}
               className="font-heading mt-3 break-words text-2xl font-extrabold leading-tight text-[#102A43] sm:text-[1.55rem]"
             >
-              {value}
+              {displayValue ?? value}
             </p>
 
             {helper && (
@@ -113,7 +115,7 @@ export default function DashboardMetricCard({
           <div className="mt-3 rounded-[1rem] bg-white/38 p-3 text-xs font-semibold leading-5 text-[#64748B] shadow-inner shadow-white/40">
             <p>
               <span className="font-extrabold text-[#102A43]">{label}:</span>{" "}
-              {value}
+              {detailValue ?? value}
             </p>
             {helper && <p className="mt-1">{helper}</p>}
             {trend && <p className="mt-1 text-[#0F766E]">{trend}</p>}

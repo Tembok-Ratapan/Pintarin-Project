@@ -136,9 +136,57 @@ const reviewRequest = async ({ id, reviewedBy, status, reviewNote }) => {
   );
 };
 
+const updateRequest = async ({
+  id,
+  category,
+  title,
+  description,
+  urgency,
+  requestedValue,
+  evidenceUrl,
+  evidenceNote,
+}) => {
+  await pool.query(
+    `
+    UPDATE school_need_requests
+    SET
+      category = ?,
+      title = ?,
+      description = ?,
+      urgency = ?,
+      requested_value = ?,
+      evidence_url = ?,
+      evidence_note = ?
+    WHERE id = ?
+    `,
+    [
+      category,
+      title,
+      description || null,
+      urgency || "Sedang",
+      Number(requestedValue || 0),
+      evidenceUrl || null,
+      evidenceNote || null,
+      id,
+    ],
+  );
+};
+
+const deleteRequest = async (id) => {
+  await pool.query(
+    `
+    DELETE FROM school_need_requests
+    WHERE id = ?
+    `,
+    [id],
+  );
+};
+
 module.exports = {
   createRequest,
+  deleteRequest,
   getRequestById,
   listRequests,
   reviewRequest,
+  updateRequest,
 };

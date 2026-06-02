@@ -4,6 +4,7 @@ import {
   BookOpenCheck,
   CheckCircle2,
   ClipboardList,
+  Edit3,
   ExternalLink,
   GraduationCap,
   LineChart,
@@ -12,11 +13,14 @@ import {
   Save,
   School,
   ShieldCheck,
+  Trash2,
   UsersRound,
+  X,
 } from "lucide-react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 import Button from "../../../components/ui/Button";
+import SelectField from "../../../components/ui/Select";
 import LoadingState from "../../../components/feedback/LoadingState";
 import {
   formatCurrency,
@@ -48,6 +52,7 @@ const requestCategories = [
 ];
 
 const urgencyOptions = ["Rendah", "Sedang", "Tinggi"];
+const editableRequestStatuses = ["Diajukan", "Ditinjau"];
 
 const initialRequestForm = {
   category: "Laptop",
@@ -180,24 +185,20 @@ function RegionSelector({
   if (regions.length === 0) return null;
 
   return (
-    <div className="w-full sm:w-[18rem]">
-      <label className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
-        Wilayah
-      </label>
-
-      <select
-        value={selectedRegionId || ""}
-        onChange={(event) => onChange(event.target.value)}
-        disabled={disabled}
-        className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl transition focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {regions.map((region) => (
-          <option key={getRegionId(region)} value={getRegionId(region)}>
-            {getRegionName(region)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <SelectField
+      label="Wilayah"
+      labelClassName="text-xs uppercase tracking-[0.16em] text-[#64748B]"
+      className="w-full sm:w-[18rem]"
+      value={selectedRegionId || ""}
+      onChange={onChange}
+      disabled={disabled}
+    >
+      {regions.map((region) => (
+        <option key={getRegionId(region)} value={getRegionId(region)}>
+          {getRegionName(region)}
+        </option>
+      ))}
+    </SelectField>
   );
 }
 
@@ -318,43 +319,40 @@ function EducationSignalPanel({ region }) {
   );
 }
 
-function RequestForm({ form, isSubmitting, onChange, onSubmit }) {
+function RequestForm({
+  form,
+  isSubmitting,
+  onChange,
+  onSubmit,
+  submitLabel = "Ajukan Kebutuhan",
+  SubmitIcon = Plus,
+}) {
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="grid gap-4 lg:grid-cols-2">
-        <div>
-          <label className="text-sm font-extrabold text-[#102A43]">
-            Kategori
-          </label>
-          <select
-            value={form.category}
-            onChange={(event) => onChange("category", event.target.value)}
-            className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
-          >
-            {requestCategories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField
+          label="Kategori"
+          value={form.category}
+          onChange={(value) => onChange("category", value)}
+        >
+          {requestCategories.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </SelectField>
 
-        <div>
-          <label className="text-sm font-extrabold text-[#102A43]">
-            Urgensi
-          </label>
-          <select
-            value={form.urgency}
-            onChange={(event) => onChange("urgency", event.target.value)}
-            className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
-          >
-            {urgencyOptions.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField
+          label="Urgensi"
+          value={form.urgency}
+          onChange={(value) => onChange("urgency", value)}
+        >
+          {urgencyOptions.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </SelectField>
       </div>
 
       <div>
@@ -429,14 +427,69 @@ function RequestForm({ form, isSubmitting, onChange, onSubmit }) {
         className="w-full justify-center"
         disabled={isSubmitting}
       >
-        <Plus size={18} />
-        {isSubmitting ? "Mengirim..." : "Ajukan Kebutuhan"}
+        <SubmitIcon size={18} />
+        {isSubmitting ? "Menyimpan..." : submitLabel}
       </Button>
     </form>
   );
 }
 
-function RequestHistory({ requests = [] }) {
+function RequestEditModal({
+  request,
+  form,
+  isSubmitting,
+  onChange,
+  onSubmit,
+  onClose,
+}) {
+  if (!request) return null;
+
+  return (
+    <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#0B172A]/35 px-4 py-6 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-[2rem] bg-white/90 p-5 shadow-2xl shadow-slate-900/20 backdrop-blur-2xl sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0F766E]">
+              Edit Ajuan
+            </p>
+            <h3 className="mt-2 text-xl font-extrabold text-[#102A43]">
+              {request.request_code}
+            </h3>
+            <p className="mt-1 text-sm font-medium leading-6 text-[#64748B]">
+              Perubahan hanya tersedia untuk status Diajukan atau Ditinjau.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/62 text-[#64748B] transition hover:bg-white hover:text-[#102A43]"
+            aria-label="Tutup modal edit"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <RequestForm
+          form={form}
+          isSubmitting={isSubmitting}
+          onChange={onChange}
+          onSubmit={onSubmit}
+          submitLabel="Simpan perubahan"
+          SubmitIcon={Save}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RequestHistory({
+  requests = [],
+  onEdit,
+  onDelete,
+  isMutatingRequestId,
+}) {
   if (requests.length === 0) {
     return (
       <DashboardEmptyState
@@ -449,10 +502,7 @@ function RequestHistory({ requests = [] }) {
   return (
     <div className="space-y-3">
       {requests.map((request) => (
-        <div
-          key={request.id}
-          className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/40 backdrop-blur-xl"
-        >
+        <div key={request.id} className="rounded-[1.35rem] bg-white/44 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] backdrop-blur-xl">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -487,7 +537,7 @@ function RequestHistory({ requests = [] }) {
           </div>
 
           {(request.review_note || request.evidence_url) && (
-            <div className="mt-4 rounded-2xl border border-white/70 bg-white/42 p-3 text-sm leading-6 text-[#64748B]">
+            <div className="mt-4 rounded-2xl bg-white/42 p-3 text-sm leading-6 text-[#64748B] shadow-inner shadow-white/40">
               {request.review_note && (
                 <p>
                   <span className="font-extrabold text-[#102A43]">Review:</span>{" "}
@@ -505,6 +555,32 @@ function RequestHistory({ requests = [] }) {
                   Lihat bukti <ExternalLink size={14} />
                 </a>
               )}
+            </div>
+          )}
+
+          {editableRequestStatuses.includes(request.status) && (
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => onEdit(request)}
+                disabled={isMutatingRequestId === request.id}
+              >
+                <Edit3 size={16} />
+                Edit
+              </Button>
+
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                onClick={() => onDelete(request)}
+                disabled={isMutatingRequestId === request.id}
+              >
+                <Trash2 size={16} />
+                {isMutatingRequestId === request.id ? "Menghapus" : "Hapus"}
+              </Button>
             </div>
           )}
         </div>
@@ -533,23 +609,25 @@ function FollowUpGuidance() {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="space-y-3">
       {items.map((item) => {
         const Icon = item.icon;
 
         return (
           <div
             key={item.title}
-            className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/40"
+            className="flex items-start gap-4 rounded-[1.35rem] bg-white/44 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]"
           >
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
               <Icon size={18} />
             </div>
 
-            <p className="font-extrabold text-[#102A43]">{item.title}</p>
-            <p className="mt-2 text-sm leading-7 text-[#64748B]">
-              {item.description}
-            </p>
+            <div className="min-w-0">
+              <p className="font-extrabold text-[#102A43]">{item.title}</p>
+              <p className="mt-1 text-sm leading-6 text-[#64748B]">
+                {item.description}
+              </p>
+            </div>
           </div>
         );
       })}
@@ -573,9 +651,13 @@ export default function SchoolDashboardPage() {
   });
   const [selectedRegionId, setSelectedRegionId] = useState("");
   const [requestForm, setRequestForm] = useState(initialRequestForm);
+  const [editRequest, setEditRequest] = useState(null);
+  const [editRequestForm, setEditRequestForm] = useState(initialRequestForm);
   const [reloadKey, setReloadKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [isMutatingRequest, setIsMutatingRequest] = useState(false);
+  const [mutatingRequestId, setMutatingRequestId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -705,6 +787,38 @@ export default function SchoolDashboardPage() {
       ...current,
       [field]: value,
     }));
+  };
+
+  const updateEditRequestField = (field, value) => {
+    setSuccessMessage("");
+    setEditRequestForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const openEditRequest = (request) => {
+    if (!editableRequestStatuses.includes(request.status)) return;
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setEditRequest(request);
+    setEditRequestForm({
+      category: request.category || "Laptop",
+      title: request.title || "",
+      description: request.description || "",
+      urgency: request.urgency || "Sedang",
+      requested_value: request.requested_value || "",
+      evidence_url: request.evidence_url || "",
+      evidence_note: request.evidence_note || "",
+    });
+  };
+
+  const closeEditRequest = () => {
+    if (isMutatingRequest) return;
+
+    setEditRequest(null);
+    setEditRequestForm(initialRequestForm);
   };
 
   const handleSubmitRequest = async (event) => {
@@ -865,7 +979,12 @@ export default function SchoolDashboardPage() {
             title="Riwayat ajuan"
             description="Pantau status ajuan sekolah."
           >
-            <RequestHistory requests={schoolRequests} />
+            <RequestHistory
+              requests={schoolRequests}
+              onEdit={openEditRequest}
+              onDelete={handleDeleteRequest}
+              isMutatingRequestId={mutatingRequestId}
+            />
           </DashboardSection>
         </>
       );
@@ -950,6 +1069,76 @@ export default function SchoolDashboardPage() {
     );
   };
 
+  const handleUpdateRequest = async (event) => {
+    event.preventDefault();
+
+    if (!editRequest) return;
+
+    setIsMutatingRequest(true);
+    setMutatingRequestId(editRequest.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      await schoolRequestService.updateRequest({
+        requestId: editRequest.id,
+        payload: {
+          category: editRequestForm.category,
+          title: editRequestForm.title,
+          description: editRequestForm.description,
+          urgency: editRequestForm.urgency,
+          requested_value: editRequestForm.requested_value,
+          evidence_url: editRequestForm.evidence_url,
+          evidence_note: editRequestForm.evidence_note,
+        },
+      });
+
+      setEditRequest(null);
+      setEditRequestForm(initialRequestForm);
+      setSuccessMessage("Ajuan berhasil diperbarui.");
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Ajuan gagal diperbarui.",
+      );
+    } finally {
+      setIsMutatingRequest(false);
+      setMutatingRequestId(null);
+    }
+  };
+
+  const handleDeleteRequest = async (request) => {
+    if (!editableRequestStatuses.includes(request.status)) return;
+
+    const confirmed = window.confirm(
+      `Hapus ajuan "${request.title}"? Tindakan ini tidak bisa dibatalkan.`,
+    );
+
+    if (!confirmed) return;
+
+    setIsMutatingRequest(true);
+    setMutatingRequestId(request.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      await schoolRequestService.deleteRequest(request.id);
+      setSuccessMessage("Ajuan berhasil dihapus.");
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Ajuan gagal dihapus.",
+      );
+    } finally {
+      setIsMutatingRequest(false);
+      setMutatingRequestId(null);
+    }
+  };
+
   return (
     <DashboardShell
       badge={sectionMeta.badge}
@@ -994,6 +1183,15 @@ export default function SchoolDashboardPage() {
           )}
 
           {renderSectionContent()}
+
+          <RequestEditModal
+            request={editRequest}
+            form={editRequestForm}
+            isSubmitting={isMutatingRequest}
+            onChange={updateEditRequestField}
+            onSubmit={handleUpdateRequest}
+            onClose={closeEditRequest}
+          />
         </>
       )}
     </DashboardShell>

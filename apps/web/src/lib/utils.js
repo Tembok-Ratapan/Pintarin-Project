@@ -29,6 +29,24 @@ export const formatCurrency = (value) => {
   }).format(number);
 };
 
+export const formatCompactCurrency = (value) => {
+  const number = Number(value || 0);
+
+  if (Math.abs(number) >= 1_000_000_000) {
+    return `Rp ${new Intl.NumberFormat("id-ID", {
+      maximumFractionDigits: 1,
+    }).format(number / 1_000_000_000)} M`;
+  }
+
+  if (Math.abs(number) >= 1_000_000) {
+    return `Rp ${new Intl.NumberFormat("id-ID", {
+      maximumFractionDigits: 1,
+    }).format(number / 1_000_000)} jt`;
+  }
+
+  return formatCurrency(number);
+};
+
 export const getRiskBadgeClass = (riskStatus) => {
   if (riskStatus === "Tinggi") {
     return "border-red-200 bg-red-50 text-red-700";

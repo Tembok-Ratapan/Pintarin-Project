@@ -91,7 +91,7 @@ const env = {
       process.env.GEMINI_API_BASE_URL ||
       "https://generativelanguage.googleapis.com/v1beta/models",
     timeoutMs: toPositiveInteger(process.env.GEMINI_TIMEOUT_MS, 30000),
-    maxOutputTokens: toPositiveInteger(process.env.GEMINI_MAX_OUTPUT_TOKENS, 700),
+    maxOutputTokens: toPositiveInteger(process.env.GEMINI_MAX_OUTPUT_TOKENS, 1800),
     temperature: toNumber(process.env.GEMINI_TEMPERATURE, 0.4),
   },
 

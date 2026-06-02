@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import Button from "../../../components/ui/Button";
+import SelectField from "../../../components/ui/Select";
 import {
   cn,
   formatCurrency,
@@ -77,22 +78,6 @@ const getRiskLabel = (item) => {
     "Sedang"
   );
 };
-
-function SelectField({ label, value, onChange, children }) {
-  return (
-    <div>
-      <label className="text-sm font-extrabold text-[#102A43]">{label}</label>
-
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl transition focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
-      >
-        {children}
-      </select>
-    </div>
-  );
-}
 
 function MatchScoreBar({ score }) {
   const safeScore = Math.max(0, Math.min(Number(score || 0), 100));

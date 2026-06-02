@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import Button from "../../../components/ui/Button";
+import SelectField from "../../../components/ui/Select";
 import LoadingState from "../../../components/feedback/LoadingState";
 import { formatCurrency, formatNumber } from "../../../lib/utils";
 import DashboardEmptyState from "./DashboardEmptyState";
@@ -105,23 +106,13 @@ function ReviewModal({
         </div>
 
         <div className="mt-5 space-y-4">
-          <div>
-            <label className="text-sm font-extrabold text-[#102A43]">
-              Status
-            </label>
-
-            <select
-              value={status}
-              onChange={(event) => onStatusChange(event.target.value)}
-              className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
-            >
-              {reviewStatuses.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.value}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SelectField label="Status" value={status} onChange={onStatusChange}>
+            {reviewStatuses.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.value}
+              </option>
+            ))}
+          </SelectField>
 
           <div>
             <label className="text-sm font-extrabold text-[#102A43]">
@@ -156,9 +147,10 @@ function AidCard({ proposal, onReview }) {
   const activeStatus = reviewStatuses.find(
     (item) => item.value === proposal.status,
   );
+  const ActiveIcon = activeStatus?.icon || Clock3;
 
   return (
-    <div className="rounded-[1.45rem] border border-white/70 bg-white/46 p-5 ring-1 ring-white/40 backdrop-blur-xl">
+    <div className="rounded-[1.45rem] bg-white/46 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] backdrop-blur-xl">
       <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -196,7 +188,7 @@ function AidCard({ proposal, onReview }) {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 rounded-2xl border border-white/70 bg-white/38 p-4 text-sm leading-6 text-[#64748B] md:grid-cols-3">
+      <div className="mt-4 grid gap-3 rounded-2xl bg-white/38 p-4 text-sm leading-6 text-[#64748B] shadow-inner shadow-white/40 md:grid-cols-3">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
             Jenis
@@ -238,30 +230,35 @@ function AidCard({ proposal, onReview }) {
       </div>
 
       {proposal.review_note && (
-        <div className="mt-3 rounded-2xl border border-white/70 bg-white/38 p-3 text-sm leading-6 text-[#64748B]">
+        <div className="mt-3 rounded-2xl bg-white/38 p-3 text-sm leading-6 text-[#64748B] shadow-inner shadow-white/40">
           <span className="font-extrabold text-[#102A43]">Catatan:</span>{" "}
           {proposal.review_note}
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {reviewStatuses.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeStatus?.value === item.value;
+      <div className="mt-4 flex flex-col justify-between gap-3 rounded-2xl bg-[#ECFEFF]/40 p-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+            <ActiveIcon size={18} />
+          </span>
+          <div>
+            <p className="text-sm font-extrabold text-[#102A43]">
+              Status saat ini: {proposal.status}
+            </p>
+            <p className="text-xs font-semibold leading-5 text-[#64748B]">
+              Pilih keputusan penyaluran lewat modal review.
+            </p>
+          </div>
+        </div>
 
-          return (
-            <Button
-              key={item.value}
-              size="sm"
-              variant={item.variant}
-              onClick={() => onReview(proposal, item.value)}
-              disabled={isActive}
-            >
-              <Icon size={16} />
-              {item.label}
-            </Button>
-          );
-        })}
+        <Button
+          size="sm"
+          onClick={() => onReview(proposal, proposal.status || "Ditinjau")}
+          className="justify-center"
+        >
+          <ShieldCheck size={16} />
+          Review keputusan
+        </Button>
       </div>
     </div>
   );

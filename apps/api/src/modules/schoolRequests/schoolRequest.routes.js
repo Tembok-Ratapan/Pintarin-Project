@@ -21,6 +21,20 @@ router.post(
   schoolRequestController.createRequest,
 );
 
+router.put(
+  "/:id",
+  authMiddleware,
+  roleGuard(["admin", "school_operator"]),
+  schoolRequestController.updateRequest,
+);
+
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleGuard(["admin", "school_operator"]),
+  schoolRequestController.deleteRequest,
+);
+
 router.patch(
   "/:id/review",
   authMiddleware,

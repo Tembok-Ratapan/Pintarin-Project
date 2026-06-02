@@ -7,6 +7,7 @@ const allowedReviewStatuses = [
   "Ditolak",
   "Disalurkan",
 ];
+const editableRequestStatuses = ["Diajukan", "Ditinjau"];
 
 const sanitizeText = (value, maxLength = 500) => {
   if (value === undefined || value === null) return "";
@@ -69,6 +70,82 @@ const createRequest = async ({ user, payload }) => {
   return schoolRequestRepository.getRequestById(id);
 };
 
+const ensureEditableRequest = ({ user, request }) => {
+  if (!request) {
+    const error = new Error("Ajuan sekolah tidak ditemukan.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isOwner = Number(request.submitted_by) === Number(user.id);
+  const isAdmin = user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    const error = new Error("Ajuan sekolah hanya bisa diubah oleh pemiliknya.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (!editableRequestStatuses.includes(request.status)) {
+    const error = new Error(
+      "Ajuan yang sudah diputuskan tidak bisa diubah atau dihapus.",
+    );
+    error.statusCode = 409;
+    throw error;
+  }
+};
+
+const updateRequest = async ({ user, id, payload }) => {
+  const request = await schoolRequestRepository.getRequestById(id);
+
+  ensureEditableRequest({ user, request });
+
+  const title = sanitizeText(payload.title, 180);
+  const category = sanitizeText(payload.category, 80);
+
+  if (!title) {
+    const error = new Error("Judul ajuan wajib diisi.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!category) {
+    const error = new Error("Kategori ajuan wajib diisi.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const urgency = allowedUrgencies.includes(payload.urgency)
+    ? payload.urgency
+    : request.urgency || "Sedang";
+
+  await schoolRequestRepository.updateRequest({
+    id,
+    category,
+    title,
+    description: sanitizeText(payload.description, 1500),
+    urgency,
+    requestedValue: payload.requested_value,
+    evidenceUrl: sanitizeText(payload.evidence_url, 500),
+    evidenceNote: sanitizeText(payload.evidence_note, 1500),
+  });
+
+  return schoolRequestRepository.getRequestById(id);
+};
+
+const deleteRequest = async ({ user, id }) => {
+  const request = await schoolRequestRepository.getRequestById(id);
+
+  ensureEditableRequest({ user, request });
+
+  await schoolRequestRepository.deleteRequest(id);
+
+  return {
+    id: Number(id),
+    deleted: true,
+  };
+};
+
 const reviewRequest = async ({ user, id, payload }) => {
   const request = await schoolRequestRepository.getRequestById(id);
 
@@ -96,6 +173,8 @@ const reviewRequest = async ({ user, id, payload }) => {
 
 module.exports = {
   createRequest,
+  deleteRequest,
   listRequests,
   reviewRequest,
+  updateRequest,
 };

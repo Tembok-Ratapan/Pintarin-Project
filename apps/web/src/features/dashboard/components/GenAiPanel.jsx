@@ -135,7 +135,7 @@ export default function GenAiPanel({
           </Button>
         </form>
 
-        <div className="min-h-[24rem] rounded-[1.5rem] border border-white/70 bg-white/50 p-4 ring-1 ring-white/40 backdrop-blur-2xl sm:p-5">
+        <div className="min-h-[24rem] rounded-[1.5rem] bg-white/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.62)] backdrop-blur-2xl sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/70 text-[#0F766E] ring-1 ring-white/60">
@@ -182,7 +182,7 @@ export default function GenAiPanel({
           )}
 
           {reply && (
-            <div className="whitespace-pre-wrap rounded-[1.35rem] border border-[#5EEAD4]/35 bg-[#F8FAFC]/80 p-4 text-sm font-medium leading-7 text-[#334155]">
+            <div className="max-h-[34rem] overflow-auto whitespace-pre-wrap rounded-[1.35rem] bg-[#F8FAFC]/82 p-4 text-sm font-medium leading-7 text-[#334155] shadow-inner shadow-white/50">
               {reply}
             </div>
           )}

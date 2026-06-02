@@ -34,6 +34,16 @@ export const schoolRequestService = {
     return response.data?.data || null;
   },
 
+  async updateRequest({ requestId, payload }) {
+    const response = await api.put(`/school-requests/${requestId}`, payload);
+    return response.data?.data || null;
+  },
+
+  async deleteRequest(requestId) {
+    const response = await api.delete(`/school-requests/${requestId}`);
+    return response.data?.data || null;
+  },
+
   async reviewRequest({ requestId, status, reviewNote }) {
     const response = await api.patch(`/school-requests/${requestId}/review`, {
       status,
