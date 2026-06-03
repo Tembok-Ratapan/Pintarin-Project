@@ -19,7 +19,7 @@ import { normalizeDashboardRole } from "./dashboardRoutes";
 export const dashboardRoleMeta = {
   admin: {
     label: "Admin",
-    workspace: "Pusat Kendali",
+    workspace: "Overview Admin",
     tagline: "Kelola data, ajuan, dan bantuan.",
   },
   officer: {
@@ -64,9 +64,18 @@ export const dashboardNavByRole = {
   admin: [
     withGroup(
       {
-        label: "Pusat Kendali",
+        label: "Overview",
         path: "/dashboard/admin",
         icon: LayoutDashboard,
+        end: true,
+      },
+      "Admin",
+    ),
+    withGroup(
+      {
+        label: "Pusat Kendali",
+        path: "/dashboard/admin/control-center",
+        icon: ShieldCheck,
       },
       "Admin",
     ),

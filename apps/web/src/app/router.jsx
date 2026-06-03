@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import {
   AdminDashboardPage,
+  AdminControlCenterPage,
   AnalystDashboardPage,
   CsrDashboardPage,
   DashboardAppLayout,
@@ -90,6 +91,16 @@ const router = createBrowserRouter([
           <RouteSuspense label="Menyiapkan dashboard administrator...">
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminDashboardPage />
+            </ProtectedRoute>
+          </RouteSuspense>
+        ),
+      },
+      {
+        path: "admin/control-center",
+        element: (
+          <RouteSuspense label="Menyiapkan pusat kendali administrator...">
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminControlCenterPage />
             </ProtectedRoute>
           </RouteSuspense>
         ),

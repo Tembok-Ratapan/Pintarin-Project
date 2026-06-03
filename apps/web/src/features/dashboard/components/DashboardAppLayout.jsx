@@ -4,10 +4,18 @@ import {
   ChevronDown,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   UserRoundCog,
   X,
 } from "lucide-react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import BrandLogo from "../../../components/brand/BrandLogo";
 import Grainient from "../../../components/ui/Grainient";
@@ -19,18 +27,31 @@ import {
 } from "../dashboardNavigation";
 import { getDashboardPathByRole } from "../dashboardRoutes";
 
-function SidebarLink({ item, onNavigate }) {
+function SidebarLink({ item, onNavigate, isCollapsed }) {
   const Icon = item.icon;
+  const linkClassName = ({ isActive } = {}) =>
+    [
+      "flex min-w-0 items-center text-sm font-extrabold transition",
+      isCollapsed
+        ? "h-11 justify-center rounded-2xl px-0"
+        : "gap-3 rounded-2xl px-3.5 py-3",
+      isActive
+        ? "bg-[#0F766E] text-white shadow-lg shadow-[#0F766E]/18"
+        : "text-[#475569] hover:bg-white/58 hover:text-[#0F766E]",
+    ].join(" ");
 
   if (item.isAnchor) {
     return (
       <a
         href={item.path}
         onClick={onNavigate}
-        className="flex min-w-0 items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold text-[#475569] transition hover:bg-white/58 hover:text-[#0F766E]"
+        className={linkClassName()}
+        title={isCollapsed ? item.label : undefined}
       >
         <Icon size={18} className="shrink-0" />
-        <span className="truncate">{item.label}</span>
+        <span className={isCollapsed ? "sr-only" : "truncate"}>
+          {item.label}
+        </span>
       </a>
     );
   }
@@ -38,18 +59,15 @@ function SidebarLink({ item, onNavigate }) {
   return (
     <NavLink
       to={item.path}
+      end={item.end}
       onClick={onNavigate}
-      className={({ isActive }) =>
-        [
-          "flex min-w-0 items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-extrabold transition",
-          isActive
-            ? "bg-[#0F766E] text-white shadow-lg shadow-[#0F766E]/18"
-            : "text-[#475569] hover:bg-white/58 hover:text-[#0F766E]",
-        ].join(" ")
-      }
+      className={linkClassName}
+      title={isCollapsed ? item.label : undefined}
     >
       <Icon size={18} className="shrink-0" />
-      <span className="truncate">{item.label}</span>
+      <span className={isCollapsed ? "sr-only" : "truncate"}>
+        {item.label}
+      </span>
     </NavLink>
   );
 }
@@ -77,43 +95,156 @@ const groupNavItems = (items) => {
   return groups;
 };
 
-function SidebarContent({ onNavigate }) {
+function SidebarGroup({
+  group,
+  isAdmin,
+  isCollapsed,
+  locationPathname,
+  onNavigate,
+}) {
+  const isGroupActive = group.items.some((item) => {
+    if (item.isAnchor) return false;
+    return (
+      locationPathname === item.path ||
+      locationPathname.startsWith(`${item.path}/`)
+    );
+  });
+  const [isOpen, setIsOpen] = useState(
+    !isAdmin || isCollapsed || group.label === "Admin" || isGroupActive,
+  );
+  const shouldShowItems = isOpen || isGroupActive;
+
+  if (isCollapsed) {
+    return (
+      <div className="space-y-1.5 border-t border-white/55 pt-3 first:border-t-0 first:pt-0">
+        {group.items.map((item) => (
+          <SidebarLink
+            key={`${group.label}-${item.path}`}
+            item={item}
+            isCollapsed
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (isAdmin) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setIsOpen((current) => !current)}
+          className="mb-2 flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2 text-left text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[#64748B] transition hover:bg-white/48 hover:text-[#0F766E]"
+          aria-expanded={shouldShowItems}
+        >
+          <span>{group.label}</span>
+          <ChevronDown
+            size={15}
+            className={`shrink-0 transition ${
+              shouldShowItems ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {shouldShowItems && (
+          <div className="space-y-1.5">
+            {group.items.map((item) => (
+              <SidebarLink
+                key={`${group.label}-${item.path}`}
+                item={item}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
+        {group.label}
+      </p>
+
+      <div className="space-y-1.5">
+        {group.items.map((item) => (
+          <SidebarLink
+            key={`${group.label}-${item.path}`}
+            item={item}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SidebarContent({
+  isCollapsed = false,
+  isDesktop = false,
+  onNavigate,
+  onToggleCollapse,
+}) {
   const { user } = useAuth();
+  const location = useLocation();
 
   const role = user?.role || "viewer";
   const dashboardPath = getDashboardPathByRole(role);
   const roleNavItems = getDashboardNavItems(role);
   const navGroups = groupNavItems(roleNavItems);
+  const isAdmin = role === "admin";
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-5 pb-5 pt-5">
+      <div
+        className={`flex items-center gap-2 px-5 pb-5 pt-5 ${
+          isCollapsed ? "justify-center px-3" : "justify-between"
+        }`}
+      >
         <Link
           to={dashboardPath}
           onClick={onNavigate}
           aria-label="Dashboard PINTARIN"
+          className={isCollapsed ? "overflow-hidden rounded-2xl" : ""}
         >
-          <BrandLogo />
+          <BrandLogo
+            showSubtitle={!isCollapsed}
+            className={isCollapsed ? "justify-center [&>span]:hidden" : ""}
+          />
         </Link>
+
+        {isDesktop && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/58 text-[#102A43] ring-1 ring-white/55 transition hover:bg-white hover:text-[#0F766E] lg:flex"
+            aria-label={isCollapsed ? "Buka sidebar" : "Lipat sidebar"}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen size={18} />
+            ) : (
+              <PanelLeftClose size={18} />
+            )}
+          </button>
+        )}
       </div>
 
-      <nav className="mt-2 flex-1 space-y-5 overflow-y-auto px-4 pb-4">
+      <nav
+        className={`mt-2 flex-1 overflow-y-auto pb-4 ${
+          isCollapsed ? "space-y-3 px-2.5" : "space-y-5 px-4"
+        }`}
+      >
         {navGroups.map((group) => (
-          <div key={group.label}>
-            <p className="mb-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#94A3B8]">
-              {group.label}
-            </p>
-
-            <div className="space-y-1.5">
-              {group.items.map((item) => (
-                <SidebarLink
-                  key={`${group.label}-${item.path}`}
-                  item={item}
-                  onNavigate={onNavigate}
-                />
-              ))}
-            </div>
-          </div>
+          <SidebarGroup
+            key={group.label}
+            group={group}
+            isAdmin={isAdmin}
+            isCollapsed={isCollapsed}
+            locationPathname={location.pathname}
+            onNavigate={onNavigate}
+          />
         ))}
 
         {dashboardUtilityNav.length > 0 && (
@@ -127,6 +258,7 @@ function SidebarContent({ onNavigate }) {
                 <SidebarLink
                   key={item.path}
                   item={item}
+                  isCollapsed={isCollapsed}
                   onNavigate={onNavigate}
                 />
               ))}
@@ -224,8 +356,13 @@ function HeaderUserMenu({ user }) {
 export default function DashboardAppLayout() {
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const roleMeta = getDashboardRoleMeta(user?.role);
+  const desktopSidebarWidthClass = isSidebarCollapsed ? "w-[5.25rem]" : "w-[18rem]";
+  const desktopContentOffsetClass = isSidebarCollapsed
+    ? "lg:pl-[5.25rem]"
+    : "lg:pl-[18rem]";
 
   return (
     <div className="relative isolate min-h-screen overflow-x-hidden bg-transparent">
@@ -260,8 +397,16 @@ export default function DashboardAppLayout() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(94,234,212,0.30),transparent_28rem),radial-gradient(circle_at_88%_30%,rgba(204,251,241,0.40),transparent_30rem)]" />
       </div>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[18rem] border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl lg:block">
-        <SidebarContent />
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl transition-[width] duration-300 lg:block ${desktopSidebarWidthClass}`}
+      >
+        <SidebarContent
+          isCollapsed={isSidebarCollapsed}
+          isDesktop
+          onToggleCollapse={() =>
+            setIsSidebarCollapsed((current) => !current)
+          }
+        />
       </aside>
 
       {isSidebarOpen && (
@@ -290,7 +435,9 @@ export default function DashboardAppLayout() {
         </div>
       )}
 
-      <div className="relative z-10 lg:pl-[18rem]">
+      <div
+        className={`relative z-10 transition-[padding] duration-300 ${desktopContentOffsetClass}`}
+      >
         <header className="sticky top-0 z-30 border-b border-white/60 bg-white/42 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">

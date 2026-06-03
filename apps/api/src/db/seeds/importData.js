@@ -1,11 +1,59 @@
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt");
 const ExcelJS = require("exceljs");
 const { pool } = require("../connection");
 
 const rawDataDir = path.resolve(__dirname, "../../../../../data/raw");
 
 const excelPath = path.join(rawDataDir, "PINTARIN_DUMMY_DATA.xlsx");
+
+const demoUsers = [
+  {
+    user_code: "USR-ADM-0001",
+    username: "admin",
+    email: "admin@pintarin.local",
+    full_name: "Administrator PINTARIN",
+    role: "admin",
+    source_role: "Admin",
+    institution: "PINTARIN",
+    region_name: null,
+    password: "pintarin",
+  },
+  {
+    user_code: "USR-DIN-0001",
+    username: "dinas",
+    email: "dinas@pintarin.local",
+    full_name: "Dinas Pendidikan Kota Bandung",
+    role: "officer",
+    source_role: "Dinas",
+    institution: "Dinas Pendidikan Kota Bandung",
+    region_name: null,
+    password: "pintarindinas",
+  },
+  {
+    user_code: "USR-CSR-0001",
+    username: "csr",
+    email: "csr@pintarin.local",
+    full_name: "Mitra CSR Pendidikan",
+    role: "csr_partner",
+    source_role: "CSR",
+    institution: "Mitra CSR Kota Bandung",
+    region_name: null,
+    password: "pintarincsr",
+  },
+  {
+    user_code: "USR-SCH-0001",
+    username: "school",
+    email: "school@pintarin.local",
+    full_name: "Operator Sekolah",
+    role: "school_operator",
+    source_role: "Sekolah",
+    institution: "Sekolah Mitra PINTARIN",
+    region_name: "ANDIR",
+    password: "pintarinschool",
+  },
+];
 
 const normalizeKey = (key) => {
   return String(key || "")
@@ -132,31 +180,6 @@ const normalizeSchoolOwnership = (value) => {
   if (text.includes("swasta")) return "Swasta";
 
   return null;
-};
-
-const normalizeUserRole = (value) => {
-  const text = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  if (text.includes("admin")) return "admin";
-  if (
-    text.includes("csr") ||
-    text.includes("perusahaan") ||
-    text.includes("mitra")
-  )
-    return "csr_partner";
-  if (text.includes("sekolah")) return "school_operator";
-  if (text.includes("analis") || text.includes("analyst")) return "analyst";
-  if (
-    text.includes("dinas") ||
-    text.includes("operator") ||
-    text.includes("kepala")
-  )
-    return "officer";
-  if (text.includes("officer")) return "officer";
-
-  return "viewer";
 };
 
 const normalizeAuditStatus = (value) => {
@@ -324,7 +347,7 @@ const importRegions = async (connection, rows) => {
   );
 };
 
-const importUsers = async (connection, rows, regionIdByName) => {
+const importUsers = async (connection, regionIdByName) => {
   const columns = [
     "user_code",
     "username",
@@ -340,26 +363,28 @@ const importUsers = async (connection, rows, regionIdByName) => {
     "created_at",
   ];
 
-  const values = rows.map((row) => {
-    const regionName = getValue(row, ["kecamatan", "nama_kecamatan"]);
-    const sourceRole = normalizeText(getValue(row, ["role"]));
+  const values = await Promise.all(
+    demoUsers.map(async (user) => {
+      const passwordHash = await bcrypt.hash(user.password, 10);
 
-    return [
-      normalizeText(getValue(row, ["user_id", "user_code"])),
-      normalizeText(getValue(row, ["username"])),
-      normalizeText(getValue(row, ["email"])),
-      normalizeText(getValue(row, ["full_name", "nama_lengkap", "name"])),
-      normalizeUserRole(sourceRole),
-      sourceRole,
-      normalizeText(getValue(row, ["instansi", "institution"])),
-      regionIdByName.get(normalizeName(regionName)) || null,
-      toBoolean(getValue(row, ["is_active"]), true),
-      toSqlDateTime(getValue(row, ["last_login"])),
-      normalizeText(getValue(row, ["password_hash"])) ||
-        "$2b$10$dummy.hash.for.development.only",
-      toSqlDateTime(getValue(row, ["created_at"])),
-    ];
-  });
+      return [
+        user.user_code,
+        user.username,
+        user.email,
+        user.full_name,
+        user.role,
+        user.source_role,
+        user.institution,
+        user.region_name
+          ? regionIdByName.get(normalizeName(user.region_name)) || null
+          : null,
+        true,
+        null,
+        passwordHash,
+        null,
+      ];
+    }),
+  );
 
   await batchInsert(connection, "users", columns, values);
 
@@ -862,7 +887,6 @@ const main = async () => {
 
   const data = {
     regions: await readExcelSheet(workbook, "Data_Wilayah"),
-    users: await readExcelSheet(workbook, "Data_User_Auth"),
     schools: await readExcelSheet(workbook, "Data_Sekolah"),
     predictions: await readExcelSheet(workbook, "Data_AI_Prediction"),
     auditLogs: await readExcelSheet(workbook, "Data_Audit_Log"),
@@ -879,7 +903,6 @@ const main = async () => {
 
     const { userIdByCode, userIdByUsername } = await importUsers(
       connection,
-      data.users,
       regionIdByName,
     );
 
@@ -902,9 +925,9 @@ const main = async () => {
     console.log("PINTARIN data import completed successfully.");
     console.table({
       regions: data.regions.length,
-      users: data.users.length,
+      users: demoUsers.length,
       schools: data.schools.length,
-      stakeholder_profiles: data.users.length,
+      stakeholder_profiles: demoUsers.length,
       predictions: data.predictions.length,
       school_need_requests: 8,
       csr_aid_proposals: 3,

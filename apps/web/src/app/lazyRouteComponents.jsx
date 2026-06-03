@@ -22,6 +22,10 @@ export const AdminDashboardPage = lazy(
   () => import("../features/dashboard/pages/AdminDashboardPage"),
 );
 
+export const AdminControlCenterPage = lazy(
+  () => import("../features/dashboard/pages/AdminControlCenterPage"),
+);
+
 export const OfficerDashboardPage = lazy(
   () => import("../features/dashboard/pages/OfficerDashboardPage"),
 );

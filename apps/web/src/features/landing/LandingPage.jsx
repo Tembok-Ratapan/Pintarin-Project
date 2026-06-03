@@ -5,6 +5,7 @@ import ProductIntroSection from "./components/ProductIntroSection";
 import RiskMapSection from "./components/RiskMapSection";
 import WorkflowSection from "./components/WorkflowSection";
 import LandingFooter from "./components/LandingFooter";
+import LandingReveal from "./components/LandingReveal";
 
 export default function LandingPage() {
   return (
@@ -42,11 +43,21 @@ export default function LandingPage() {
 
       <div className="relative z-10">
         <HeroSection />
-        <RiskMapSection />
-        <ProductIntroSection />
-        <WorkflowSection />
-        <LandingFooter />
-        <Footer />
+        <LandingReveal>
+          <RiskMapSection />
+        </LandingReveal>
+        <LandingReveal delay={80}>
+          <ProductIntroSection />
+        </LandingReveal>
+        <LandingReveal delay={80}>
+          <WorkflowSection />
+        </LandingReveal>
+        <LandingReveal delay={80}>
+          <LandingFooter />
+        </LandingReveal>
+        <LandingReveal>
+          <Footer />
+        </LandingReveal>
       </div>
     </main>
   );

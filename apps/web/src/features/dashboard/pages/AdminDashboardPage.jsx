@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   Clock3,
+  Database,
   HandHeart,
   Layers3,
   LineChart,
@@ -12,6 +13,7 @@ import {
   Sparkles,
   UsersRound,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import LoadingState from "../../../components/feedback/LoadingState";
 import {
@@ -180,7 +182,7 @@ function AnalyticsGrid({ summary = {} }) {
   );
 }
 
-export default function AdminDashboardPage() {
+export function AdminControlCenterPage() {
   const [summaryData, setSummaryData] = useState(null);
   const [regions, setRegions] = useState([]);
   const [latestPredictions, setLatestPredictions] = useState([]);
@@ -494,6 +496,258 @@ export default function AdminDashboardPage() {
               );
             })}
           </div>
+        </>
+      )}
+    </DashboardShell>
+  );
+}
+
+const adminQuickLinks = [
+  {
+    title: "Pusat Kendali",
+    description: "Dashboard penuh untuk validasi, peta risiko, prediksi, dan antrian review.",
+    path: "/dashboard/admin/control-center",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Manage Database",
+    description: "Kelola data aktif yang sudah di-whitelist untuk kebutuhan admin.",
+    path: "/dashboard/admin/manage-database",
+    icon: Database,
+  },
+  {
+    title: "Dinas",
+    description: "Masuk ke overview, validasi CSR, validasi sekolah, dan review AI.",
+    path: "/dashboard/admin/dinas/overview",
+    icon: MapPinned,
+  },
+  {
+    title: "CSR",
+    description: "Pantau matching bantuan, pengajuan CSR, dan riwayat proposal.",
+    path: "/dashboard/csr/overview",
+    icon: HandHeart,
+  },
+  {
+    title: "Sekolah",
+    description: "Pantau pengajuan kebutuhan dan riwayat bantuan sekolah.",
+    path: "/dashboard/school/overview",
+    icon: School,
+  },
+  {
+    title: "Analitik",
+    description: "Baca kualitas prediksi dan ringkasan confidence model.",
+    path: "/dashboard/analyst",
+    icon: LineChart,
+  },
+];
+
+function AdminQuickLinkGrid() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {adminQuickLinks.map((item) => {
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className="group flex min-h-[11rem] flex-col justify-between rounded-[1.35rem] border border-white/70 bg-white/44 p-5 shadow-xl shadow-slate-300/18 ring-1 ring-white/40 backdrop-blur-xl transition duration-200 hover:-translate-y-1 hover:bg-white/58 hover:shadow-2xl hover:shadow-[#5EEAD4]/16"
+          >
+            <div>
+              <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E] ring-1 ring-white/50 transition group-hover:bg-[#0F766E] group-hover:text-white">
+                <Icon size={20} />
+              </div>
+
+              <h3 className="text-base font-extrabold text-[#102A43]">
+                {item.title}
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-[#64748B]">
+                {item.description}
+              </p>
+            </div>
+
+            <span className="mt-5 text-sm font-extrabold text-[#0F766E]">
+              Buka fitur
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  const [summaryData, setSummaryData] = useState(null);
+  const [regions, setRegions] = useState([]);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const summary = summaryData?.summary || {};
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchOverview = async () => {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      try {
+        const [summaryResult, regionsResult, pendingResult] =
+          await Promise.allSettled([
+            dashboardService.getAnalyticsSummary(controller.signal),
+            dashboardService.getRegions(controller.signal),
+            dashboardService.getPendingReviews({
+              limit: 1,
+              signal: controller.signal,
+            }),
+          ]);
+
+        if (controller.signal.aborted) return;
+
+        if (summaryResult.status === "fulfilled") {
+          setSummaryData(summaryResult.value);
+        }
+
+        if (regionsResult.status === "fulfilled") {
+          setRegions(getArray(regionsResult.value));
+        }
+
+        if (pendingResult.status === "fulfilled") {
+          setPendingReviewCount(
+            pendingResult.value?.count ||
+              getArray(pendingResult.value?.predictions).length,
+          );
+        }
+
+        if (summaryResult.status === "rejected") {
+          setErrorMessage("Ringkasan admin belum bisa diambil dari backend.");
+        }
+      } catch (error) {
+        if (error.name !== "CanceledError" && error.name !== "AbortError") {
+          setErrorMessage("Overview admin belum bisa terhubung ke backend.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchOverview();
+
+    return () => controller.abort();
+  }, []);
+
+  const metricCards = [
+    {
+      label: "Wilayah",
+      value: formatNumber(summary.total_regions || regions.length),
+      helper: "Kecamatan aktif",
+      icon: MapPinned,
+      tone: "teal",
+    },
+    {
+      label: "Sekolah",
+      value: formatNumber(summary.total_schools),
+      helper: "Data sekolah terhubung",
+      icon: School,
+      tone: "teal",
+    },
+    {
+      label: "Pending Review",
+      value: formatNumber(summary.pending_reviews || pendingReviewCount),
+      helper: "Butuh validasi manusia",
+      icon: Clock3,
+      tone: "amber",
+    },
+    {
+      label: "Nilai CSR",
+      value: formatCurrency(summary.total_csr_value),
+      helper: "Bantuan tercatat",
+      icon: HandHeart,
+      tone: "teal",
+    },
+  ];
+
+  return (
+    <DashboardShell
+      badge="Overview"
+      title="Overview Admin"
+      description="Pintu masuk untuk memantau sistem dan berpindah ke workspace utama."
+    >
+      {isLoading ? (
+        <LoadingState label="Menyiapkan overview admin..." />
+      ) : (
+        <>
+          {errorMessage && (
+            <DashboardErrorBanner
+              title="Sebagian data overview belum bisa dimuat."
+              description={`${errorMessage} Pastikan backend berjalan di http://localhost:5000.`}
+            />
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metricCards.map((metric) => (
+              <DashboardMetricCard key={metric.label} {...metric} />
+            ))}
+          </div>
+
+          <DashboardSection
+            badge="Workspace"
+            title="Pilih area kerja"
+            description="Admin dapat membuka fitur lintas role dari satu tempat."
+          >
+            <AdminQuickLinkGrid />
+          </DashboardSection>
+
+          <DashboardSection
+            badge="Prioritas"
+            title="Langkah admin yang disarankan"
+            description="Mulai dari validasi data, lanjutkan ke review, lalu pastikan akses user sudah sesuai."
+          >
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  title: "Cek data inti",
+                  text: "Pastikan regions, schools, users, dan indikator pendidikan sudah sinkron.",
+                  icon: Database,
+                },
+                {
+                  title: "Review prediksi",
+                  text: "Validasi prediksi confidence rendah sebelum dipakai sebagai keputusan final.",
+                  icon: Sparkles,
+                },
+                {
+                  title: "Pantau bantuan",
+                  text: "Lihat ajuan sekolah dan CSR yang masih menunggu tindak lanjut.",
+                  icon: HandHeart,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.title}
+                    className="rounded-[1.35rem] border border-white/70 bg-white/42 p-5 ring-1 ring-white/40 backdrop-blur-xl"
+                  >
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                      <Icon size={18} />
+                    </div>
+
+                    <h3 className="text-sm font-extrabold text-[#102A43]">
+                      {item.title}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-[#64748B]">
+                      {item.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </DashboardSection>
         </>
       )}
     </DashboardShell>
