@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Database,
   Pencil,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 
 import Button from "../../../components/ui/Button";
-import Badge from "../../../components/ui/Badge";
 import SelectField from "../../../components/ui/Select";
 import LoadingState from "../../../components/feedback/LoadingState";
 import DashboardEmptyState from "../components/DashboardEmptyState";
@@ -174,8 +174,10 @@ function RecordFormModal({
     }));
   };
 
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 py-6">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 py-6">
       <button
         type="button"
         aria-label="Tutup modal"
@@ -245,13 +247,16 @@ function RecordFormModal({
           </Button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function DeleteConfirmModal({ table, record, isDeleting, onClose, onConfirm }) {
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 py-6">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 py-6">
       <button
         type="button"
         aria-label="Tutup konfirmasi hapus"
@@ -287,7 +292,8 @@ function DeleteConfirmModal({ table, record, isDeleting, onClose, onConfirm }) {
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -516,12 +522,14 @@ export default function ManageDatabasePage() {
       description="Kelola data inti PINTARIN dengan akses admin."
       actions={
         <Button
-          variant="secondary"
+          variant="iconGhost"
+          size="icon"
+          aria-label="Refresh database"
+          title="Refresh data"
           disabled={isLoadingRows}
           onClick={() => setReloadKey((current) => current + 1)}
         >
-          <RefreshCcw size={16} />
-          Refresh
+          <RefreshCcw size={20} />
         </Button>
       }
     >
@@ -542,14 +550,14 @@ export default function ManageDatabasePage() {
             </div>
           )}
 
-          <div className="grid gap-6 xl:grid-cols-[19rem_1fr]">
+          <div className="grid gap-6">
             <DashboardSection
               badge="Table"
               title="Database"
               description="Pilih data yang akan dikelola."
-              contentClassName="p-4"
+              contentClassName="p-4 sm:p-5"
             >
-              <div className="mb-4 xl:hidden">
+              <div className="md:hidden">
                 <SelectField
                   value={selectedTableKey}
                   onChange={handleSelectTable}
@@ -562,9 +570,12 @@ export default function ManageDatabasePage() {
                 </SelectField>
               </div>
 
-              <div className="hidden space-y-5 xl:block">
+              <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
                 {Object.entries(groupedTables).map(([category, tableItems]) => (
-                  <div key={category}>
+                  <div
+                    key={category}
+                    className="rounded-[1.25rem] border border-white/70 bg-white/34 p-3 ring-1 ring-white/35 backdrop-blur-xl"
+                  >
                     <p className="mb-2 px-2 text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[#94A3B8]">
                       {category}
                     </p>
@@ -619,15 +630,7 @@ export default function ManageDatabasePage() {
               }
             >
               {selectedTable && (
-                <div className="mb-5 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={selectedTable.canCreate ? "green" : "default"}>
-                      {selectedTable.canCreate ? "Create" : "Read-only"}
-                    </Badge>
-                    {selectedTable.canUpdate && <Badge variant="blue">Edit</Badge>}
-                    {selectedTable.canDelete && <Badge variant="red">Delete</Badge>}
-                  </div>
-
+                <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:justify-end">
                   <form
                     onSubmit={handleSubmitSearch}
                     className="flex w-full gap-2 lg:max-w-md"

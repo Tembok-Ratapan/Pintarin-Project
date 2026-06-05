@@ -6,8 +6,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import Badge from "../../../components/ui/Badge";
-
 const workflowTree = [
   {
     number: "01",
@@ -43,25 +41,18 @@ export default function WorkflowSection() {
   return (
     <section
       id="workflow"
-      className="mx-auto w-full max-w-7xl px-4 pb-24 pt-16 sm:px-6 sm:pt-20 lg:px-8"
+      className="mx-auto w-full max-w-7xl px-5 pb-20 pt-14 sm:px-8 sm:pt-16 lg:px-10 xl:px-12"
     >
-      <div className="mx-auto mb-12 max-w-3xl text-center">
-        <Badge variant="green">Alur Sistem</Badge>
-
-        <h2 className="font-heading mt-4 text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
-          Dari data sampai keputusan bantuan.
+      <div className="mx-auto mb-10 max-w-5xl text-center">
+        <h2 className="font-heading text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-[2.15rem] lg:whitespace-nowrap">
+          Dari Data Sampai Kepada Keputusan Bantuan
         </h2>
-
-        <p className="mt-4 text-pretty text-sm leading-8 text-[#475569] sm:text-base">
-          Alurnya dibuat seperti decision tree: data masuk, AI membaca pola,
-          manusia memvalidasi, lalu sistem menghasilkan prioritas aksi.
-        </p>
       </div>
 
-      <div className="relative mx-auto max-w-5xl">
+      <div className="relative mx-auto max-w-4xl">
         <div className="absolute left-5 top-0 h-full w-px bg-gradient-to-b from-[#0F766E]/0 via-[#0F766E]/40 to-[#0F766E]/0 md:left-1/2" />
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {workflowTree.map((step, index) => {
             const Icon = step.icon;
             const isRight = index % 2 === 1;
@@ -69,7 +60,7 @@ export default function WorkflowSection() {
             return (
               <div
                 key={step.number}
-                className="relative grid grid-cols-[2.75rem_1fr] gap-4 md:grid-cols-[1fr_4rem_1fr] md:items-center"
+                className="relative grid grid-cols-[2.5rem_1fr] gap-3 md:grid-cols-[1fr_3.5rem_1fr] md:items-center"
               >
                 <div className="hidden md:col-start-1 md:block">
                   {!isRight && (
@@ -78,8 +69,8 @@ export default function WorkflowSection() {
                 </div>
 
                 <div className="relative z-10 flex justify-center md:col-start-2">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/70 bg-[#0F766E] text-white shadow-xl shadow-[#5EEAD4]/25 ring-4 ring-white/45 backdrop-blur-xl">
-                    <CheckCircle2 size={19} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/70 bg-[#0F766E] text-white shadow-xl shadow-[#5EEAD4]/25 ring-4 ring-white/45 backdrop-blur-xl">
+                    <CheckCircle2 size={18} />
                   </div>
                 </div>
 
@@ -104,7 +95,7 @@ export default function WorkflowSection() {
 function TreePanel({ step, Icon, align = "left" }) {
   return (
     <div
-      className={`rounded-[1.75rem] border border-white/60 bg-white/36 p-5 shadow-xl shadow-slate-300/20 ring-1 ring-white/40 backdrop-blur-2xl transition hover:bg-white/48 ${
+      className={`rounded-[1.35rem] border border-white/60 bg-white/36 p-4 shadow-xl shadow-slate-300/20 ring-1 ring-white/40 backdrop-blur-2xl transition hover:bg-white/48 ${
         align === "right" ? "md:text-right" : "text-left"
       }`}
     >
@@ -113,20 +104,20 @@ function TreePanel({ step, Icon, align = "left" }) {
           align === "right" ? "md:justify-end" : ""
         }`}
       >
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/65 bg-[#5EEAD4]/18 text-[#0F766E] ring-1 ring-white/40">
-          <Icon size={21} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/65 bg-[#5EEAD4]/18 text-[#0F766E] ring-1 ring-white/40">
+          <Icon size={19} />
         </div>
 
-        <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#0F766E]">
+        <p className="text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-[#0F766E]">
           {step.number}
         </p>
       </div>
 
-      <h3 className="font-heading mt-4 text-xl font-extrabold leading-tight text-[#102A43]">
+      <h3 className="font-heading mt-3 text-lg font-extrabold leading-tight text-[#102A43]">
         {step.title}
       </h3>
 
-      <p className="mt-3 text-sm leading-7 text-[#475569]">
+      <p className="mt-2 text-sm leading-6 text-[#475569]">
         {step.description}
       </p>
     </div>

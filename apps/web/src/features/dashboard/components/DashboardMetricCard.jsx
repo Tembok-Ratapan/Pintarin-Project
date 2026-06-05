@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Card, CardContent } from "../../../components/ui/Card";
 
@@ -20,6 +20,10 @@ const toneClass = {
     icon: "bg-sky-50 text-sky-700",
     accent: "bg-sky-600",
   },
+  green: {
+    icon: "bg-emerald-50 text-emerald-700",
+    accent: "bg-emerald-600",
+  },
 };
 
 export default function DashboardMetricCard({
@@ -31,10 +35,11 @@ export default function DashboardMetricCard({
   helper,
   tone = "teal",
   trend,
+  showDetail = false,
 }) {
   const theme = toneClass[tone] || toneClass.teal;
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasDetail = Boolean(helper || trend);
+  const hasDetail = showDetail && Boolean(helper || trend);
 
   const toggleDetail = () => {
     if (hasDetail) {
@@ -100,16 +105,6 @@ export default function DashboardMetricCard({
             </div>
           )}
         </div>
-
-        {hasDetail && (
-          <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-[#0F766E] transition group-hover:translate-x-0.5">
-            {isExpanded ? "Tutup detail" : "Klik untuk detail"}
-            <ChevronDown
-              size={14}
-              className={`transition ${isExpanded ? "rotate-180" : ""}`}
-            />
-          </div>
-        )}
 
         {hasDetail && isExpanded && (
           <div className="mt-3 rounded-[1rem] bg-white/38 p-3 text-xs font-semibold leading-5 text-[#64748B] shadow-inner shadow-white/40">

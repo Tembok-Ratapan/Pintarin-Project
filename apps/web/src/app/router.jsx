@@ -45,6 +45,14 @@ const router = createBrowserRouter([
           </RouteSuspense>
         ),
       },
+      {
+        path: "analytic-pintarin",
+        element: (
+          <RouteSuspense label="Menyiapkan Analitic Pintarin...">
+            <ViewerDashboardPage isPublic />
+          </RouteSuspense>
+        ),
+      },
     ],
   },
   {

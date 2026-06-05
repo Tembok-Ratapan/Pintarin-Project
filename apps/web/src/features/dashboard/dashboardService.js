@@ -30,6 +30,24 @@ export const dashboardService = {
     return response.data?.data || null;
   },
 
+  async getOfficerOperationalAnalytics({
+    range = "month",
+    fromDate,
+    toDate,
+    signal,
+  } = {}) {
+    const response = await api.get("/analytics/officer/operations", {
+      params: {
+        range,
+        from_date: fromDate,
+        to_date: toDate,
+      },
+      signal,
+    });
+
+    return response.data?.data || null;
+  },
+
   async getRegions(signal) {
     const response = await api.get("/regions", { signal });
     return normalizeArray(response.data?.data);

@@ -40,8 +40,22 @@ const reviewAidProposal = asyncHandler(async (req, res) => {
   });
 });
 
+const decideRecommendation = asyncHandler(async (req, res) => {
+  const data = await csrAidService.decideRecommendation({
+    user: req.user,
+    id: req.params.id,
+    payload: req.body,
+  });
+
+  return successResponse(res, {
+    message: "CSR recommendation decision saved successfully",
+    data,
+  });
+});
+
 module.exports = {
   createAidProposal,
+  decideRecommendation,
   listAidProposals,
   reviewAidProposal,
 };

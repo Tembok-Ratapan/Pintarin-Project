@@ -34,10 +34,29 @@ export const csrAidService = {
     return response.data?.data || null;
   },
 
-  async reviewAidProposal({ proposalId, status, reviewNote }) {
+  async reviewAidProposal({
+    proposalId,
+    status,
+    reviewNote,
+    finalSchoolId,
+    recommendedSchoolId,
+    recommendationNote,
+  }) {
     const response = await api.patch(`/csr-aid/${proposalId}/review`, {
       status,
       review_note: reviewNote || null,
+      final_school_id: finalSchoolId || null,
+      recommended_school_id: recommendedSchoolId || null,
+      recommendation_note: recommendationNote || null,
+    });
+
+    return response.data?.data || null;
+  },
+
+  async decideRecommendation({ proposalId, decision, note }) {
+    const response = await api.patch(`/csr-aid/${proposalId}/recommendation`, {
+      decision,
+      note: note || null,
     });
 
     return response.data?.data || null;

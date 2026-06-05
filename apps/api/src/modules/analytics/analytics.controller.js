@@ -11,6 +11,20 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   })
 })
 
+const getOfficerOperationalAnalytics = asyncHandler(async (req, res) => {
+  const data = await analyticsService.getOfficerOperationalAnalytics({
+    range: req.query.range,
+    fromDate: req.query.from_date,
+    toDate: req.query.to_date,
+  })
+
+  return successResponse(res, {
+    message: 'Officer operational analytics retrieved successfully',
+    data,
+  })
+})
+
 module.exports = {
   getDashboardSummary,
+  getOfficerOperationalAnalytics,
 }

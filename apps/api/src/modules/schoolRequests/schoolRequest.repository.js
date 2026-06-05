@@ -2,7 +2,9 @@ const { pool } = require("../../db/connection");
 
 const listRequests = async ({ user, status, limit = 20 }) => {
   const values = [];
-  const conditions = [];
+  const conditions = [
+    "(snr.request_code NOT LIKE 'REQ-SCH-%' OR snr.evidence_note IS NULL OR snr.evidence_note <> 'Dummy evidence: data pendukung akan diganti dengan dokumen asli.')",
+  ];
 
   if (status) {
     conditions.push("snr.status = ?");
@@ -108,6 +110,75 @@ const createRequest = async ({
   return result.insertId;
 };
 
+const getSchoolById = async (id) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      id,
+      region_id,
+      name
+    FROM schools
+    WHERE id = ?
+    LIMIT 1
+    `,
+    [id],
+  );
+
+  return rows[0] || null;
+};
+
+const getFirstSchoolByRegion = async (regionId) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      id,
+      region_id,
+      name
+    FROM schools
+    WHERE region_id = ?
+    ORDER BY id ASC
+    LIMIT 1
+    `,
+    [regionId],
+  );
+
+  return rows[0] || null;
+};
+
+const getFirstSchool = async () => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      id,
+      region_id,
+      name
+    FROM schools
+    ORDER BY id ASC
+    LIMIT 1
+    `,
+  );
+
+  return rows[0] || null;
+};
+
+const getSchoolOperatorContext = async (userId) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      sp.school_id,
+      sp.region_id AS profile_region_id,
+      s.region_id AS school_region_id
+    FROM stakeholder_profiles sp
+    LEFT JOIN schools s ON s.id = sp.school_id
+    WHERE sp.user_id = ?
+    LIMIT 1
+    `,
+    [userId],
+  );
+
+  return rows[0] || null;
+};
+
 const getRequestById = async (id) => {
   const [rows] = await pool.query(
     `
@@ -185,6 +256,10 @@ const deleteRequest = async (id) => {
 module.exports = {
   createRequest,
   deleteRequest,
+  getFirstSchool,
+  getFirstSchoolByRegion,
+  getSchoolById,
+  getSchoolOperatorContext,
   getRequestById,
   listRequests,
   reviewRequest,

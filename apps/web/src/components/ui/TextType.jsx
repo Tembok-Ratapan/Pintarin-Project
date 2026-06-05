@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 
 export default function TextType({
   text,
+  texts,
   as: Component = "div",
   typingSpeed = 50,
   initialDelay = 0,
@@ -32,7 +33,11 @@ export default function TextType({
   const containerRef = useRef(null);
   const hasStartedRef = useRef(false);
 
-  const textArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
+  const sourceText = text ?? texts ?? "";
+  const textArray = useMemo(
+    () => (Array.isArray(sourceText) ? sourceText : [sourceText]),
+    [sourceText],
+  );
 
   const getRandomSpeed = useCallback(() => {
     if (!variableSpeed) return typingSpeed;

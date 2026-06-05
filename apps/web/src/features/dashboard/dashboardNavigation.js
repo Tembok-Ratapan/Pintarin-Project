@@ -4,7 +4,6 @@ import {
   Building2,
   ClipboardCheck,
   Database,
-  Eye,
   FileClock,
   FilePlus2,
   GraduationCap,
@@ -170,14 +169,6 @@ export const dashboardNavByRole = {
     ),
     withGroup(
       {
-        label: "Analitik",
-        path: "/dashboard/csr/analytic",
-        icon: BarChart3,
-      },
-      "CSR",
-    ),
-    withGroup(
-      {
         label: "Pengajuan",
         path: "/dashboard/csr/pengajuan",
         icon: FilePlus2,
@@ -231,22 +222,6 @@ export const dashboardNavByRole = {
         icon: Bot,
       },
       "Sekolah",
-    ),
-    withGroup(
-      {
-        label: "Ruang Analitik",
-        path: "/dashboard/analyst",
-        icon: BarChart3,
-      },
-      "Publik",
-    ),
-    withGroup(
-      {
-        label: "Ruang Pantau",
-        path: "/dashboard/viewer",
-        icon: Eye,
-      },
-      "Publik",
     ),
   ],
 
@@ -315,11 +290,6 @@ export const dashboardNavByRole = {
       icon: Bot,
     },
     {
-      label: "Analitik",
-      path: "/dashboard/csr/analytic",
-      icon: BarChart3,
-    },
-    {
       label: "Pengajuan",
       path: "/dashboard/csr/pengajuan",
       icon: FilePlus2,
@@ -361,14 +331,7 @@ export const dashboardNavByRole = {
     productNavItem,
   ],
 
-  viewer: [
-    {
-      label: "Ruang Pantau",
-      path: "/dashboard/viewer",
-      icon: Eye,
-    },
-    productNavItem,
-  ],
+  viewer: [productNavItem],
 };
 
 export const dashboardUtilityNav = [];

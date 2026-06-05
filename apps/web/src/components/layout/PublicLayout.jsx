@@ -26,7 +26,7 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen bg-[#f8fafc]">
       <header className="sticky top-0 z-50 border-b border-white/55 bg-white/40 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/34">
-        <div className="relative mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10 xl:px-12">
           <Link
             to="/"
             className="min-w-0 shrink-0"
@@ -36,7 +36,7 @@ export default function PublicLayout() {
           </Link>
 
           <nav
-            className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-8 text-sm font-extrabold text-[#475569] md:flex"
+            className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-8 text-sm font-semibold text-[#475569] md:flex"
             aria-label="Navigasi utama"
           >
             {navItems.map((item) => (

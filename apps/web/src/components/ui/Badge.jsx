@@ -12,7 +12,7 @@ export default function Badge({ variant = "default", className, children }) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center gap-2 text-xs font-extrabold uppercase leading-none tracking-[0.16em] before:h-1.5 before:w-1.5 before:rounded-full before:content-['']",
+        "inline-flex w-fit items-center gap-2 text-xs font-bold uppercase leading-none tracking-[0.1em] before:h-1.5 before:w-1.5 before:rounded-full before:content-['']",
         variants[variant] || variants.default,
         className,
       )}

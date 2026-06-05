@@ -13,7 +13,7 @@ export default function BrandLogo({ showSubtitle = true, className = "" }) {
       />
 
       <span className="min-w-0 leading-none">
-        <span className="block truncate text-sm font-extrabold text-[#102A43]">
+        <span className="block truncate text-sm font-bold text-[#102A43]">
           {APP_NAME}
         </span>
 

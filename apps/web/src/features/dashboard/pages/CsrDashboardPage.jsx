@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
   CheckCircle2,
-  ExternalLink,
   HandHeart,
   MapPinned,
   PiggyBank,
   RefreshCcw,
+  Search,
   School,
   Send,
   ShieldCheck,
@@ -25,6 +25,7 @@ import {
 import DashboardEmptyState from "../components/DashboardEmptyState";
 import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
+import DashboardRecordCard from "../components/DashboardRecordCard";
 import DashboardSection from "../components/DashboardSection";
 import DashboardShell from "../components/DashboardShell";
 import GenAiPanel from "../components/GenAiPanel";
@@ -92,48 +93,23 @@ const getSchoolName = (school) => {
   return school?.name || school?.school_name || "-";
 };
 
-const getStatusBadgeClass = (status) => {
-  if (
-    status === "Disetujui" ||
-    status === "Disalurkan" ||
-    status === "Selesai"
-  ) {
-    return "border-green-200 bg-green-50 text-green-700";
-  }
-
-  if (status === "Ditolak") {
-    return "border-red-200 bg-red-50 text-red-700";
-  }
-
-  if (status === "Ditinjau") {
-    return "border-yellow-200 bg-yellow-50 text-yellow-800";
-  }
-
-  return "border-sky-200 bg-sky-50 text-sky-700";
-};
-
 const defaultCsrSection = "overview";
 
 const csrSectionMeta = {
   overview: {
-    badge: "Overview",
+    badge: "",
     title: "Overview CSR",
-    description: "Ringkasan bantuan, proposal, dan prioritas wilayah CSR.",
+    description: "",
   },
   "map-risk": {
-    badge: "Map Risk",
-    title: "Map Risk",
-    description: "Lihat wilayah prioritas untuk penyaluran bantuan CSR.",
+    badge: "",
+    title: "Kota Bandung Map Risk",
+    description: "",
   },
   "ai-matching": {
     badge: "AI Matching",
     title: "AI Matching",
     description: "Temukan wilayah yang paling sesuai dengan fokus CSR.",
-  },
-  analytic: {
-    badge: "Analitik",
-    title: "Analitik CSR",
-    description: "Ringkasan nilai bantuan, proposal aktif, dan pola penyaluran.",
   },
   pengajuan: {
     badge: "Pengajuan",
@@ -198,8 +174,11 @@ function AidProposalForm({
   schools,
   regions,
   isSubmitting,
+  isSearchingSchools,
   onChange,
+  onSchoolSearchChange,
   onSubmit,
+  schoolSearch,
 }) {
   const isSpecificSchool = form.allocation_type === "sekolah_tertentu";
 
@@ -229,29 +208,49 @@ function AidProposalForm({
       </div>
 
       {isSpecificSchool ? (
-        schools.length > 0 ? (
-          <SelectField
-            label="Target Sekolah"
-            value={form.target_school_id}
-            onChange={(value) => onChange("target_school_id", value)}
-          >
-            <option value="">Pilih sekolah</option>
-            {schools.map((school) => (
-              <option key={school.id} value={school.id}>
-                {getSchoolName(school)} — {school.region_name || "-"}
-              </option>
-            ))}
-          </SelectField>
-        ) : (
-          <TextField
-            label="ID Sekolah"
-            type="number"
-            value={form.target_school_id}
-            onChange={(value) => onChange("target_school_id", value)}
-            placeholder="Contoh: 1"
-            required
-          />
-        )
+        <div>
+          <label className="text-sm font-extrabold text-[#102A43]">
+            Target Sekolah
+          </label>
+
+          <div className="relative mt-2">
+            <Search
+              size={17}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+            />
+            <input
+              value={schoolSearch}
+              onChange={(event) => onSchoolSearchChange(event.target.value)}
+              placeholder="Cari nama sekolah"
+              className="h-12 w-full rounded-2xl border border-white/70 bg-white/70 pl-11 pr-4 text-sm font-semibold text-[#102A43] outline-none ring-1 ring-white/40 backdrop-blur-2xl placeholder:text-[#94A3B8] focus:border-[#5EEAD4] focus:ring-4 focus:ring-[#5EEAD4]/20"
+            />
+          </div>
+
+          {schools.length > 0 ? (
+            <SelectField
+              value={form.target_school_id}
+              onChange={(value) => onChange("target_school_id", value)}
+              placeholder={
+                isSearchingSchools ? "Mencari sekolah..." : "Pilih sekolah"
+              }
+            >
+              <option value="">Pilih sekolah</option>
+              {schools.map((school) => (
+                <option key={school.id} value={school.id}>
+                  {getSchoolName(school)} — {school.region_name || "-"}
+                </option>
+              ))}
+            </SelectField>
+          ) : (
+            <div className="mt-2 rounded-2xl border border-white/70 bg-white/56 px-4 py-3 text-sm font-semibold text-[#64748B] ring-1 ring-white/40 backdrop-blur-xl">
+              {isSearchingSchools
+                ? "Mencari sekolah..."
+                : schoolSearch.trim()
+                  ? "Sekolah tidak ditemukan."
+                  : "Ketik nama sekolah untuk mencari target."}
+            </div>
+          )}
+        </div>
       ) : (
         <SelectField
           label="Wilayah Tujuan"
@@ -313,7 +312,15 @@ function AidProposalForm({
   );
 }
 
-function AidHistory({ proposals = [] }) {
+function AidHistory({
+  proposals = [],
+  onRecommendationDecision,
+  decidingRecommendationId,
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const visibleProposals = isExpanded ? proposals : proposals.slice(0, 3);
+  const hasMoreProposals = proposals.length > 3;
+
   if (proposals.length === 0) {
     return (
       <DashboardEmptyState
@@ -325,97 +332,125 @@ function AidHistory({ proposals = [] }) {
 
   return (
     <div className="space-y-3">
-      {proposals.map((proposal) => (
-        <div
-          key={proposal.id}
-          className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/40 backdrop-blur-xl"
-        >
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-extrabold text-[#102A43]">
-                  {proposal.aid_name}
-                </p>
+      {visibleProposals.map((proposal) => {
+        const allocationLabel =
+          proposal.allocation_type === "sekolah_tertentu"
+            ? "Sekolah tertentu"
+            : "Fleksibel";
+        const hasRecommendationDecision =
+          proposal.recommendation_status === "Direkomendasikan";
+        const hasFooter =
+          proposal.review_note ||
+          proposal.recommendation_note ||
+          hasRecommendationDecision;
 
-                <span
-                  className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${getStatusBadgeClass(
-                    proposal.status,
-                  )}`}
-                >
-                  {proposal.status}
-                </span>
-              </div>
+        return (
+          <DashboardRecordCard
+            key={proposal.id}
+            title={proposal.aid_name}
+            status={proposal.status}
+            meta={`${proposal.proposal_code} - ${proposal.aid_type} - ${allocationLabel}`}
+            description={
+              proposal.description || "Tidak ada keterangan tambahan."
+            }
+            valueLabel="Nilai"
+            value={formatCurrency(proposal.aid_value)}
+            details={[
+              {
+                label: "Target",
+                value:
+                  proposal.target_school_name ||
+                  proposal.target_region_name ||
+                  "Fleksibel",
+              },
+              { label: "Wilayah", value: proposal.target_region_name || "-" },
+              {
+                label: "Dokumen",
+                value: proposal.evidence_url ? "Lihat dokumen" : "Belum ada",
+                href: proposal.evidence_url,
+              },
+              { label: "Penerima", value: proposal.final_school_name },
+              {
+                label: "Rekomendasi",
+                value: proposal.recommended_school_name
+                  ? `${proposal.recommended_school_name} (${proposal.recommendation_status})`
+                  : "",
+              },
+              {
+                label: "Disalurkan",
+                value: proposal.distributed_at
+                  ? new Date(proposal.distributed_at).toLocaleDateString(
+                      "id-ID",
+                    )
+                  : "",
+              },
+            ]}
+            footer={
+              hasFooter ? (
+                <div className="space-y-3 text-sm leading-6 text-[#64748B]">
+                  {proposal.recommendation_note && (
+                    <p>
+                      <span className="font-extrabold text-[#102A43]">
+                        Rekomendasi:
+                      </span>{" "}
+                      {proposal.recommendation_note}
+                    </p>
+                  )}
 
-              <p className="mt-1 text-xs font-semibold text-[#64748B]">
-                {proposal.proposal_code} · {proposal.aid_type} ·{" "}
-                {proposal.allocation_type === "sekolah_tertentu"
-                  ? "Sekolah tertentu"
-                  : "Fleksibel"}
-              </p>
+                  {proposal.review_note && (
+                    <p>
+                      <span className="font-extrabold text-[#102A43]">
+                        Catatan:
+                      </span>{" "}
+                      {proposal.review_note}
+                    </p>
+                  )}
 
-              <p className="mt-2 line-clamp-2 text-sm leading-7 text-[#64748B]">
-                {proposal.description || "Tidak ada keterangan tambahan."}
-              </p>
-            </div>
+                  {hasRecommendationDecision && (
+                    <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() =>
+                          onRecommendationDecision?.(proposal, "accept")
+                        }
+                        disabled={decidingRecommendationId === proposal.id}
+                      >
+                        <CheckCircle2 size={16} />
+                        Terima rekomendasi
+                      </Button>
 
-            <div className="shrink-0 text-left sm:text-right">
-              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Nilai
-              </p>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          onRecommendationDecision?.(proposal, "keep")
+                        }
+                        disabled={decidingRecommendationId === proposal.id}
+                      >
+                        Tetap sekolah awal
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : null
+            }
+          />
+        );
+      })}
 
-              <p className="mt-1 font-extrabold text-[#0F766E]">
-                {formatCurrency(proposal.aid_value)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 rounded-2xl border border-white/70 bg-white/38 p-4 text-sm leading-6 text-[#64748B] md:grid-cols-3">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Sekolah
-              </p>
-              <p className="mt-1 font-extrabold text-[#102A43]">
-                {proposal.target_school_name || "-"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Wilayah
-              </p>
-              <p className="mt-1 font-extrabold text-[#102A43]">
-                {proposal.target_region_name || "-"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Dokumen
-              </p>
-
-              {proposal.evidence_url ? (
-                <a
-                  href={proposal.evidence_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-1 inline-flex items-center gap-1.5 font-extrabold text-[#0F766E] hover:text-[#115E59]"
-                >
-                  Lihat dokumen <ExternalLink size={14} />
-                </a>
-              ) : (
-                <p className="mt-1 font-semibold text-[#64748B]">Belum ada</p>
-              )}
-            </div>
-          </div>
-
-          {proposal.review_note && (
-            <div className="mt-3 rounded-2xl border border-white/70 bg-white/38 p-3 text-sm leading-6 text-[#64748B]">
-              <span className="font-extrabold text-[#102A43]">Catatan:</span>{" "}
-              {proposal.review_note}
-            </div>
-          )}
+      {hasMoreProposals && (
+        <div className="flex justify-center pt-1">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="rounded-2xl bg-white/50 px-4 py-2 text-sm font-extrabold text-[#0F766E] ring-1 ring-white/55 transition hover:bg-white/75 hover:text-[#115E59]"
+          >
+            {isExpanded ? "Tampilkan lebih sedikit" : "Lihat Selengkapnya"}
+          </button>
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -469,9 +504,15 @@ function CsrGuide() {
   );
 }
 
-function CsrOverview({ metricCards, topRiskRegions, proposals, onNavigate }) {
+function CsrOverview({
+  metricCards,
+  topRiskRegions,
+  proposals,
+  decidingRecommendationId,
+  onRecommendationDecision,
+  onNavigate,
+}) {
   const priorityRegions = topRiskRegions.slice(0, 4);
-  const recentProposals = proposals.slice(0, 3);
 
   const quickActions = [
     {
@@ -598,7 +639,11 @@ function CsrOverview({ metricCards, topRiskRegions, proposals, onNavigate }) {
         title="Proposal terbaru"
         description="Status bantuan terbaru dari akun CSR ini."
       >
-        <AidHistory proposals={recentProposals} />
+        <AidHistory
+          proposals={proposals}
+          decidingRecommendationId={decidingRecommendationId}
+          onRecommendationDecision={onRecommendationDecision}
+        />
       </DashboardSection>
     </>
   );
@@ -613,6 +658,7 @@ export default function CsrDashboardPage() {
   const [summaryData, setSummaryData] = useState(null);
   const [regions, setRegions] = useState([]);
   const [schools, setSchools] = useState([]);
+  const [schoolSearch, setSchoolSearch] = useState("");
   const [proposalsPayload, setProposalsPayload] = useState({
     count: 0,
     proposals: [],
@@ -621,10 +667,12 @@ export default function CsrDashboardPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingAid, setIsSubmittingAid] = useState(false);
+  const [isSearchingSchools, setIsSearchingSchools] = useState(false);
+  const [decidingRecommendationId, setDecidingRecommendationId] =
+    useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const summary = summaryData?.summary || {};
   const topRiskRegions = getArray(summaryData?.top_risk_regions);
   const proposals = getArray(proposalsPayload.proposals);
 
@@ -638,7 +686,7 @@ export default function CsrDashboardPage() {
     ).length;
 
     const activeCount = proposals.filter((item) =>
-      ["Diajukan", "Ditinjau"].includes(item.status),
+      ["Diajukan", "Ditinjau", "Disetujui"].includes(item.status),
     ).length;
 
     const totalValue = proposals.reduce(
@@ -715,8 +763,57 @@ export default function CsrDashboardPage() {
     return () => controller.abort();
   }, [reloadKey]);
 
+  useEffect(() => {
+    if (aidForm.allocation_type !== "sekolah_tertentu") {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setIsSearchingSchools(true);
+
+      try {
+        const data = await schoolCatalogService.getSchools({
+          search: schoolSearch.trim(),
+          limit: 80,
+          signal: controller.signal,
+        });
+
+        if (!controller.signal.aborted) {
+          setSchools(getArray(data));
+        }
+      } catch (error) {
+        if (
+          !controller.signal.aborted &&
+          error.code !== "ERR_CANCELED" &&
+          error.name !== "CanceledError"
+        ) {
+          setErrorMessage(
+            error.response?.data?.message ||
+              error.message ||
+              "Pencarian sekolah belum bisa diproses.",
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearchingSchools(false);
+        }
+      }
+    }, 260);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [aidForm.allocation_type, schoolSearch]);
+
   const updateAidField = (field, value) => {
     setSuccessMessage("");
+
+    if (field === "allocation_type" && value === "fleksibel") {
+      setSchoolSearch("");
+    }
+
     setAidForm((current) => {
       const next = {
         ...current,
@@ -775,6 +872,34 @@ export default function CsrDashboardPage() {
       );
     } finally {
       setIsSubmittingAid(false);
+    }
+  };
+
+  const handleRecommendationDecision = async (proposal, decision) => {
+    setDecidingRecommendationId(proposal.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      await csrAidService.decideRecommendation({
+        proposalId: proposal.id,
+        decision,
+      });
+
+      setSuccessMessage(
+        decision === "accept"
+          ? "Rekomendasi dinas diterima."
+          : "Pilihan sekolah awal tetap dipakai.",
+      );
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Keputusan rekomendasi belum bisa disimpan.",
+      );
+    } finally {
+      setDecidingRecommendationId(null);
     }
   };
 
@@ -839,11 +964,9 @@ export default function CsrDashboardPage() {
   const metricCards = [
     {
       label: "Nilai CSR",
-      value: formatCurrency(stats.totalValue || summary.total_csr_value),
-      displayValue: formatCompactCurrency(
-        stats.totalValue || summary.total_csr_value,
-      ),
-      detailValue: formatCurrency(stats.totalValue || summary.total_csr_value),
+      value: formatCurrency(stats.totalValue),
+      displayValue: formatCompactCurrency(stats.totalValue),
+      detailValue: formatCurrency(stats.totalValue),
       helper: "Total bantuan CSR",
       icon: HandHeart,
       tone: "teal",
@@ -858,7 +981,7 @@ export default function CsrDashboardPage() {
     {
       label: "Diproses",
       value: formatNumber(stats.activeCount),
-      helper: "Diajukan atau ditinjau",
+      helper: "Belum disalurkan",
       icon: ShieldCheck,
       tone: "amber",
     },
@@ -882,6 +1005,8 @@ export default function CsrDashboardPage() {
           metricCards={metricCards}
           topRiskRegions={topRiskRegions}
           proposals={proposals}
+          decidingRecommendationId={decidingRecommendationId}
+          onRecommendationDecision={handleRecommendationDecision}
           onNavigate={navigate}
         />
       );
@@ -899,26 +1024,6 @@ export default function CsrDashboardPage() {
       );
     }
 
-    if (currentSection === "analytic") {
-      return (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-            {metricCards.map((metric) => (
-              <DashboardMetricCard key={metric.label} {...metric} />
-            ))}
-          </div>
-
-          <DashboardSection
-            badge="Panduan"
-            title="Cara memilih bantuan"
-            description="Gunakan jenis penyaluran sesuai kondisi CSR."
-          >
-            <CsrGuide />
-          </DashboardSection>
-        </>
-      );
-    }
-
     if (currentSection === "pengajuan") {
       return (
         <div className="grid gap-6 xl:grid-cols-[1.08fr_0.72fr]">
@@ -933,8 +1038,11 @@ export default function CsrDashboardPage() {
                 schools={schools}
                 regions={regions}
                 isSubmitting={isSubmittingAid}
+                isSearchingSchools={isSearchingSchools}
                 onChange={updateAidField}
+                onSchoolSearchChange={setSchoolSearch}
                 onSubmit={handleSubmitAid}
+                schoolSearch={schoolSearch}
               />
             </DashboardSection>
           </div>
@@ -964,7 +1072,11 @@ export default function CsrDashboardPage() {
             title="Riwayat bantuan"
             description="Pantau status bantuan CSR."
           >
-            <AidHistory proposals={proposals} />
+            <AidHistory
+              proposals={proposals}
+              decidingRecommendationId={decidingRecommendationId}
+              onRecommendationDecision={handleRecommendationDecision}
+            />
           </DashboardSection>
         </>
       );
@@ -981,7 +1093,7 @@ export default function CsrDashboardPage() {
             active_proposals: stats.activeCount,
             flexible_proposals: stats.flexibleCount,
             specific_school_proposals: stats.specificCount,
-            total_value: stats.totalValue || summary.total_csr_value,
+            total_value: stats.totalValue,
             top_risk_regions: topRiskRegions.slice(0, 3).map((region) => ({
               name: getRegionName(region),
               risk_status: region.risk_status || region.final_label,
@@ -999,9 +1111,6 @@ export default function CsrDashboardPage() {
 
     return (
       <DashboardChoroplethPanel
-        badge="Map Risk"
-        title="Map Risk"
-        description="Klik wilayah untuk membaca prioritas bantuan."
         regions={regions}
         topRegions={topRiskRegions}
       />
@@ -1015,12 +1124,14 @@ export default function CsrDashboardPage() {
       description={sectionMeta.description}
       actions={
         <Button
-          variant="secondary"
+          variant="iconGhost"
+          size="icon"
+          aria-label="Refresh data CSR"
+          title="Refresh data"
           onClick={() => setReloadKey((current) => current + 1)}
           disabled={isLoading}
         >
-          <RefreshCcw size={16} />
-          Refresh
+          <RefreshCcw size={20} />
         </Button>
       }
     >

@@ -22,6 +22,7 @@ Namun deploy publik baru layak dilakukan setelah item wajib di bawah selesai.
 - Set `GEMINI_API_KEY` jika menu Gen AI diaktifkan.
 - Jalankan `npm run lint:web`, `npm run build:web`, dan `npm run test:api`.
 - Jalankan `npm audit --workspaces --omit=dev --audit-level=high`.
+- Jika deploy dilakukan dari subfolder, pastikan `npm --prefix apps/api ci --dry-run` dan `npm --prefix apps/web ci --dry-run` lulus.
 
 ## Strategi Deploy yang Direkomendasikan
 
@@ -79,6 +80,25 @@ File berikut wajib tersedia di `PINTARIN_AI_MODEL_DIR`:
 - `pintarin_le_kecamatan.pkl`
 
 Karena `.keras` dan `.pkl` di-ignore oleh git, simpan model sebagai release artifact, object storage, atau build ke container image yang private.
+
+## Verifikasi 2026-06-04
+
+- `npm run test:api`: lulus 17/17.
+- `npm run lint:web`: lulus.
+- `npm run build:web`: lulus.
+- `npm --prefix apps/api ci --dry-run --ignore-scripts --no-audit --no-fund`: lulus.
+- `npm --prefix apps/web ci --dry-run --ignore-scripts --no-audit --no-fund`: lulus.
+- `npm audit --workspaces --omit=dev --audit-level=high`: 0 vulnerability.
+- Lockfile subproject `apps/api` dan `apps/web` sudah disinkronkan dengan `package.json`.
+- Tabel AI/generated/log di Manage Database bersifat read-only untuk menjaga integritas data prediksi dan audit.
+
+URL deploy belum dicatat di repo. Setelah deploy selesai, isi:
+
+```text
+Frontend URL:
+API URL:
+AI Service URL:
+```
 
 ## Security Notes
 

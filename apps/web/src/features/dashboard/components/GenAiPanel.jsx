@@ -12,6 +12,73 @@ const defaultPrompts = [
   "Apa data tambahan yang perlu dicek sebelum mengambil keputusan?",
 ];
 
+const renderInlineMarkdown = (text) => {
+  const parts = String(text || "").split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={`${part}-${index}`} className="font-extrabold text-[#102A43]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return part;
+  });
+};
+
+function GenAiMarkdown({ text }) {
+  const lines = String(text || "").split(/\r?\n/);
+
+  return (
+    <div className="space-y-3">
+      {lines.map((line, index) => {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) {
+          return <div key={`blank-${index}`} className="h-1" />;
+        }
+
+        const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
+        const bulletMatch = trimmedLine.match(/^[-*]\s+(.+)$/);
+
+        if (numberedMatch) {
+          return (
+            <div
+              key={`${trimmedLine}-${index}`}
+              className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-2"
+            >
+              <span className="font-extrabold text-[#0F766E]">
+                {numberedMatch[1]}.
+              </span>
+              <p>{renderInlineMarkdown(numberedMatch[2])}</p>
+            </div>
+          );
+        }
+
+        if (bulletMatch) {
+          return (
+            <div
+              key={`${trimmedLine}-${index}`}
+              className="grid grid-cols-[1rem_minmax(0,1fr)] gap-2 pl-4"
+            >
+              <span className="mt-3 h-1.5 w-1.5 rounded-full bg-[#0F766E]" />
+              <p>{renderInlineMarkdown(bulletMatch[1])}</p>
+            </div>
+          );
+        }
+
+        return (
+          <p key={`${trimmedLine}-${index}`}>
+            {renderInlineMarkdown(trimmedLine)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function GenAiPanel({
   title = "Gen AI Pintarin",
   description = "Asisten analisis pendidikan berbasis Gemini.",
@@ -182,8 +249,8 @@ export default function GenAiPanel({
           )}
 
           {reply && (
-            <div className="max-h-[34rem] overflow-auto whitespace-pre-wrap rounded-[1.35rem] bg-[#F8FAFC]/82 p-4 text-sm font-medium leading-7 text-[#334155] shadow-inner shadow-white/50">
-              {reply}
+            <div className="max-h-[34rem] overflow-auto rounded-[1.35rem] bg-[#F8FAFC]/82 p-4 text-sm font-medium leading-7 text-[#334155] shadow-inner shadow-white/50">
+              <GenAiMarkdown text={reply} />
             </div>
           )}
         </div>

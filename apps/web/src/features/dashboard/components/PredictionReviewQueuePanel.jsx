@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -45,11 +46,11 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
   );
 
   return (
-    <article className="rounded-[1.55rem] border border-white/70 bg-white/50 p-5 shadow-lg shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl">
+    <article className="rounded-2xl border border-slate-200/70 bg-white/78 p-4 shadow-sm ring-1 ring-white/45 backdrop-blur-xl">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-extrabold uppercase text-[#102A43]">
+            <h3 className="break-words text-base font-extrabold uppercase leading-6 text-[#102A43]">
               {getRegionName(prediction)}
             </h3>
 
@@ -63,14 +64,7 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
             </span>
           </div>
 
-          <p className="mt-2 text-sm leading-7 text-[#64748B]">
-            {prediction.prediction_code || `PRED-${prediction.id}`} ·{" "}
-            {prediction.algorithm || "AI Model"} · Data{" "}
-            {prediction.data_year || "-"} → Prediksi{" "}
-            {prediction.prediction_year || "-"}
-          </p>
-
-          <div className="mt-3">
+          <div className="mt-3 max-w-full">
             <PredictionConfidenceBadge
               compact
               confidenceScore={prediction.confidence_score}
@@ -102,37 +96,37 @@ function ReviewCard({ prediction, isProcessing, onApprove, onOverride }) {
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
-        <div className="rounded-[1.25rem] border border-white/70 bg-white/42 p-4 ring-1 ring-white/35">
-          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
+      <dl className="mt-4 grid gap-x-6 gap-y-3 border-t border-slate-200/70 pt-4 text-sm leading-6 sm:grid-cols-3">
+        <div>
+          <dt className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
             Risk Score
-          </p>
-          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
+          </dt>
+          <dd className="mt-1 text-base font-extrabold text-[#102A43]">
             {score.toFixed(1)}
-          </p>
+          </dd>
         </div>
 
-        <div className="rounded-[1.25rem] border border-white/70 bg-white/42 p-4 ring-1 ring-white/35">
-          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
-            Priority Score
-          </p>
-          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
+        <div>
+          <dt className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
+            Priority
+          </dt>
+          <dd className="mt-1 text-base font-extrabold text-[#102A43]">
             {Number(prediction.priority_score || 0).toFixed(1)}
-          </p>
+          </dd>
         </div>
 
-        <div className="rounded-[1.25rem] border border-white/70 bg-white/42 p-4 ring-1 ring-white/35">
-          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
+        <div>
+          <dt className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
             Confidence
-          </p>
-          <p className="mt-2 text-2xl font-extrabold text-[#102A43]">
+          </dt>
+          <dd className="mt-1 text-base font-extrabold text-[#0F766E]">
             {formatPercent(confidencePercent)}
-          </p>
+          </dd>
         </div>
-      </div>
+      </dl>
 
       {prediction.recommendation_text && (
-        <div className="mt-4 rounded-[1.25rem] border border-[#5EEAD4]/35 bg-[#5EEAD4]/10 p-4 text-sm font-semibold leading-7 text-[#475569]">
+        <div className="mt-4 border-l-2 border-[#0F766E]/50 pl-4 text-sm font-semibold leading-7 text-[#475569]">
           {prediction.recommendation_text}
         </div>
       )}
@@ -148,8 +142,10 @@ function OverrideModal({ prediction, isSubmitting, onClose, onConfirm }) {
 
   const canSubmit = correctedLabel && reason.trim().length >= 8;
 
-  return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#0B172A]/40 px-4 backdrop-blur-sm">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#0B172A]/40 px-4 py-6 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-900/20 ring-1 ring-white/50 backdrop-blur-2xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -232,7 +228,8 @@ function OverrideModal({ prediction, isSubmitting, onClose, onConfirm }) {
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -375,13 +372,14 @@ export default function PredictionReviewQueuePanel({
         </div>
 
         <Button
-          variant="secondary"
-          size="sm"
+          variant="iconGhost"
+          size="icon"
+          aria-label="Refresh pending review"
+          title="Refresh data"
           onClick={() => fetchPendingReviews()}
           disabled={Boolean(activeAction)}
         >
-          <RefreshCw size={16} />
-          Refresh
+          <RefreshCw size={20} />
         </Button>
       </div>
 

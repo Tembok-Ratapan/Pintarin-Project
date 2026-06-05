@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   ChevronDown,
@@ -26,12 +26,13 @@ import {
   getDashboardRoleMeta,
 } from "../dashboardNavigation";
 import { getDashboardPathByRole } from "../dashboardRoutes";
+import { profileService } from "../profileService";
 
 function SidebarLink({ item, onNavigate, isCollapsed }) {
   const Icon = item.icon;
   const linkClassName = ({ isActive } = {}) =>
     [
-      "flex min-w-0 items-center text-sm font-extrabold transition",
+      "flex min-w-0 items-center text-sm font-extrabold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
       isCollapsed
         ? "h-11 justify-center rounded-2xl px-0"
         : "gap-3 rounded-2xl px-3.5 py-3",
@@ -49,7 +50,14 @@ function SidebarLink({ item, onNavigate, isCollapsed }) {
         title={isCollapsed ? item.label : undefined}
       >
         <Icon size={18} className="shrink-0" />
-        <span className={isCollapsed ? "sr-only" : "truncate"}>
+        <span
+          className={[
+            "truncate transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isCollapsed
+              ? "max-w-0 opacity-0"
+              : "max-w-[12rem] opacity-100",
+          ].join(" ")}
+        >
           {item.label}
         </span>
       </a>
@@ -65,7 +73,12 @@ function SidebarLink({ item, onNavigate, isCollapsed }) {
       title={isCollapsed ? item.label : undefined}
     >
       <Icon size={18} className="shrink-0" />
-      <span className={isCollapsed ? "sr-only" : "truncate"}>
+      <span
+        className={[
+          "truncate transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          isCollapsed ? "max-w-0 opacity-0" : "max-w-[12rem] opacity-100",
+        ].join(" ")}
+      >
         {item.label}
       </span>
     </NavLink>
@@ -147,8 +160,16 @@ function SidebarGroup({
           />
         </button>
 
-        {shouldShowItems && (
-          <div className="space-y-1.5">
+        <div
+          className={[
+            "grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            shouldShowItems
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0",
+          ].join(" ")}
+          aria-hidden={!shouldShowItems}
+        >
+          <div className="min-h-0 space-y-1.5 overflow-hidden">
             {group.items.map((item) => (
               <SidebarLink
                 key={`${group.label}-${item.path}`}
@@ -157,7 +178,7 @@ function SidebarGroup({
               />
             ))}
           </div>
-        )}
+        </div>
       </div>
     );
   }
@@ -197,9 +218,9 @@ function SidebarContent({
   const isAdmin = role === "admin";
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div
-        className={`flex items-center gap-2 px-5 pb-5 pt-5 ${
+        className={`flex items-center gap-2 px-5 pb-5 pt-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isCollapsed ? "justify-center px-3" : "justify-between"
         }`}
       >
@@ -219,7 +240,7 @@ function SidebarContent({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/58 text-[#102A43] ring-1 ring-white/55 transition hover:bg-white hover:text-[#0F766E] lg:flex"
+            className="hidden shrink-0 items-center justify-center p-2 text-[#102A43] transition hover:text-[#0F766E] lg:flex"
             aria-label={isCollapsed ? "Buka sidebar" : "Lipat sidebar"}
           >
             {isCollapsed ? (
@@ -232,9 +253,10 @@ function SidebarContent({
       </div>
 
       <nav
-        className={`mt-2 flex-1 overflow-y-auto pb-4 ${
+        data-lenis-prevent
+        className={`mt-2 min-h-0 flex-1 overscroll-contain overflow-y-auto pb-4 ${
           isCollapsed ? "space-y-3 px-2.5" : "space-y-5 px-4"
-        }`}
+        } transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]`}
       >
         {navGroups.map((group) => (
           <SidebarGroup
@@ -274,9 +296,57 @@ function HeaderUserMenu({ user }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
 
-  const displayName = user?.full_name || user?.username || "PINTARIN User";
-  const institution = user?.institution || "PINTARIN Workspace";
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        const data = await profileService.getMyProfile(controller.signal);
+
+        if (!controller.signal.aborted) {
+          setProfile(data);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setProfile(null);
+        }
+      }
+    };
+
+    const handleProfileUpdated = (event) => {
+      setProfile(event.detail || null);
+    };
+
+    fetchProfile();
+    window.addEventListener("pintarin:profile-updated", handleProfileUpdated);
+
+    return () => {
+      controller.abort();
+      window.removeEventListener(
+        "pintarin:profile-updated",
+        handleProfileUpdated,
+      );
+    };
+  }, [user]);
+
+  const displayName =
+    profile?.display_name ||
+    profile?.organization_name ||
+    profile?.school_name ||
+    user?.full_name ||
+    user?.username ||
+    "PINTARIN User";
+
+  const institution =
+    profile?.organization_name ||
+    profile?.school_name ||
+    profile?.region_name ||
+    user?.institution ||
+    "PINTARIN Workspace";
 
   const handleLogout = async () => {
     setIsOpen(false);
@@ -356,6 +426,7 @@ function HeaderUserMenu({ user }) {
 export default function DashboardAppLayout() {
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const roleMeta = getDashboardRoleMeta(user?.role);
@@ -363,6 +434,27 @@ export default function DashboardAppLayout() {
   const desktopContentOffsetClass = isSidebarCollapsed
     ? "lg:pl-[5.25rem]"
     : "lg:pl-[18rem]";
+
+  useEffect(() => {
+    if (isSidebarVisible || !isSidebarOpen) return undefined;
+
+    const timeout = window.setTimeout(() => {
+      setIsSidebarOpen(false);
+    }, 360);
+
+    return () => window.clearTimeout(timeout);
+  }, [isSidebarOpen, isSidebarVisible]);
+
+  const openMobileSidebar = () => {
+    setIsSidebarOpen(true);
+    window.requestAnimationFrame(() => {
+      setIsSidebarVisible(true);
+    });
+  };
+
+  const closeMobileSidebar = () => {
+    setIsSidebarVisible(false);
+  };
 
   return (
     <div className="relative isolate min-h-screen overflow-x-hidden bg-transparent">
@@ -398,7 +490,7 @@ export default function DashboardAppLayout() {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl transition-[width] duration-300 lg:block ${desktopSidebarWidthClass}`}
+        className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-white/65 bg-white/42 shadow-xl shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl transition-[width,box-shadow,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[width] lg:block ${desktopSidebarWidthClass}`}
       >
         <SidebarContent
           isCollapsed={isSidebarCollapsed}
@@ -414,36 +506,42 @@ export default function DashboardAppLayout() {
           <button
             type="button"
             aria-label="Tutup menu dashboard"
-            className="absolute inset-0 bg-[#0B172A]/35 backdrop-blur-sm"
-            onClick={() => setIsSidebarOpen(false)}
+            className={`absolute inset-0 bg-[#0B172A]/35 backdrop-blur-sm transition-opacity duration-300 ease-out ${
+              isSidebarVisible ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={closeMobileSidebar}
           />
 
-          <aside className="absolute inset-y-0 left-0 w-[19rem] max-w-[86vw] border-r border-white/65 bg-white/86 shadow-2xl shadow-slate-900/20 ring-1 ring-white/50 backdrop-blur-2xl">
+          <aside
+            className={`absolute inset-y-0 left-0 w-[19rem] max-w-[86vw] overflow-hidden border-r border-white/65 bg-white/86 shadow-2xl shadow-slate-900/20 ring-1 ring-white/50 backdrop-blur-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isSidebarVisible ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
             <div className="absolute right-3 top-3">
               <button
                 type="button"
                 aria-label="Tutup sidebar"
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={closeMobileSidebar}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/70 text-[#102A43] ring-1 ring-white/50 transition hover:bg-white"
               >
                 <X size={19} />
               </button>
             </div>
 
-            <SidebarContent onNavigate={() => setIsSidebarOpen(false)} />
+            <SidebarContent onNavigate={closeMobileSidebar} />
           </aside>
         </div>
       )}
 
       <div
-        className={`relative z-10 transition-[padding] duration-300 ${desktopContentOffsetClass}`}
+        className={`relative z-10 transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${desktopContentOffsetClass}`}
       >
         <header className="sticky top-0 z-30 border-b border-white/60 bg-white/42 shadow-sm shadow-slate-200/25 ring-1 ring-white/35 backdrop-blur-2xl">
-          <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-4 px-5 sm:px-8 lg:px-10 xl:px-12">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsSidebarOpen(true)}
+                onClick={openMobileSidebar}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/65 text-[#102A43] ring-1 ring-white/50 transition hover:bg-white lg:hidden"
                 aria-label="Buka menu dashboard"
               >

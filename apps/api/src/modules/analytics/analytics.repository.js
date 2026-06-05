@@ -212,6 +212,101 @@ const getTopRiskRegions = async (year, limit = 30) => {
   return rows
 }
 
+const getSchoolRequestDailyActivity = async (fromDate, toDate) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      DATE(created_at) AS activity_date,
+      COUNT(*) AS total,
+      SUM(status IN ('Disetujui', 'Ditolak', 'Disalurkan')) AS validated,
+      SUM(status IN ('Diajukan', 'Ditinjau')) AS open_total,
+      COALESCE(SUM(requested_value), 0) AS value_total
+    FROM school_need_requests
+    WHERE created_at >= ?
+      AND created_at <= ?
+    GROUP BY DATE(created_at)
+    ORDER BY activity_date ASC
+    `,
+    [fromDate, toDate],
+  )
+
+  return rows
+}
+
+const getCsrProposalDailyActivity = async (fromDate, toDate) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      DATE(created_at) AS activity_date,
+      COUNT(*) AS total,
+      SUM(status IN ('Disetujui', 'Ditolak', 'Disalurkan', 'Selesai')) AS validated,
+      SUM(status IN ('Diajukan', 'Ditinjau')) AS open_total,
+      COALESCE(SUM(aid_value), 0) AS value_total
+    FROM csr_aid_proposals
+    WHERE created_at >= ?
+      AND created_at <= ?
+    GROUP BY DATE(created_at)
+    ORDER BY activity_date ASC
+    `,
+    [fromDate, toDate],
+  )
+
+  return rows
+}
+
+const getPredictionValidationDailyActivity = async (fromDate, toDate) => {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      DATE(validated_at) AS activity_date,
+      COUNT(*) AS total,
+      SUM(action = 'approve') AS approved,
+      SUM(action = 'override') AS overridden,
+      SUM(action = 'flag_for_review') AS flagged
+    FROM prediction_validations
+    WHERE validated_at >= ?
+      AND validated_at <= ?
+    GROUP BY DATE(validated_at)
+    ORDER BY activity_date ASC
+    `,
+    [fromDate, toDate],
+  )
+
+  return rows
+}
+
+const getSchoolRequestStatusBreakdown = async (fromDate, toDate) => {
+  const [rows] = await pool.query(
+    `
+    SELECT status, COUNT(*) AS total
+    FROM school_need_requests
+    WHERE created_at >= ?
+      AND created_at <= ?
+    GROUP BY status
+    ORDER BY total DESC, status ASC
+    `,
+    [fromDate, toDate],
+  )
+
+  return rows
+}
+
+const getCsrProposalStatusBreakdown = async (fromDate, toDate) => {
+  const [rows] = await pool.query(
+    `
+    SELECT status, COUNT(*) AS total
+    FROM csr_aid_proposals
+    WHERE created_at >= ?
+      AND created_at <= ?
+    GROUP BY status
+    ORDER BY total DESC, status ASC
+    `,
+    [fromDate, toDate],
+  )
+
+  return rows
+}
+
 module.exports = {
   getLatestAnalyticsYear,
   getLatestAiPredictionMeta,
@@ -221,4 +316,9 @@ module.exports = {
   getLegacyPredictionSummary,
   getAiTopRiskRegions,
   getTopRiskRegions,
+  getSchoolRequestDailyActivity,
+  getCsrProposalDailyActivity,
+  getPredictionValidationDailyActivity,
+  getSchoolRequestStatusBreakdown,
+  getCsrProposalStatusBreakdown,
 }

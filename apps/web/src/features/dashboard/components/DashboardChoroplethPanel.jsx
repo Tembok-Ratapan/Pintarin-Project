@@ -5,13 +5,7 @@ import { riskLegendItems } from "../../../components/map/riskMapUtils";
 import DashboardEmptyState from "./DashboardEmptyState";
 import DashboardSection from "./DashboardSection";
 
-export default function DashboardChoroplethPanel({
-  badge = "Map Risk",
-  title = "Map Risk",
-  description = "Warna wilayah mengikuti rekomendasi AI terbaru.",
-  regions = [],
-  topRegions = [],
-}) {
+export default function DashboardChoroplethPanel({ regions = [], topRegions = [] }) {
   const [geoJson, setGeoJson] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -57,9 +51,6 @@ export default function DashboardChoroplethPanel({
 
   return (
     <DashboardSection
-      badge={badge}
-      title={title}
-      description={description}
       action={
         <div className="flex flex-wrap gap-3 text-xs font-extrabold text-[#64748B]">
           {riskLegendItems.map((item) => (

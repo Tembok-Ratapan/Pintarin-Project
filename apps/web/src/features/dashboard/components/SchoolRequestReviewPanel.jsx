@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
-  ExternalLink,
   RefreshCcw,
   ShieldCheck,
   XCircle,
@@ -14,6 +13,7 @@ import LoadingState from "../../../components/feedback/LoadingState";
 import { formatCurrency, formatNumber } from "../../../lib/utils";
 import DashboardEmptyState from "./DashboardEmptyState";
 import DashboardErrorBanner from "./DashboardErrorBanner";
+import DashboardRecordCard from "./DashboardRecordCard";
 import DashboardSection from "./DashboardSection";
 import { schoolRequestService } from "../schoolRequestService";
 
@@ -48,22 +48,6 @@ const getArray = (value) => {
   return Array.isArray(value) ? value : [];
 };
 
-const getStatusBadgeClass = (status) => {
-  if (status === "Disetujui" || status === "Disalurkan") {
-    return "border-green-200 bg-green-50 text-green-700";
-  }
-
-  if (status === "Ditolak") {
-    return "border-red-200 bg-red-50 text-red-700";
-  }
-
-  if (status === "Ditinjau") {
-    return "border-yellow-200 bg-yellow-50 text-yellow-800";
-  }
-
-  return "border-sky-200 bg-sky-50 text-sky-700";
-};
-
 function ReviewModal({
   request,
   status,
@@ -89,7 +73,7 @@ function ReviewModal({
           </h3>
 
           <p className="mt-2 text-sm leading-7 text-[#64748B]">
-            {request.school_name || "Sekolah"} · {request.category} ·{" "}
+            {request.school_name || "Sekolah"} - {request.category} -{" "}
             {formatCurrency(request.requested_value)}
           </p>
         </div>
@@ -139,113 +123,58 @@ function RequestCard({ request, onReview }) {
   const ActiveIcon = activeStatus?.icon || Clock3;
 
   return (
-    <div className="rounded-[1.45rem] bg-white/46 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] backdrop-blur-xl">
-      <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-extrabold text-[#102A43]">{request.title}</p>
-
-            <span
-              className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${getStatusBadgeClass(
-                request.status,
-              )}`}
-            >
-              {request.status}
-            </span>
-          </div>
-
-          <p className="mt-1 text-xs font-semibold text-[#64748B]">
-            {request.request_code} · {request.school_name || "-"} ·{" "}
-            {request.region_name || "-"}
-          </p>
-
-          <p className="mt-2 line-clamp-2 text-sm leading-7 text-[#64748B]">
-            {request.description || "Tidak ada keterangan."}
-          </p>
-        </div>
-
-        <div className="shrink-0 text-left xl:text-right">
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-            Nilai
-          </p>
-
-          <p className="mt-1 text-base font-extrabold text-[#0F766E]">
-            {formatCurrency(request.requested_value)}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 rounded-2xl bg-white/38 p-4 text-sm leading-6 text-[#64748B] shadow-inner shadow-white/40 md:grid-cols-3">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-            Kategori
-          </p>
-          <p className="mt-1 font-extrabold text-[#102A43]">
-            {request.category}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-            Urgensi
-          </p>
-          <p className="mt-1 font-extrabold text-[#102A43]">
-            {request.urgency}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#94A3B8]">
-            Bukti
-          </p>
-
-          {request.evidence_url ? (
-            <a
-              href={request.evidence_url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1.5 font-extrabold text-[#0F766E] hover:text-[#115E59]"
-            >
-              Lihat bukti <ExternalLink size={14} />
-            </a>
-          ) : (
-            <p className="mt-1 font-semibold text-[#64748B]">Belum ada link</p>
+    <DashboardRecordCard
+      title={request.title}
+      status={request.status}
+      meta={`${request.request_code} - ${request.school_name || "-"} - ${
+        request.region_name || "-"
+      }`}
+      description={request.description || "Tidak ada keterangan."}
+      valueLabel="Nilai"
+      value={formatCurrency(request.requested_value)}
+      details={[
+        { label: "Kategori", value: request.category },
+        { label: "Urgensi", value: request.urgency },
+        {
+          label: "Bukti",
+          value: request.evidence_url ? "Lihat bukti" : "Belum ada",
+          href: request.evidence_url,
+        },
+      ]}
+      footer={
+        <div className="space-y-4">
+          {request.review_note && (
+            <p className="text-sm leading-6 text-[#64748B]">
+              <span className="font-extrabold text-[#102A43]">Catatan:</span>{" "}
+              {request.review_note}
+            </p>
           )}
-        </div>
-      </div>
 
-      {request.review_note && (
-        <div className="mt-3 rounded-2xl bg-white/38 p-3 text-sm leading-6 text-[#64748B] shadow-inner shadow-white/40">
-          <span className="font-extrabold text-[#102A43]">Catatan:</span>{" "}
-          {request.review_note}
-        </div>
-      )}
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5EEAD4]/18 text-[#0F766E]">
+                <ActiveIcon size={18} />
+              </span>
+              <p className="text-sm font-semibold leading-6 text-[#64748B]">
+                Status sekarang{" "}
+                <span className="font-extrabold text-[#102A43]">
+                  {request.status}
+                </span>
+              </p>
+            </div>
 
-      <div className="mt-4 flex flex-col justify-between gap-3 rounded-2xl bg-[#ECFEFF]/40 p-3 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-            <ActiveIcon size={18} />
-          </span>
-          <div>
-            <p className="text-sm font-extrabold text-[#102A43]">
-              Status saat ini: {request.status}
-            </p>
-            <p className="text-xs font-semibold leading-5 text-[#64748B]">
-              Pilih keputusan final lewat modal review.
-            </p>
+            <Button
+              size="sm"
+              onClick={() => onReview(request, request.status || "Ditinjau")}
+              className="justify-center"
+            >
+              <ShieldCheck size={16} />
+              Review keputusan
+            </Button>
           </div>
         </div>
-
-        <Button
-          size="sm"
-          onClick={() => onReview(request, request.status || "Ditinjau")}
-          className="justify-center"
-        >
-          <ShieldCheck size={16} />
-          Review keputusan
-        </Button>
-      </div>
-    </div>
+      }
+    />
   );
 }
 
@@ -352,12 +281,14 @@ export default function SchoolRequestReviewPanel() {
         description="Tinjau kebutuhan yang dikirim sekolah."
         action={
           <Button
-            variant="secondary"
+            variant="iconGhost"
+            size="icon"
+            aria-label="Refresh ajuan sekolah"
+            title="Refresh data"
             onClick={() => setReloadKey((current) => current + 1)}
             disabled={isLoading}
           >
-            <RefreshCcw size={16} />
-            Refresh
+            <RefreshCcw size={20} />
           </Button>
         }
       >

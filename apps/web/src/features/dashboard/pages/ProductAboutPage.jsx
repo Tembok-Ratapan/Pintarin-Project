@@ -133,7 +133,7 @@ function InfoCard({ item }) {
   const Icon = item.icon;
 
   return (
-    <div className="rounded-[1.25rem] border border-white/70 bg-white/42 p-4 ring-1 ring-white/35">
+    <div className="rounded-[1.25rem] border border-white/70 bg-white/38 p-5 shadow-xl shadow-slate-200/20 ring-1 ring-white/40 backdrop-blur-2xl">
       <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
         <Icon size={18} />
       </div>
@@ -153,8 +153,24 @@ export default function ProductAboutPage() {
       title="Tentang Produk"
       description="Informasi fitur Bantuan PINTARIN dan cara rekomendasi AI dipakai dalam alur bantuan pendidikan."
     >
-      <DashboardSection contentClassName="p-6 sm:p-8">
-        <div className="grid gap-7 xl:grid-cols-[0.92fr_1.08fr] xl:items-center">
+      <DashboardSection
+        className="relative isolate overflow-hidden border-white/75 bg-white/24 shadow-2xl shadow-[#5EEAD4]/12 ring-1 ring-white/55 backdrop-blur-3xl"
+        contentClassName="relative p-6 sm:p-8 lg:p-10 xl:p-12"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-16 top-10 z-0 h-56 w-56 rounded-full bg-[#5EEAD4]/28 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 bottom-0 z-0 h-72 w-72 rounded-full bg-white/70 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.58)_0%,rgba(255,255,255,0.26)_46%,rgba(94,234,212,0.16)_100%)]"
+        />
+
+        <div className="relative z-10 grid gap-7 xl:grid-cols-[0.92fr_1.08fr] xl:items-center">
           <div>
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5EEAD4]/20 text-[#0F766E] ring-1 ring-white/50">
               <Sparkles size={24} />
@@ -206,7 +222,7 @@ export default function ProductAboutPage() {
           {faqItems.map((item, index) => (
             <details
               key={item.question}
-              className="group rounded-[1.25rem] border border-white/70 bg-white/42 p-4 ring-1 ring-white/35 transition hover:bg-white/58"
+              className="group rounded-[1.25rem] border border-white/70 bg-white/48 p-5 ring-1 ring-white/35 transition hover:bg-white/62"
             >
               <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
                 <span className="flex min-w-0 gap-3">

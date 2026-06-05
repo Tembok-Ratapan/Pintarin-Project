@@ -157,6 +157,9 @@ export default function ProfilePage() {
     try {
       const data = await profileService.updateMyProfile(form);
       setProfile(data);
+      window.dispatchEvent(
+        new CustomEvent("pintarin:profile-updated", { detail: data }),
+      );
       setSuccessMessage("Profil berhasil diperbarui.");
     } catch (error) {
       setErrorMessage(
@@ -171,6 +174,10 @@ export default function ProfilePage() {
 
   const profileLabel =
     profileTypeLabel[profile?.profile_type] || profile?.profile_type || "-";
+  const normalizedProfileType = String(profile?.profile_type || "").toLowerCase();
+  const shouldShowLinkedScopeCards = !["dinas", "officer", "csr"].includes(
+    normalizedProfileType,
+  );
 
   return (
     <DashboardShell
@@ -213,21 +220,25 @@ export default function ProfilePage() {
               tone={profile?.is_verified ? "teal" : "amber"}
             />
 
-            <DashboardMetricCard
-              label="Wilayah"
-              value={profile?.region_name || "-"}
-              helper="Wilayah terkait"
-              icon={MapPinned}
-              tone="blue"
-            />
+            {shouldShowLinkedScopeCards && (
+              <>
+                <DashboardMetricCard
+                  label="Wilayah"
+                  value={profile?.region_name || "-"}
+                  helper="Wilayah terkait"
+                  icon={MapPinned}
+                  tone="blue"
+                />
 
-            <DashboardMetricCard
-              label="Sekolah"
-              value={profile?.school_name || "-"}
-              helper="Jika akun sekolah"
-              icon={Building2}
-              tone="teal"
-            />
+                <DashboardMetricCard
+                  label="Sekolah"
+                  value={profile?.school_name || "-"}
+                  helper="Jika akun sekolah"
+                  icon={Building2}
+                  tone="teal"
+                />
+              </>
+            )}
           </div>
 
           <DashboardSection

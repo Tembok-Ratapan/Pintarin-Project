@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import LoadingState from "../../../components/feedback/LoadingState";
+import Grainient from "../../../components/ui/Grainient";
 import {
   formatCurrency,
   formatNumber,
@@ -62,7 +63,7 @@ const getPriorityWidth = (ranking) => {
   return `${Math.max(34, 100 - (rank - 1) * 6)}%`;
 };
 
-function ReadOnlyNotice() {
+function ReadOnlyNotice({ isPublic = false }) {
   return (
     <div className="rounded-[1.5rem] border border-white/70 bg-white/50 p-5 shadow-lg shadow-slate-200/25 ring-1 ring-white/40 backdrop-blur-2xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -71,11 +72,13 @@ function ReadOnlyNotice() {
         </div>
 
         <div>
-          <p className="font-extrabold text-[#102A43]">Mode read-only aktif</p>
+          <p className="font-extrabold text-[#102A43]">
+            {isPublic ? "Ruang publik read-only" : "Mode read-only aktif"}
+          </p>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-[#64748B]">
-            Viewer hanya dapat membaca insight umum. Aksi sensitif seperti
-            validasi prediksi, override keputusan, CSR matching, dan pengelolaan
-            user hanya tersedia untuk role yang berwenang.
+            {isPublic
+              ? "Publik dapat membaca insight umum PINTARIN tanpa mengubah data. Aksi operasional tetap hanya tersedia untuk akun yang berwenang."
+              : "Viewer hanya dapat membaca insight umum. Aksi sensitif seperti validasi prediksi, override keputusan, CSR matching, dan pengelolaan user hanya tersedia untuk role yang berwenang."}
           </p>
         </div>
       </div>
@@ -207,24 +210,27 @@ function PublicInsightGrid({ summary = {} }) {
   );
 }
 
-function ReadOnlyScopeGrid() {
+function ReadOnlyScopeGrid({ isPublic = false }) {
   const scopes = [
     {
       title: "Melihat ringkasan",
-      description:
-        "Viewer dapat membaca statistik umum untuk memahami kondisi bantuan pendidikan.",
+      description: isPublic
+        ? "Publik dapat membaca statistik umum untuk memahami kondisi bantuan pendidikan."
+        : "Viewer dapat membaca statistik umum untuk memahami kondisi bantuan pendidikan.",
       icon: BarChart3,
     },
     {
       title: "Melihat prioritas wilayah",
-      description:
-        "Viewer dapat melihat wilayah prioritas tanpa melakukan perubahan data.",
+      description: isPublic
+        ? "Publik dapat melihat wilayah prioritas tanpa melakukan perubahan data."
+        : "Viewer dapat melihat wilayah prioritas tanpa melakukan perubahan data.",
       icon: MapPinned,
     },
     {
       title: "Melihat sinyal AI",
-      description:
-        "Viewer dapat membaca hasil prediksi dalam konteks insight, bukan validasi.",
+      description: isPublic
+        ? "Publik membaca hasil analitik sebagai insight umum, bukan keputusan final."
+        : "Viewer dapat membaca hasil prediksi dalam konteks insight, bukan validasi.",
       icon: Layers3,
     },
   ];
@@ -255,7 +261,7 @@ function ReadOnlyScopeGrid() {
   );
 }
 
-export default function ViewerDashboardPage() {
+export default function ViewerDashboardPage({ isPublic = false }) {
   const [summaryData, setSummaryData] = useState(null);
   const [latestPredictions, setLatestPredictions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -272,13 +278,21 @@ export default function ViewerDashboardPage() {
       setErrorMessage("");
 
       try {
-        const [summaryResult, predictionsResult] = await Promise.allSettled([
+        const requests = [
           dashboardService.getAnalyticsSummary(controller.signal),
-          dashboardService.getLatestPredictions({
-            limit: 8,
-            signal: controller.signal,
-          }),
-        ]);
+        ];
+
+        if (!isPublic) {
+          requests.push(
+            dashboardService.getLatestPredictions({
+              limit: 8,
+              signal: controller.signal,
+            }),
+          );
+        }
+
+        const [summaryResult, predictionsResult] =
+          await Promise.allSettled(requests);
 
         if (controller.signal.aborted) return;
 
@@ -286,7 +300,7 @@ export default function ViewerDashboardPage() {
           setSummaryData(summaryResult.value);
         }
 
-        if (predictionsResult.status === "fulfilled") {
+        if (!isPublic && predictionsResult?.status === "fulfilled") {
           setLatestPredictions(getArray(predictionsResult.value?.predictions));
         }
 
@@ -311,7 +325,7 @@ export default function ViewerDashboardPage() {
     fetchData();
 
     return () => controller.abort();
-  }, []);
+  }, [isPublic]);
 
   const metricCards = [
     {
@@ -403,14 +417,24 @@ export default function ViewerDashboardPage() {
     },
   ];
 
-  return (
+  const content = (
     <DashboardShell
-      badge="Ruang Pantau"
-      title="Ruang Pantau"
-      description="Lihat ringkasan tanpa mengubah data."
+      badge={isPublic ? "Analitik Publik" : "Ruang Pantau"}
+      title={isPublic ? "Pintarin Analitik" : "Ruang Pantau"}
+      description={
+        isPublic
+          ? "Ruang publik untuk membaca kondisi bantuan pendidikan PINTARIN tanpa login."
+          : "Lihat ringkasan tanpa mengubah data."
+      }
     >
       {isLoading ? (
-        <LoadingState label="Mengambil ringkasan viewer dari backend..." />
+        <LoadingState
+          label={
+            isPublic
+              ? "Mengambil analitik publik PINTARIN..."
+              : "Mengambil ringkasan viewer dari backend..."
+          }
+        />
       ) : (
         <>
           {errorMessage && (
@@ -420,7 +444,7 @@ export default function ViewerDashboardPage() {
             />
           )}
 
-          <ReadOnlyNotice />
+          <ReadOnlyNotice isPublic={isPublic} />
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {metricCards.map((metric) => (
@@ -446,29 +470,74 @@ export default function ViewerDashboardPage() {
             </DashboardSection>
           </div>
 
-          <DashboardSection
-            badge="AI Signal"
-            title="Sinyal prediksi terbaru"
-            description="Viewer dapat membaca hasil prediksi sebagai insight umum, tanpa melakukan validasi."
-          >
-            <DashboardTable
-              columns={predictionColumns}
-              rows={latestPredictions}
-              getRowKey={(prediction) => prediction.id}
-              emptyTitle="Belum ada prediksi terbaru."
-              emptyDescription="Data prediksi akan tampil setelah endpoint predictions/latest tersedia."
-            />
-          </DashboardSection>
+          {!isPublic && (
+            <DashboardSection
+              badge="AI Signal"
+              title="Sinyal prediksi terbaru"
+              description="Viewer dapat membaca hasil prediksi sebagai insight umum, tanpa melakukan validasi."
+            >
+              <DashboardTable
+                columns={predictionColumns}
+                rows={latestPredictions}
+                getRowKey={(prediction) => prediction.id}
+                emptyTitle="Belum ada prediksi terbaru."
+                emptyDescription="Data prediksi akan tampil setelah endpoint predictions/latest tersedia."
+              />
+            </DashboardSection>
+          )}
 
           <DashboardSection
             badge="Access Scope"
-            title="Batas akses viewer"
-            description="Role viewer menjaga informasi tetap terbuka untuk monitoring, namun tidak mengizinkan aksi yang mengubah keputusan."
+            title={isPublic ? "Batas akses publik" : "Batas akses viewer"}
+            description={
+              isPublic
+                ? "Halaman publik menjaga analitik tetap terbuka tanpa memberi akses untuk mengubah keputusan."
+                : "Role viewer menjaga informasi tetap terbuka untuk monitoring, namun tidak mengizinkan aksi yang mengubah keputusan."
+            }
           >
-            <ReadOnlyScopeGrid />
+            <ReadOnlyScopeGrid isPublic={isPublic} />
           </DashboardSection>
         </>
       )}
     </DashboardShell>
+  );
+
+  if (!isPublic) return content;
+
+  return (
+    <main className="relative isolate min-h-screen overflow-x-hidden text-[#102A43]">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Grainient
+          color1="#5EEAD4"
+          color2="#CCFBF1"
+          color3="#F8FAFC"
+          timeSpeed={0.16}
+          colorBalance={-0.05}
+          warpStrength={0.7}
+          warpFrequency={4.2}
+          warpSpeed={1.25}
+          warpAmplitude={58}
+          blendAngle={-16}
+          blendSoftness={0.14}
+          rotationAmount={300}
+          noiseScale={1.8}
+          grainAmount={0.038}
+          grainScale={1.7}
+          grainAnimated={false}
+          contrast={1.06}
+          gamma={1}
+          saturation={1.04}
+          centerX={0.02}
+          centerY={-0.06}
+          zoom={0.92}
+          className="h-full w-full opacity-95"
+        />
+
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,250,252,0.90)_0%,rgba(204,251,241,0.58)_42%,rgba(248,250,252,0.84)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(94,234,212,0.30),transparent_28rem),radial-gradient(circle_at_88%_30%,rgba(204,251,241,0.40),transparent_30rem)]" />
+      </div>
+
+      <div className="relative z-10">{content}</div>
+    </main>
   );
 }

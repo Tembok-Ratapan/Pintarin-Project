@@ -121,6 +121,8 @@ function PriorityRegionList({ regions = [] }) {
 }
 
 function AnalyticsGrid({ summary = {} }) {
+  const latestCsrValue = Number(summary.total_csr_value || 0);
+
   const analyticsItems = [
     {
       label: "Total Populasi",
@@ -139,7 +141,7 @@ function AnalyticsGrid({ summary = {} }) {
     },
     {
       label: "Nilai CSR",
-      value: formatCurrency(summary.total_csr_value),
+      value: formatCurrency(latestCsrValue),
       icon: HandHeart,
     },
     {
@@ -192,6 +194,7 @@ export function AdminControlCenterPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const summary = summaryData?.summary || {};
+  const latestCsrValue = Number(summary.total_csr_value || 0);
   const topRiskRegions = getArray(summaryData?.top_risk_regions);
 
   const highRiskRegions = regions.filter((region) => {
@@ -384,9 +387,6 @@ export function AdminControlCenterPage() {
           </div>
 
           <DashboardChoroplethPanel
-            badge="Map Risk"
-            title="Map Risk"
-            description="Warna wilayah mengikuti prioritas AI."
             regions={regions}
             topRegions={topRiskRegions}
           />
@@ -462,7 +462,7 @@ export function AdminControlCenterPage() {
                 description:
                   "Mitra CSR diarahkan ke wilayah dengan kebutuhan relevan.",
                 icon: HandHeart,
-                value: formatCurrency(summary.total_csr_value),
+                value: formatCurrency(latestCsrValue),
               },
             ].map((item) => {
               const Icon = item.icon;
@@ -533,12 +533,6 @@ const adminQuickLinks = [
     path: "/dashboard/school/overview",
     icon: School,
   },
-  {
-    title: "Analitik",
-    description: "Baca kualitas prediksi dan ringkasan confidence model.",
-    path: "/dashboard/analyst",
-    icon: LineChart,
-  },
 ];
 
 function AdminQuickLinkGrid() {
@@ -585,6 +579,8 @@ export default function AdminDashboardPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const summary = summaryData?.summary || {};
+  const latestAnalyticsYear = summaryData?.year || null;
+  const latestCsrValue = Number(summary.total_csr_value || 0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -664,8 +660,10 @@ export default function AdminDashboardPage() {
     },
     {
       label: "Nilai CSR",
-      value: formatCurrency(summary.total_csr_value),
-      helper: "Bantuan tercatat",
+      value: formatCurrency(latestCsrValue),
+      helper: latestAnalyticsYear
+        ? `CSR tersalurkan terbaru ${latestAnalyticsYear}`
+        : "CSR tersalurkan terbaru",
       icon: HandHeart,
       tone: "teal",
     },
@@ -688,7 +686,7 @@ export default function AdminDashboardPage() {
             />
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4">
             {metricCards.map((metric) => (
               <DashboardMetricCard key={metric.label} {...metric} />
             ))}

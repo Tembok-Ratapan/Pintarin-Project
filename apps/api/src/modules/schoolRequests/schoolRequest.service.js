@@ -9,9 +9,106 @@ const allowedReviewStatuses = [
 ];
 const editableRequestStatuses = ["Diajukan", "Ditinjau"];
 
+const createError = (message, statusCode) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
 const sanitizeText = (value, maxLength = 500) => {
   if (value === undefined || value === null) return "";
   return String(value).trim().slice(0, maxLength);
+};
+
+const normalizeId = (value) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const resolveRequestScope = async ({ user, payload }) => {
+  const requestedSchoolId = normalizeId(payload.school_id);
+  const requestedRegionId = normalizeId(payload.region_id);
+  const userRegionId = normalizeId(user.region_id);
+
+  if (user.role !== "school_operator") {
+    const school = requestedSchoolId
+      ? await schoolRequestRepository.getSchoolById(requestedSchoolId)
+      : null;
+
+    if (requestedSchoolId && !school) {
+      throw createError("Sekolah yang dipilih tidak ditemukan.", 400);
+    }
+
+    if (
+      school?.region_id &&
+      requestedRegionId &&
+      Number(school.region_id) !== requestedRegionId
+    ) {
+      throw createError("Wilayah ajuan tidak sesuai dengan sekolah.", 400);
+    }
+
+    return {
+      schoolId: school?.id || null,
+      regionId: requestedRegionId || school?.region_id || userRegionId || null,
+    };
+  }
+
+  const profileContext =
+    await schoolRequestRepository.getSchoolOperatorContext(user.id);
+  const profileSchoolId = normalizeId(profileContext?.school_id);
+  const profileRegionId = normalizeId(profileContext?.profile_region_id);
+  const schoolRegionId = normalizeId(profileContext?.school_region_id);
+  const allowedRegionId = profileRegionId || userRegionId;
+
+  if (profileSchoolId) {
+    if (requestedSchoolId && requestedSchoolId !== profileSchoolId) {
+      throw createError(
+        "Operator sekolah hanya dapat membuat ajuan untuk sekolahnya sendiri.",
+        403,
+      );
+    }
+
+    return {
+      schoolId: profileSchoolId,
+      regionId: schoolRegionId || profileRegionId || userRegionId || null,
+    };
+  }
+
+  if (!requestedSchoolId) {
+    const fallbackSchool = allowedRegionId
+      ? await schoolRequestRepository.getFirstSchoolByRegion(allowedRegionId)
+      : await schoolRequestRepository.getFirstSchool();
+
+    if (fallbackSchool) {
+      return {
+        schoolId: fallbackSchool.id,
+        regionId: fallbackSchool.region_id || allowedRegionId || null,
+      };
+    }
+
+    throw createError(
+      "Akun operator belum terhubung ke sekolah. Lengkapi profil sekolah terlebih dahulu.",
+      400,
+    );
+  }
+
+  const school = await schoolRequestRepository.getSchoolById(requestedSchoolId);
+
+  if (!school) {
+    throw createError("Sekolah yang dipilih tidak ditemukan.", 400);
+  }
+
+  if (allowedRegionId && Number(school.region_id) !== allowedRegionId) {
+    throw createError(
+      "Operator sekolah hanya dapat membuat ajuan untuk sekolah di wilayahnya.",
+      403,
+    );
+  }
+
+  return {
+    schoolId: school.id,
+    regionId: school.region_id || allowedRegionId || null,
+  };
 };
 
 const listRequests = async ({ user, query }) => {
@@ -47,16 +144,11 @@ const createRequest = async ({ user, payload }) => {
     ? payload.urgency
     : "Sedang";
 
-  const isSchoolOperator = user.role === "school_operator";
-
-  const safeSchoolId = isSchoolOperator ? null : payload.school_id || null;
-  const safeRegionId = isSchoolOperator
-    ? user.region_id || null
-    : payload.region_id || user.region_id || null;
+  const { schoolId, regionId } = await resolveRequestScope({ user, payload });
 
   const id = await schoolRequestRepository.createRequest({
-    schoolId: safeSchoolId,
-    regionId: safeRegionId,
+    schoolId,
+    regionId,
     submittedBy: user.id,
     category,
     title,
@@ -72,26 +164,21 @@ const createRequest = async ({ user, payload }) => {
 
 const ensureEditableRequest = ({ user, request }) => {
   if (!request) {
-    const error = new Error("Ajuan sekolah tidak ditemukan.");
-    error.statusCode = 404;
-    throw error;
+    throw createError("Ajuan sekolah tidak ditemukan.", 404);
   }
 
   const isOwner = Number(request.submitted_by) === Number(user.id);
   const isAdmin = user.role === "admin";
 
   if (!isOwner && !isAdmin) {
-    const error = new Error("Ajuan sekolah hanya bisa diubah oleh pemiliknya.");
-    error.statusCode = 403;
-    throw error;
+    throw createError("Ajuan sekolah hanya bisa diubah oleh pemiliknya.", 403);
   }
 
   if (!editableRequestStatuses.includes(request.status)) {
-    const error = new Error(
+    throw createError(
       "Ajuan yang sudah diputuskan tidak bisa diubah atau dihapus.",
+      409,
     );
-    error.statusCode = 409;
-    throw error;
   }
 };
 
@@ -104,15 +191,11 @@ const updateRequest = async ({ user, id, payload }) => {
   const category = sanitizeText(payload.category, 80);
 
   if (!title) {
-    const error = new Error("Judul ajuan wajib diisi.");
-    error.statusCode = 400;
-    throw error;
+    throw createError("Judul ajuan wajib diisi.", 400);
   }
 
   if (!category) {
-    const error = new Error("Kategori ajuan wajib diisi.");
-    error.statusCode = 400;
-    throw error;
+    throw createError("Kategori ajuan wajib diisi.", 400);
   }
 
   const urgency = allowedUrgencies.includes(payload.urgency)
@@ -150,15 +233,11 @@ const reviewRequest = async ({ user, id, payload }) => {
   const request = await schoolRequestRepository.getRequestById(id);
 
   if (!request) {
-    const error = new Error("Ajuan sekolah tidak ditemukan.");
-    error.statusCode = 404;
-    throw error;
+    throw createError("Ajuan sekolah tidak ditemukan.", 404);
   }
 
   if (!allowedReviewStatuses.includes(payload.status)) {
-    const error = new Error("Status review tidak valid.");
-    error.statusCode = 400;
-    throw error;
+    throw createError("Status review tidak valid.", 400);
   }
 
   await schoolRequestRepository.reviewRequest({

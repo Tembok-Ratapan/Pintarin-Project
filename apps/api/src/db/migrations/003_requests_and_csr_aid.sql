@@ -54,6 +54,10 @@ CREATE TABLE IF NOT EXISTS csr_aid_proposals (
   allocation_type ENUM('sekolah_tertentu', 'fleksibel') NOT NULL DEFAULT 'fleksibel',
   target_school_id INT DEFAULT NULL,
   target_region_id INT DEFAULT NULL,
+  final_school_id INT DEFAULT NULL,
+  recommended_school_id INT DEFAULT NULL,
+  recommendation_status ENUM('Tidak Ada', 'Direkomendasikan', 'Diterima CSR', 'Ditolak CSR') DEFAULT 'Tidak Ada',
+  recommendation_note TEXT,
 
   aid_name VARCHAR(180) NOT NULL,
   aid_type VARCHAR(80) NOT NULL,
@@ -64,6 +68,8 @@ CREATE TABLE IF NOT EXISTS csr_aid_proposals (
   status ENUM('Diajukan', 'Ditinjau', 'Disetujui', 'Ditolak', 'Disalurkan', 'Selesai') DEFAULT 'Diajukan',
   reviewed_by INT DEFAULT NULL,
   review_note TEXT,
+  distributed_by INT DEFAULT NULL,
+  distributed_at DATETIME DEFAULT NULL,
 
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -80,7 +86,19 @@ CREATE TABLE IF NOT EXISTS csr_aid_proposals (
     ON DELETE SET NULL
     ON UPDATE CASCADE,
 
+  FOREIGN KEY (final_school_id) REFERENCES schools(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  FOREIGN KEY (recommended_school_id) REFERENCES schools(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
   FOREIGN KEY (reviewed_by) REFERENCES users(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  FOREIGN KEY (distributed_by) REFERENCES users(id)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
 
@@ -88,6 +106,8 @@ CREATE TABLE IF NOT EXISTS csr_aid_proposals (
   INDEX idx_csr_aid_allocation_type (allocation_type),
   INDEX idx_csr_aid_target_school_id (target_school_id),
   INDEX idx_csr_aid_target_region_id (target_region_id),
+  INDEX idx_csr_aid_final_school_id (final_school_id),
+  INDEX idx_csr_aid_recommended_school_id (recommended_school_id),
   INDEX idx_csr_aid_submitted_by (submitted_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -186,42 +186,38 @@ export default function RiskMapSection() {
   return (
     <section
       id="risk-map"
-      className="relative mx-auto w-full max-w-7xl px-4 pb-14 pt-6 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8"
+      className="relative mx-auto w-full max-w-7xl px-5 pb-14 pt-6 sm:px-8 sm:pb-16 sm:pt-8 lg:px-10 xl:px-12"
     >
-      <div className="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+      <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div className="max-w-2xl">
-          <Badge variant="blue">Peta Risiko Pendidikan</Badge>
-
-          <h2 className="font-heading mt-4 text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
+          <h2 className="font-heading text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
             Peta Risiko Pendidikan
           </h2>
-
-          <p className="mt-4 max-w-xl text-sm leading-7 text-[#475569] sm:text-base">
-            Warna wilayah mengikuti prioritas AI. Klik kecamatan untuk melihat
-            data ringkas.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[31rem]">
+        <div className="grid grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:w-[25.5rem]">
           {mapStats.map((item) => {
             const Icon = item.icon;
 
             return (
-              <Card key={item.key} className="transition hover:bg-white/48">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
+              <Card
+                key={item.key}
+                className="h-[4.35rem] rounded-[1rem] transition hover:bg-white/48"
+              >
+                <CardContent className="flex h-full items-center p-2.5">
+                  <div className="flex w-full items-center justify-between gap-2">
                     <div>
-                      <p className="text-xs font-bold uppercase text-[#64748B]">
+                      <p className="text-[0.62rem] font-bold uppercase leading-tight text-[#64748B]">
                         {item.label}
                       </p>
 
-                      <p className="font-heading mt-2 text-2xl font-extrabold text-[#102A43]">
+                      <p className="font-heading mt-1 text-lg font-extrabold leading-none text-[#102A43]">
                         {item.format(getStatValue(item.key))}
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-[#5EEAD4]/16 p-2.5 text-[#0F766E]">
-                      <Icon size={18} />
+                    <div className="rounded-xl bg-[#5EEAD4]/16 p-1.5 text-[#0F766E]">
+                      <Icon size={15} />
                     </div>
                   </div>
                 </CardContent>
@@ -251,10 +247,7 @@ export default function RiskMapSection() {
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                   <p className="text-sm font-extrabold text-[#102A43]">
-                    Map Risk Kota Bandung
-                  </p>
-                  <p className="mt-1 text-sm text-[#64748B]">
-                    Klik wilayah untuk membaca detail data.
+                    Kota Bandung
                   </p>
                 </div>
 
@@ -281,9 +274,6 @@ export default function RiskMapSection() {
                 <h3 className="font-heading text-2xl font-extrabold leading-tight text-[#102A43]">
                   Top 10 Wilayah Prioritas
                 </h3>
-                <p className="mt-1 text-sm text-[#64748B]">
-                  Snapshot tahun {summary?.year || "2025"}.
-                </p>
               </div>
 
               <Badge variant="red">

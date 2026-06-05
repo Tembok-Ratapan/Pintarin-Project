@@ -6,6 +6,7 @@ import RiskMapSection from "./components/RiskMapSection";
 import WorkflowSection from "./components/WorkflowSection";
 import LandingFooter from "./components/LandingFooter";
 import LandingReveal from "./components/LandingReveal";
+import TrackingStatementSection from "./components/TrackingStatementSection";
 
 export default function LandingPage() {
   return (
@@ -43,6 +44,7 @@ export default function LandingPage() {
 
       <div className="relative z-10">
         <HeroSection />
+        <TrackingStatementSection />
         <LandingReveal>
           <RiskMapSection />
         </LandingReveal>

@@ -1,378 +1,550 @@
 # PINTARIN
 
-PINTARIN adalah platform full stack untuk membantu distribusi bantuan pendidikan di Kota Bandung agar lebih tepat sasaran, transparan, dan mudah divalidasi. Sistem ini menggabungkan dashboard role-based, peta risiko wilayah, AI risk scoring, human-in-the-loop validation, CSR matching, pengajuan bantuan sekolah, dan asisten Gen AI berbasis Gemini.
+**Education Aid Intelligence Platform**
 
-Project ini dibuat untuk capstone CC26-PSU211 dengan fokus pada masalah distribusi bantuan pendidikan: wilayah prioritas sering sulit dibandingkan secara cepat, data bantuan tersebar, dan keputusan akhir tetap membutuhkan validasi manusia.
+PINTARIN adalah aplikasi full stack untuk membantu distribusi bantuan pendidikan agar lebih tepat sasaran, transparan, dan mudah divalidasi. Sistem ini menggabungkan dashboard role-based, peta risiko wilayah, AI risk scoring, CSR matching, pengajuan bantuan sekolah, validasi dinas, human-in-the-loop review, dan asisten Gen AI berbasis Gemini.
+
+Project ini dibuat sebagai capstone **CC26-PSU211** dengan konteks utama distribusi bantuan pendidikan di Kota Bandung. PINTARIN tidak menjadikan AI sebagai pengambil keputusan final. AI berfungsi sebagai decision support, sedangkan keputusan akhir tetap berada pada manusia melalui role Admin dan Dinas.
+
+## Daftar Isi
+
+- [Ringkasan Produk](#ringkasan-produk)
+- [Informasi Capstone dan Tim](#informasi-capstone-dan-tim)
+- [Learning Path dan Kontribusi](#learning-path-dan-kontribusi)
+- [Masalah yang Diselesaikan](#masalah-yang-diselesaikan)
+- [Solusi PINTARIN](#solusi-pintarin)
+- [Arsitektur Sistem](#arsitektur-sistem)
+- [Stack Teknologi](#stack-teknologi)
+- [Struktur Project](#struktur-project)
+- [Role dan Hak Akses](#role-dan-hak-akses)
+- [Fitur Utama](#fitur-utama)
+- [User Flow](#user-flow)
+- [Frontend Routes](#frontend-routes)
+- [RESTful API](#restful-api)
+- [Database](#database)
+- [AI dan Data Flow](#ai-dan-data-flow)
+- [Environment Variables](#environment-variables)
+- [Setup Lokal](#setup-lokal)
+- [Akun Demo](#akun-demo)
+- [Testing dan Quality Gate](#testing-dan-quality-gate)
+- [Security](#security)
+- [Scalability dan Maintainability](#scalability-dan-maintainability)
+- [Deploy](#deploy)
+- [Checklist Capstone](#checklist-capstone)
+- [Troubleshooting](#troubleshooting)
+- [Catatan Audit Terakhir](#catatan-audit-terakhir)
 
 ## Ringkasan Produk
 
-PINTARIN membantu tiga kelompok utama:
+PINTARIN membantu stakeholder pendidikan membaca prioritas bantuan dengan lebih cepat. Data sekolah, wilayah, indikator pendidikan, proposal CSR, pengajuan kebutuhan sekolah, dan prediksi AI ditampilkan dalam dashboard yang disesuaikan dengan role pengguna.
 
-- Dinas Pendidikan melihat wilayah prioritas, memvalidasi rekomendasi AI, dan meninjau bantuan dari sekolah/CSR.
-- Sekolah mengajukan kebutuhan bantuan dan memantau status ajuan.
-- Mitra CSR menemukan wilayah atau sekolah yang paling relevan untuk program bantuan.
+Target pengguna utama:
 
-AI di PINTARIN tidak menggantikan keputusan manusia. AI memberi prediksi, confidence score, rekomendasi, dan explainable context; keputusan final tetap divalidasi oleh admin atau petugas dinas.
+- **Dinas Pendidikan**: membaca risiko wilayah, memvalidasi bantuan CSR/sekolah, dan melakukan review prediksi AI.
+- **Sekolah**: mengajukan kebutuhan bantuan dan memantau status pengajuan.
+- **Mitra CSR**: mencari wilayah atau sekolah yang relevan untuk program bantuan.
+- **Admin**: mengelola data, workspace role, validasi, dan konsistensi sistem.
+- **Analyst**: membaca tren data, confidence score, dan kualitas prediksi.
+- **Viewer**: melihat ringkasan informasi tanpa aksi operasional.
+
+Prinsip produk:
+
+- Bantuan diarahkan ke prioritas yang lebih jelas.
+- AI memberi rekomendasi, bukan keputusan final.
+- Setiap aksi penting memiliki validasi dan jejak audit.
+- UI dibuat bersih, responsif, dan mudah dibaca pada berbagai ukuran layar.
+
+## Informasi Capstone dan Tim
+
+| Informasi | Nilai |
+| --- | --- |
+| Nama project | PINTARIN |
+| Tema | Education aid intelligence, risk scoring, CSR matching |
+| Capstone ID | CC26-PSU211 |
+| Area studi | Kota Bandung |
+| Tipe aplikasi | Full stack web application |
+| Frontend | React SPA |
+| Backend | Express RESTful API |
+| AI service | FastAPI inference service |
+| Database | MySQL |
+| Status deploy | Siap masuk tahap deploy demo setelah environment production disiapkan |
+
+### Anggota Tim
+
+| Nama | ID | Learning Path | Role Project | Fokus Kontribusi |
+| --- | --- | --- | --- | --- |
+| Muhammad Aqmal Madani | CFCC630D6Y2829 | Front-End and Back-End | Full Stack Web Developer | Frontend dashboard, integrasi API, UI/UX, backend workflow |
+| Taukhid Aji Nurwijayadi | CFCC155D6Y2830 | Front-End and Back-End | Full Stack Web Developer | Backend API, database workflow, role access, integrasi sistem |
+| Richo Alifian Nokie | CACC012D6Y1361 | Artificial Intelligence | AI Engineer | Model AI, inference service, risk scoring |
+| Gading Rizky Maulana | CACC012D6Y2582 | Artificial Intelligence | AI Engineer | Model AI, preprocessing, evaluasi model |
+| Jonathan Delen Hosea | CDCC002D6Y0817 | Data Science | Data Scientist | Dataset, eksplorasi data, indikator risiko |
+| Ladiva Azzahra Puteri Darmawan | CDCC012D6X1251 | Data Science | Data Scientist | Data preparation, analisis wilayah, insight data |
+
+## Learning Path dan Kontribusi
+
+PINTARIN dirancang agar setiap learning path capstone punya kontribusi yang terlihat di aplikasi.
+
+### Front-End and Back-End
+
+Implementasi utama berada di:
+
+- `apps/web`: React, Vite, Tailwind CSS, routing, dashboard, form, visualisasi, responsive UI.
+- `apps/api`: Express RESTful API, JWT auth, RBAC, service layer, repository MySQL, validation, rate limiter.
+
+Output learning path ini:
+
+- Landing page dan dashboard role-based.
+- API modular untuk analytics, regions, predictions, school requests, CSR aid, Gen AI, dan admin database.
+- Proteksi route berbasis role.
+- Integrasi frontend ke backend menggunakan Axios service layer.
+- Build system menggunakan Vite dan npm workspace.
+
+### Artificial Intelligence
+
+Implementasi utama berada di:
+
+- `apps/ai`: FastAPI inference service.
+- `apps/ai/services/model_service.py`: service pemuatan model dan prediksi.
+- `apps/ai/models`: metadata dan artifact model AI.
+- `apps/api/src/modules/ai`: bridge dari Express ke FastAPI.
+- `apps/api/src/modules/predictions`: penyimpanan dan review hasil prediksi.
+
+Output learning path ini:
+
+- Risk scoring wilayah.
+- Risk label dan confidence score.
+- Batch prediction.
+- Human review flag untuk prediksi yang perlu validasi manusia.
+- Hybrid recommendation support untuk konteks bantuan.
+
+### Data Science
+
+Implementasi utama berada di:
+
+- `data/raw`: dataset awal.
+- `apps/api/src/db/seeds/data`: CSV yang dipakai importer runtime.
+- `apps/api/src/db/seeds/importEducationIndicators.js`: importer data indikator pendidikan.
+- `analytics_snapshots`, `education_indicators`, dan `predictions`: tabel runtime analitik.
+
+Output learning path ini:
+
+- Dataset indikator pendidikan.
+- Agregasi data per wilayah dan tahun.
+- Ranking prioritas wilayah.
+- Insight peta risiko.
+- Data foundation untuk AI dan dashboard.
+
+## Masalah yang Diselesaikan
+
+Distribusi bantuan pendidikan sering menghadapi beberapa kendala:
+
+- Data kebutuhan sekolah dan data bantuan tersebar di banyak sumber.
+- Wilayah prioritas sulit dibandingkan secara cepat.
+- Bantuan CSR dapat tidak selaras dengan kebutuhan paling mendesak.
+- Keputusan berbasis data tetap membutuhkan validasi manusia.
+- Riwayat bantuan perlu transparan dan tidak boleh tercampur antar sekolah.
+
+PINTARIN menyelesaikan masalah tersebut dengan menyatukan data, prediksi AI, validasi manusia, dan workflow bantuan dalam satu aplikasi.
+
+## Solusi PINTARIN
+
+PINTARIN menyediakan:
+
+- **Map Risk** untuk membaca prioritas wilayah Kota Bandung.
+- **AI Risk Scoring** untuk membantu menilai tingkat risiko pendidikan.
+- **CSR Matching** untuk membantu mitra CSR menemukan target bantuan yang relevan.
+- **Validasi Dinas** untuk meninjau pengajuan sekolah dan CSR.
+- **Human Review** untuk memvalidasi prediksi AI yang confidence-nya rendah.
+- **Riwayat Pengajuan** untuk sekolah dan CSR.
+- **Manage Database** untuk admin dengan whitelist tabel dan field.
+- **Gen AI Assistant** untuk membantu membaca konteks dashboard sesuai role.
+
+## Arsitektur Sistem
+
+```mermaid
+flowchart LR
+  User["User: Admin, Dinas, Sekolah, CSR, Analyst, Viewer"] --> Web["React + Vite Web App"]
+  Web --> Api["Express RESTful API"]
+  Api --> Db["MySQL Database"]
+  Api --> Ai["FastAPI AI Service"]
+  Api --> Gemini["Gemini API"]
+  Ai --> Models["Keras + Scaler + Encoder Artifacts"]
+  Db --> Analytics["Analytics Snapshots and Predictions"]
+```
+
+Alur komunikasi:
+
+1. User mengakses frontend React.
+2. Frontend melakukan networking calls ke Express API melalui Axios.
+3. Express API memvalidasi JWT, role, dan request.
+4. API membaca atau menulis data ke MySQL melalui repository layer.
+5. Untuk prediksi AI, API meneruskan payload ke FastAPI service.
+6. Untuk Gen AI, API memanggil Gemini dari backend agar API key tidak terekspos ke frontend.
+7. Hasil data dikembalikan ke dashboard sesuai role user.
 
 ## Stack Teknologi
 
-- `apps/web`: React, Vite, Tailwind CSS, React Router, Leaflet, Recharts.
-- `apps/api`: Express.js, MySQL, JWT auth, role-based access control, rate limiter, Gemini integration.
-- `apps/ai`: FastAPI, TensorFlow/Keras, scikit-learn scaler/encoder, custom Keras layers.
-- `data/raw`: dataset pendukung untuk seed awal.
-- `docs`: checklist deploy dan dokumentasi operasional.
+| Bagian | Teknologi |
+| --- | --- |
+| Frontend | React 19, Vite, Tailwind CSS, React Router, Axios |
+| UI dan visualisasi | Lucide React, React Icons, Leaflet, React Leaflet, Recharts, Framer Motion |
+| Backend | Node.js, Express, MySQL2, JWT, bcrypt, Helmet, CORS, Morgan, Zod |
+| AI service | Python, FastAPI, TensorFlow/Keras, scikit-learn artifacts |
+| Database | MySQL 8 atau kompatibel |
+| Tooling | npm workspaces, ESLint, Node test runner |
+| Deployment target | Vercel/Netlify untuk frontend, Railway/Render/Fly.io/VPS untuk API dan AI service |
 
 ## Struktur Project
 
 ```text
 Pintarin/
   apps/
-    web/                 Frontend React
-    api/                 Backend Express REST API
-    ai/                  FastAPI inference service
+    web/
+      src/
+        app/                         Router, config, lazy route components
+        assets/                      Logo, image landing, foto tim
+        components/                  UI reusable, layout, map, feedback
+        features/
+          auth/                      Login, AuthProvider, auth service
+          dashboard/                 Pages, panels, services, navigation
+          landing/                   Landing page dan data tim
+      public/
+        geojson/                     Bandung kecamatan GeoJSON
+      vite.config.js
+      package.json
+
+    api/
+      src/
+        app.js                       Express app dan route registration
+        server.js                    API entry point
+        config/                      Environment parsing
+        constants/                   Role dan permission constants
+        db/
+          migrations/                SQL migration 001 sampai 007
+          seeds/                     Importer data dan reset password demo
+        integrations/
+          ai/                        HTTP client ke FastAPI AI service
+        middlewares/                 Auth, role guard, rate limiter, error handler
+        modules/                     Domain modules: auth, analytics, CSR, sekolah, AI, dll
+        utils/                       API response dan async handler
+      package.json
+
+    ai/
+      main.py                        FastAPI app
+      schemas.py                     Pydantic schema untuk request prediksi
+      services/                      Model service dan custom layer
+      models/                        Metadata dan artifact model
+      requirements.txt
+
   data/
-    raw/                 Dataset seed awal
-  docs/                  Dokumentasi deploy dan operasional
-  README.MD              Dokumentasi utama project
+    raw/                             Dataset pendukung awal
+
+  docs/
+    CAPSTONE_CHECKLIST_EVIDENCE.md   Bukti checklist capstone
+    DEPLOYMENT_READINESS.md          Checklist deploy
+    UI_MOCKUP_AND_QA.md              Mockup dan QA UI
+
+  scripts/                           Script pendukung project
+  services/                          Folder pendukung service jika dibutuhkan
+  .env.example                       Contoh environment root/API
+  package.json                       npm workspace root
+  README.MD                          Dokumentasi utama project
 ```
+
+## Role dan Hak Akses
+
+| Role | Kode Role | Tujuan | Akses Utama |
+| --- | --- | --- | --- |
+| Admin | `admin` | Pengelola penuh sistem | Overview admin, pusat kendali, manage database, workspace lintas role |
+| Dinas | `officer` | Validasi dan pengambil keputusan | Overview, Map Risk, Analitik, Validasi CSR, Validasi Sekolah, Review, Gen AI |
+| Sekolah | `school_operator` | Pengaju kebutuhan bantuan | Overview, Pengajuan, Riwayat Pengajuan, Gen AI |
+| CSR | `csr_partner` | Mitra penyalur bantuan | Overview, Map Risk, AI Matching, Pengajuan CSR, Riwayat Pengajuan, Gen AI |
+| Analyst | `analyst` | Pembaca data dan kualitas model | Ruang Analitik, informasi produk |
+| Viewer | `viewer` | Pemantau non-operasional | Ruang pantau dan informasi produk |
+
+Permission group backend:
+
+- `ALL_AUTHENTICATED`: semua role yang sudah login.
+- `DATA_READERS`: role yang boleh membaca data dashboard.
+- `DECISION_MAKERS`: Admin dan Dinas.
+- `CSR_WORKERS`: Admin, Dinas, CSR.
+- `SCHOOL_WORKERS`: Admin, Dinas, Sekolah.
+- `ADMIN_ONLY`: khusus Admin.
 
 ## Fitur Utama
 
-- Landing page publik dengan ringkasan produk, alur sistem, tim, dan peta risiko.
-- Login dan proteksi route berbasis role.
-- Dashboard role-based untuk admin, dinas, sekolah, CSR, analyst, dan viewer.
-- Peta choropleth risiko Kota Bandung.
-- AI prediction bridge dari Express API ke FastAPI model service.
-- Confidence score dan status `needs_human_review`.
-- Human-in-the-loop validation untuk prediksi yang perlu ditinjau.
-- CSR matching untuk rekomendasi wilayah bantuan.
-- Pengajuan kebutuhan bantuan dari sekolah.
-- Pengajuan dan riwayat bantuan CSR.
-- Gen AI assistant berbasis Gemini untuk membantu membaca konteks dashboard.
-- Manage Database khusus admin untuk melihat, menambah, mengedit, dan menghapus data aktif yang diizinkan.
-- Audit log untuk jejak aktivitas penting.
+### Landing Page
 
-## Role dan Akses
+- Hero product PINTARIN.
+- Ringkasan Map Risk, AI Matching, dan Human Validation.
+- Workflow dari data sampai keputusan bantuan.
+- Informasi tim capstone.
+- Akses ke analitik publik.
 
-### Admin
+### Authentication
 
-Admin adalah role pusat kendali. Admin dapat:
+- Login JWT.
+- Proteksi route dashboard.
+- Role-based redirect.
+- Session token disimpan di `sessionStorage`.
+- Logout dan endpoint `/api/auth/me`.
 
-- Mengakses Pusat Kendali.
-- Mengelola data melalui Manage Database.
-- Melihat fitur Dinas, CSR, Sekolah, Analyst, dan Viewer.
-- Mengelola user dan data master.
-- Melihat log, prediksi, indikator pendidikan, pengajuan sekolah, dan proposal CSR.
+### Dashboard Role-Based
 
-Catatan keamanan: tabel log seperti `audit_logs`, `csr_match_logs`, dan `prediction_validations` dibuat read-only di Manage Database agar integritas riwayat tetap terjaga.
+Setiap role mendapatkan navigasi dan fitur yang sesuai dengan tugasnya. Admin dapat membuka workspace lintas role untuk melakukan validasi dan monitoring dari satu tempat.
 
-### Dinas atau Officer
+### Map Risk
 
-Dinas bertugas membaca risiko dan mengambil keputusan validasi. Menu utama:
+- Peta choropleth kecamatan Kota Bandung.
+- Warna wilayah berdasarkan status risiko.
+- Top wilayah prioritas.
+- Statistik wilayah, sekolah, confidence, dan indikator risiko.
 
-- Overview.
-- Map Risk.
-- Analitik.
-- Validasi CSR.
-- Validasi Sekolah.
-- Review prediksi AI.
-- Gen AI.
-- Tentang Produk.
+### AI Risk Scoring
 
-Dinas dapat meninjau ajuan, menyetujui, menolak, menandai salur, atau menyelesaikan bantuan sesuai status proses.
+- Prediksi risiko pendidikan.
+- Confidence score.
+- Risk label.
+- Status `needs_human_review`.
+- Review prediksi oleh Admin atau Dinas.
 
-### Sekolah
+### CSR Matching
 
-Sekolah berperan sebagai pengaju kebutuhan. Menu utama:
+- Rekomendasi target bantuan berdasarkan wilayah, risiko, dan fokus bantuan.
+- Logging hasil matching.
+- Proposal CSR dapat diajukan dan divalidasi.
 
-- Overview.
-- Pengajuan.
-- Riwayat Pengajuan.
-- Gen AI.
-- Tentang Produk.
+### Pengajuan Sekolah
 
-Sekolah dapat membuat ajuan bantuan, memantau status, dan mengedit atau menghapus ajuan yang masih belum final sesuai aturan UI dan API.
+- Sekolah membuat ajuan kebutuhan bantuan.
+- Dinas/Admin meninjau, menyetujui, menolak, menyalurkan, atau menyelesaikan.
+- Riwayat pengajuan ditampilkan secara lebih sederhana dan mudah dibaca.
 
-### CSR Partner
+### Bantuan CSR
 
-CSR berperan sebagai mitra bantuan. Menu utama:
-
-- Overview.
-- Map Risk.
-- AI Matching.
-- Analitik.
-- Pengajuan.
-- Riwayat Pengajuan.
-- Gen AI.
-- Tentang Produk.
-
-CSR dapat melihat wilayah prioritas, mencocokkan fokus bantuan dengan data risiko, lalu mengajukan bantuan yang lebih tepat sasaran.
-
-### Analyst
-
-Analyst berfokus membaca data dan kualitas prediksi. Menu utama:
-
-- Ruang Analitik.
-- Tentang Produk.
-
-Role ini cocok untuk evaluasi model, pembacaan tren, dan analisis confidence score.
-
-### Viewer
-
-Viewer memiliki akses pantau. Menu utama:
-
-- Ruang Pantau.
-- Tentang Produk.
-
-Role ini ditujukan untuk melihat ringkasan tanpa aksi operasional.
-
-## User Guide
-
-### Akun Demo
-
-Gunakan akun berikut untuk testing lokal:
-
-| Role | Username | Password |
-| --- | --- | --- |
-| Admin | `admin` | `pintarin` |
-| Dinas | `dinas` | `pintarindinas` |
-| CSR | `csr` | `pintarincsr` |
-| Sekolah | `school` | `pintarinschool` |
-
-### Login
-
-1. Buka halaman `/login`.
-2. Masukkan kredensial yang tersedia dari seed atau akun yang dibuat admin.
-3. Setelah login, sistem mengarahkan user ke dashboard sesuai role.
-4. Profil dan logout tersedia dari menu user di header dashboard.
-
-### Navigasi Dashboard
-
-1. Gunakan sidebar untuk berpindah fitur sesuai role.
-2. Gunakan tombol refresh pada halaman data untuk memuat ulang data terbaru.
-3. Gunakan dropdown modern pada form untuk memilih kategori, wilayah, atau status.
-4. Pada kartu ringkasan yang teksnya panjang, klik kartu untuk membaca detail penuh.
-
-### Membaca Map Risk
-
-1. Buka menu Map Risk.
-2. Warna wilayah menunjukkan prioritas risiko.
-3. Klik wilayah pada peta untuk melihat detail indikator di panel kanan.
-4. Gunakan data tersebut sebagai dasar awal, lalu validasi dengan konteks lapangan.
-
-### Mengajukan Bantuan Sekolah
-
-1. Login sebagai Sekolah.
-2. Buka menu Pengajuan.
-3. Isi jenis bantuan, nilai kebutuhan, deskripsi, dan bukti jika tersedia.
-4. Kirim ajuan.
-5. Pantau status di Riwayat Pengajuan.
-6. Edit atau hapus hanya jika status masih memungkinkan.
-
-### Mengajukan Bantuan CSR
-
-1. Login sebagai CSR.
-2. Buka Map Risk atau AI Matching untuk melihat prioritas wilayah.
-3. Buka Pengajuan.
-4. Isi target wilayah/sekolah, jenis bantuan, nilai bantuan, dan deskripsi.
-5. Kirim proposal dan pantau status di Riwayat Pengajuan.
-
-### Validasi Dinas
-
-1. Login sebagai Dinas.
-2. Buka Validasi CSR atau Validasi Sekolah.
-3. Baca detail ajuan, nilai bantuan, target, dokumen, dan status.
-4. Pilih aksi sesuai proses: tinjau, setujui, tolak, salurkan, atau selesai.
-5. Gunakan menu Review untuk memvalidasi prediksi AI yang butuh human review.
+- CSR mengajukan proposal bantuan.
+- Dinas/Admin melakukan review.
+- Bantuan yang sudah disalurkan masuk riwayat bantuan.
+- Untuk role sekolah, riwayat bantuan CSR hanya menampilkan bantuan berstatus `Disalurkan` yang sesuai dengan sekolah penerima, sehingga tidak tercampur dengan sekolah lain.
 
 ### Manage Database
 
-1. Login sebagai Admin.
-2. Buka Manage Database.
-3. Pilih tabel dari daftar.
-4. Gunakan search dan pagination untuk mencari data.
-5. Tambah, edit, atau hapus data hanya pada tabel yang mendukung aksi tersebut.
-6. Hindari mengubah data prediksi atau indikator tanpa alasan yang jelas karena dapat memengaruhi dashboard.
+- Admin dapat membaca tabel aktif melalui registry.
+- Tabel dan field yang bisa diedit dikontrol dengan whitelist.
+- Tabel AI/generated/log dibuat read-only untuk menjaga integritas data.
+- Password hash tidak diekspos pada UI manage database.
+
+### Gen AI
+
+- Chat assistant berbasis Gemini.
+- API key hanya berada di backend.
+- Prompt dan konteks dibatasi sesuai role.
+- Endpoint dilindungi auth, role guard, dan rate limiter.
 
 ## User Flow
 
 ### Flow Publik
 
 ```text
-Landing Page -> Login -> Dashboard sesuai role
-```
-
-### Flow Sekolah
-
-```text
-Sekolah login
-  -> membaca overview
-  -> membuat pengajuan bantuan
-  -> memantau riwayat
-  -> menerima hasil validasi dinas/admin
-```
-
-### Flow CSR
-
-```text
-CSR login
-  -> membaca peta risiko
-  -> menjalankan AI Matching
-  -> memilih target bantuan
-  -> mengirim proposal CSR
-  -> memantau status proposal
-```
-
-### Flow Dinas
-
-```text
-Dinas login
-  -> membaca overview dan analitik
-  -> meninjau peta risiko
-  -> memvalidasi ajuan sekolah/CSR
-  -> mereview prediksi AI low-confidence
-  -> menetapkan keputusan akhir
+User membuka landing page
+  -> membaca informasi PINTARIN
+  -> membuka Analitik PINTARIN publik atau Login
+  -> masuk ke dashboard sesuai role setelah autentikasi
 ```
 
 ### Flow Admin
 
 ```text
 Admin login
-  -> memantau pusat kendali
-  -> mengelola database
-  -> melihat semua workspace role
-  -> menjaga konsistensi data dan akses
+  -> melihat Overview Admin
+  -> memantau total sekolah, pending review, dan nilai CSR terbaru
+  -> membuka Pusat Kendali atau Manage Database
+  -> membuka workspace Dinas, CSR, atau Sekolah jika diperlukan
+  -> menjaga data master dan konsistensi sistem
 ```
 
-### Flow AI Prediction
+### Flow Dinas
 
 ```text
-CSV dataset
-  -> import ke education_indicators
-  -> agregasi indikator per wilayah dan tahun
-  -> Express API mengirim payload ke FastAPI
-  -> model Keras menghasilkan prediksi risiko
+Dinas login
+  -> membuka Overview dan Map Risk
+  -> membaca wilayah prioritas
+  -> membuka Validasi Sekolah atau Validasi CSR
+  -> meninjau detail pengajuan
+  -> menyetujui, menolak, menyalurkan, atau menyelesaikan bantuan
+  -> membuka Review untuk validasi prediksi AI
+```
+
+### Flow Sekolah
+
+```text
+Sekolah login
+  -> membuka Overview Sekolah
+  -> membuat pengajuan kebutuhan bantuan
+  -> memantau Riwayat Pengajuan
+  -> melihat bantuan CSR tersalurkan untuk sekolahnya
+  -> menggunakan Gen AI jika butuh bantuan membaca konteks dashboard
+```
+
+### Flow CSR
+
+```text
+CSR login
+  -> membaca Overview CSR
+  -> membuka Map Risk
+  -> menjalankan AI Matching
+  -> memilih target wilayah atau sekolah
+  -> mengirim proposal bantuan CSR
+  -> memantau Riwayat Pengajuan
+```
+
+### Flow Analyst
+
+```text
+Analyst login
+  -> membuka Ruang Analitik
+  -> membaca tren risiko, confidence, dan data wilayah
+  -> memakai insight untuk evaluasi model dan data
+```
+
+### Flow Viewer
+
+```text
+Viewer login
+  -> membuka Ruang Pantau
+  -> membaca ringkasan tanpa melakukan aksi operasional
+```
+
+### Flow Human-in-the-Loop AI
+
+```text
+Dataset indikator pendidikan
+  -> import ke MySQL
+  -> Express API menyiapkan payload
+  -> FastAPI AI service menghasilkan prediksi
   -> prediksi disimpan ke tabel predictions
-  -> Dinas/Admin melakukan human review jika confidence rendah
+  -> data confidence rendah masuk pending review
+  -> Admin/Dinas melakukan validasi
+  -> hasil validasi tersimpan di prediction_validations
 ```
 
-## Data dan AI
+### Flow Bantuan CSR Tersalurkan
 
-Dataset indikator AI aktif:
-
-- Nama file: `PINTARIN_MASTER_FINAL_5000_TERBARU.csv`.
-- Salinan repo: `apps/api/src/db/seeds/data/PINTARIN_MASTER_FINAL_5000_TERBARU.csv`.
-- Jumlah baris: 5.000.
-- Jumlah kecamatan: 30.
-- Rentang tahun: 2015 sampai 2025.
-- Kolom utama: `Kecamatan`, `Tahun`, `Total_Populasi`, `Total_Warga_Rentan`, `Total_Bantuan_PIP`, `Total_Pra_Sekolah`, `SD`, `Rasio_Warga_Rentan`, `Status_Resiko`.
-- SHA256 file yang dicek: `03B74A1511729C0C3DDDB545F6C9E0BAF94847D083C9785B142D7A1796F5AB54`.
-
-Hasil audit lokal:
-
-- File CSV di `Downloads` identik dengan salinan di repo.
-- Tabel `education_indicators` sudah berisi 5.000 baris dari dataset `PINTARIN_MASTER_FINAL_5000_TERBARU`.
-- Semua 30 kecamatan berhasil match ke tabel `regions`.
-- Prediksi runtime terbaru model versi `1.0.0` menyimpan `input_features.source = education_indicators`.
-- Prediksi tersebut memakai algoritma `FastAPI-Keras-Risk-Hybrid`.
-- Database demo juga dapat berisi prediksi seed lama dari Excel dengan algoritma seperti `Gradient Boosting`, `LSTM`, `Random Forest`, `SVM`, dan `XGBoost`; repository dashboard memprioritaskan prediksi runtime `FastAPI-Keras-Risk-Hybrid` jika data tersebut tersedia.
-
-Catatan penting tentang training provenance:
-
-- Runtime inference sudah memakai indikator dari CSV ini melalui tabel `education_indicators`.
-- Artifact model di `apps/ai/models` memuat metadata fitur, daftar kecamatan, rentang tahun, file model, scaler, dan encoder.
-- Metadata model saat ini belum menyimpan dataset hash atau catatan eksplisit bahwa training dilakukan dari CSV ini.
-- Karena itu, dari artifact yang ada kita bisa membuktikan pipeline inference memakai dataset ini, tetapi belum bisa membuktikan secara forensik bahwa proses training model awal memakai file CSV yang sama.
-
-Untuk standar production, tambahkan provenance training ke `pintarin_metadata.json`, misalnya:
-
-- `training_dataset_name`.
-- `training_dataset_sha256`.
-- `training_started_at`.
-- `training_completed_at`.
-- `training_notebook`.
-- `metrics`.
-
-## Database Aktif
-
-Tabel aktif yang saat ini dipakai:
-
-- `users`.
-- `stakeholder_profiles`.
-- `regions`.
-- `schools`.
-- `education_indicators`.
-- `predictions`.
-- `prediction_validations`.
-- `analytics_snapshots`.
-- `school_need_requests`.
-- `csr_aid_proposals`.
-- `csr_match_logs`.
-- `audit_logs`.
-
-Tabel legacy yang sudah dihapus dari model aktif:
-
-- `population_education_records`.
-- `risk_records`.
-- `csr_programs`.
-
-## API Utama
-
-- `/api/health`: health check API.
-- `/api/auth`: login dan auth.
-- `/api/profiles`: profil user.
-- `/api/analytics`: ringkasan analitik.
-- `/api/regions`: data wilayah.
-- `/api/predictions`: data prediksi AI.
-- `/api/csr`: CSR matching.
-- `/api/schools`: data sekolah.
-- `/api/school-requests`: pengajuan bantuan sekolah.
-- `/api/csr-aid`: proposal bantuan CSR.
-- `/api/ai`: bridge prediksi ke FastAPI.
-- `/api/gen-ai`: chat Gemini role-based.
-- `/api/admin/database`: Manage Database khusus admin.
-
-## Prasyarat Lokal
-
-- Node.js LTS.
-- npm.
-- MySQL 8 atau kompatibel.
-- Python 3.10+ untuk AI service.
-- Model artifact AI di `apps/ai/models`.
-
-## Setup Lokal
-
-1. Install dependency Node:
-
-```bash
-npm install
+```text
+CSR membuat proposal
+  -> Dinas/Admin review
+  -> proposal disetujui
+  -> sekolah final penerima ditetapkan
+  -> bantuan ditandai Disalurkan
+  -> riwayat CSR menampilkan status proposal
+  -> riwayat sekolah hanya menampilkan bantuan Disalurkan untuk sekolah tersebut
 ```
 
-2. Salin konfigurasi environment:
+## Frontend Routes
 
-```bash
-copy .env.example .env
-copy apps\api\.env.example apps\api\.env
-copy apps\web\.env.example apps\web\.env
+| Route | Akses | Keterangan |
+| --- | --- | --- |
+| `/` | Publik | Landing page |
+| `/analytic-pintarin` | Publik | Analitik publik |
+| `/login` | Publik | Login |
+| `/dashboard` | Authenticated | Redirect ke dashboard sesuai role |
+| `/dashboard/profile` | Authenticated | Profil user |
+| `/dashboard/about-product` | Authenticated | Informasi produk |
+| `/dashboard/admin` | Admin | Overview admin |
+| `/dashboard/admin/control-center` | Admin | Pusat kendali admin |
+| `/dashboard/admin/manage-database` | Admin | Manage Database |
+| `/dashboard/admin/dinas/:section` | Admin | Workspace Dinas melalui Admin |
+| `/dashboard/officer/:section` | Admin, Dinas | Dashboard Dinas |
+| `/dashboard/analyst` | Admin, Analyst | Ruang Analitik |
+| `/dashboard/csr/:section` | Admin, CSR | Dashboard CSR |
+| `/dashboard/school/:section` | Admin, Sekolah | Dashboard Sekolah |
+| `/dashboard/viewer` | Admin, Viewer | Ruang Pantau |
+
+Contoh `section` dashboard:
+
+- Officer: `overview`, `map-risk`, `analytic`, `validasi-csr`, `validasi-sekolah`, `review`, `gen-ai`.
+- CSR: `overview`, `map-risk`, `ai-matching`, `pengajuan`, `riwayat`, `gen-ai`.
+- School: `overview`, `pengajuan`, `riwayat`, `gen-ai`.
+
+## RESTful API
+
+Base URL lokal:
+
+```text
+http://localhost:5000/api
 ```
 
-3. Isi env API minimal:
+### Endpoint Utama
 
-```env
-NODE_ENV=development
-PORT=5000
-CLIENT_URLS=http://localhost:5173
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=pintarin_db
-JWT_SECRET=change_this_secret
-AI_SERVICE_URL=http://127.0.0.1:8000
-GEMINI_API_KEY=
+| Endpoint | Method | Akses | Fungsi |
+| --- | --- | --- | --- |
+| `/api/health` | `GET` | Publik | Health check API |
+| `/api/auth/login` | `POST` | Publik | Login |
+| `/api/auth/me` | `GET` | Authenticated | Mengambil user aktif |
+| `/api/auth/logout` | `POST` | Authenticated | Logout |
+| `/api/profiles/me` | `GET` | Authenticated | Profil user |
+| `/api/profiles/me` | `PATCH` | Authenticated | Update profil user |
+| `/api/analytics/summary` | `GET` | Role data reader | Ringkasan dashboard |
+| `/api/analytics/risk-trend` | `GET` | Role data reader | Tren risiko |
+| `/api/regions` | `GET` | Role data reader | Daftar wilayah |
+| `/api/regions/:id` | `GET` | Role data reader | Detail wilayah |
+| `/api/predictions/latest` | `GET` | Authenticated | Prediksi terbaru |
+| `/api/predictions/pending-review` | `GET` | Admin, Dinas | Prediksi pending review |
+| `/api/predictions/:id/validate` | `POST` | Admin, Dinas | Validasi prediksi |
+| `/api/csr/match` | `POST` | Admin, Dinas, CSR | CSR matching |
+| `/api/schools` | `GET` | Authenticated sesuai role | Katalog sekolah |
+| `/api/school-requests` | `GET` | Admin, Dinas, Sekolah | Daftar pengajuan sekolah |
+| `/api/school-requests` | `POST` | Admin, Sekolah | Membuat pengajuan sekolah |
+| `/api/school-requests/:id` | `PUT` | Admin, Sekolah | Update pengajuan sekolah |
+| `/api/school-requests/:id` | `DELETE` | Admin, Sekolah | Hapus pengajuan sekolah |
+| `/api/school-requests/:id/review` | `PATCH` | Admin, Dinas | Review pengajuan sekolah |
+| `/api/csr-aid` | `GET` | Admin, Dinas, CSR, Sekolah | Daftar proposal bantuan CSR |
+| `/api/csr-aid` | `POST` | Admin, CSR | Membuat proposal CSR |
+| `/api/csr-aid/:id/review` | `PATCH` | Admin, Dinas | Review proposal CSR |
+| `/api/csr-aid/:id/recommendation` | `PATCH` | Admin, CSR | Keputusan rekomendasi sekolah |
+| `/api/ai/health` | `GET` | Admin, Dinas, Analyst | Health check AI service |
+| `/api/ai/predict-one` | `POST` | Admin, Dinas, Analyst | Prediksi satu payload |
+| `/api/ai/run-batch-prediction` | `POST` | Admin, Dinas | Batch prediction |
+| `/api/gen-ai/chat` | `POST` | Authenticated sesuai role | Chat Gen AI |
+| `/api/admin/database/tables` | `GET` | Admin | Daftar tabel manage database |
+| `/api/admin/database/:tableKey` | `GET` | Admin | List record tabel |
+| `/api/admin/database/:tableKey/:id` | `GET` | Admin | Detail record |
+| `/api/admin/database/:tableKey` | `POST` | Admin | Tambah record jika diizinkan |
+| `/api/admin/database/:tableKey/:id` | `PATCH` | Admin | Update record jika diizinkan |
+| `/api/admin/database/:tableKey/:id` | `DELETE` | Admin | Hapus record jika diizinkan |
+
+### Format Response API
+
+Pola response umum:
+
+```json
+{
+  "success": true,
+  "message": "Request processed successfully",
+  "data": {}
+}
 ```
 
-4. Jalankan migration SQL di `apps/api/src/db/migrations` secara berurutan:
+Jika gagal:
+
+```json
+{
+  "success": false,
+  "message": "Error message"
+}
+```
+
+## Database
+
+### Migration
+
+Migration SQL berada di:
+
+```text
+apps/api/src/db/migrations
+```
+
+Urutan migration aktif:
 
 ```text
 001_init_schema.sql
@@ -381,59 +553,297 @@ GEMINI_API_KEY=
 004_education_indicators.sql
 005_ai_prediction_bridge.sql
 006_drop_legacy_unused_tables.sql
+007_csr_aid_distribution_flow.sql
 ```
 
-5. Import seed utama:
+Migration `007_csr_aid_distribution_flow.sql` menambahkan kolom distribusi CSR seperti `final_school_id`, `recommended_school_id`, `recommendation_status`, `distributed_by`, dan `distributed_at`. Migration ini juga membersihkan data dummy proposal/pengajuan tertentu agar data riwayat tidak mengganggu flow bantuan aktif.
+
+### Tabel Aktif
+
+| Tabel | Fungsi |
+| --- | --- |
+| `users` | Akun user dan role |
+| `stakeholder_profiles` | Profil stakeholder user |
+| `regions` | Data kecamatan/wilayah |
+| `schools` | Data sekolah |
+| `education_indicators` | Data indikator pendidikan |
+| `predictions` | Hasil prediksi AI |
+| `prediction_validations` | Hasil validasi manusia terhadap prediksi |
+| `analytics_snapshots` | Snapshot ringkasan analitik per tahun |
+| `school_need_requests` | Pengajuan kebutuhan bantuan sekolah |
+| `csr_aid_proposals` | Proposal dan penyaluran bantuan CSR |
+| `csr_match_logs` | Log hasil CSR matching |
+| `audit_logs` | Jejak aktivitas penting |
+
+### Tabel Legacy yang Dikeluarkan dari Schema Aktif
+
+- `population_education_records`
+- `risk_records`
+- `csr_programs`
+
+### Read-only di Manage Database
+
+Tabel AI/generated/log dibuat read-only di fitur Manage Database:
+
+- `predictions`
+- `analytics_snapshots`
+- `education_indicators`
+- `audit_logs`
+- `csr_match_logs`
+- `prediction_validations`
+
+Tujuannya agar data prediksi, snapshot, dan audit tidak rusak karena edit manual.
+
+## AI dan Data Flow
+
+### AI Service
+
+Service AI berada di `apps/ai` dan berjalan dengan FastAPI.
+
+Endpoint AI service langsung:
+
+| Endpoint | Method | Fungsi |
+| --- | --- | --- |
+| `/health` | `GET` | Status AI service |
+| `/predict-risk` | `POST` | Prediksi satu record |
+| `/predict-batch` | `POST` | Prediksi banyak record |
+
+Model artifact yang dibutuhkan:
+
+- `pintarin_metadata.json`
+- `pintarin_risk_scoring.keras`
+- `pintarin_hybrid_recommendation.keras`
+- `pintarin_scaler.pkl`
+- `pintarin_le_kecamatan.pkl`
+
+Catatan: file `.keras` dan `.pkl` biasanya tidak disimpan langsung di repository publik. Untuk deploy, simpan sebagai private release artifact, object storage, atau build ke container image private.
+
+### Data Runtime
+
+```text
+Dataset CSV
+  -> importer seed:ai-data
+  -> table education_indicators
+  -> aggregation and analytics snapshots
+  -> predictions table
+  -> dashboard analytics, map risk, and AI review queue
+```
+
+### Human Review
+
+Prediksi dengan confidence rendah ditandai untuk review. Admin atau Dinas dapat menyetujui, mengoreksi, atau memberi catatan validasi. Hasil review disimpan sebagai bagian dari audit decision support.
+
+## Environment Variables
+
+### Root/API `.env`
+
+Contoh tersedia di:
+
+```text
+.env.example
+apps/api/.env.example
+```
+
+Minimal env untuk API:
+
+```env
+NODE_ENV=development
+PORT=5000
+CLIENT_URL=http://localhost:5173
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=pintarin_db
+JWT_SECRET=replace_with_64_plus_random_characters
+JWT_EXPIRES_IN=1d
+AI_SERVICE_URL=http://localhost:8000
+GEMINI_API_KEY=
+TRUST_PROXY=false
+RATE_LIMIT_ENABLED=true
+```
+
+Untuk production, gunakan `CLIENT_URLS` jika ada lebih dari satu origin:
+
+```env
+CLIENT_URLS=https://pintarin.vercel.app,https://pintarin-preview.vercel.app
+```
+
+### Frontend `.env`
+
+Contoh tersedia di:
+
+```text
+apps/web/.env.example
+```
+
+Isi minimal:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+Untuk production:
+
+```env
+VITE_API_BASE_URL=https://api-domain-production.com/api
+```
+
+### Secret Policy
+
+- Jangan commit file `.env`.
+- Jangan menaruh `GEMINI_API_KEY` di frontend.
+- `JWT_SECRET` production harus diganti dengan nilai acak panjang.
+- Gunakan DB user non-root pada production.
+- Jika secret development pernah dipakai di perangkat lokal, buat secret baru untuk hosting.
+
+## Setup Lokal
+
+### Prasyarat
+
+- Node.js LTS.
+- npm.
+- MySQL 8 atau kompatibel.
+- Python 3.10+ untuk AI service.
+- Model artifact AI di `apps/ai/models`.
+
+### 1. Install Dependency Node
+
+```bash
+npm install
+```
+
+### 2. Siapkan Environment
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item apps\api\.env.example apps\api\.env
+Copy-Item apps\web\.env.example apps\web\.env
+```
+
+macOS/Linux:
+
+```bash
+cp .env.example .env
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+```
+
+Isi credential database, `JWT_SECRET`, `AI_SERVICE_URL`, dan `GEMINI_API_KEY` jika Gen AI ingin diaktifkan.
+
+### 3. Buat Database
+
+Contoh:
+
+```sql
+CREATE DATABASE pintarin_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 4. Jalankan Migration
+
+Jalankan semua file SQL di bawah ini secara berurutan:
+
+```text
+apps/api/src/db/migrations/001_init_schema.sql
+apps/api/src/db/migrations/002_stakeholder_profiles.sql
+apps/api/src/db/migrations/003_requests_and_csr_aid.sql
+apps/api/src/db/migrations/004_education_indicators.sql
+apps/api/src/db/migrations/005_ai_prediction_bridge.sql
+apps/api/src/db/migrations/006_drop_legacy_unused_tables.sql
+apps/api/src/db/migrations/007_csr_aid_distribution_flow.sql
+```
+
+### 5. Import Seed Utama
 
 ```bash
 npm --workspace apps/api run seed
 ```
 
-6. Import dataset indikator AI:
+### 6. Reset Password Demo Jika Dibutuhkan
+
+```bash
+npm --workspace apps/api run seed:passwords
+```
+
+### 7. Import Dataset AI
 
 ```bash
 npm --workspace apps/api run seed:ai-data
 ```
 
-Perintah ini memakai default file:
+Default file:
 
 ```text
-apps/api/src/db/seeds/data/PINTARIN_MASTER_FINAL_5000_TERBARU.csv
+apps/api/src/db/seeds/data/pintarin_hasil_prediksi.csv
 ```
 
-Jika ingin memakai file lain:
+Jika ingin memakai CSV lain:
 
 ```bash
 npm --workspace apps/api run seed:ai-data -- C:\path\to\dataset.csv
 ```
 
-7. Jalankan API:
+### 8. Jalankan API
 
 ```bash
 npm run dev:api
 ```
 
-8. Jalankan frontend:
+API lokal:
+
+```text
+http://localhost:5000
+```
+
+### 9. Jalankan Frontend
 
 ```bash
 npm run dev:web
 ```
 
-9. Jalankan AI service dari folder `apps/ai`:
+Frontend lokal:
+
+```text
+http://localhost:5173
+```
+
+### 10. Jalankan AI Service
+
+Dari folder `apps/ai`:
 
 ```bash
+pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-## Menjalankan AI Prediction
+AI service lokal:
 
-1. Pastikan AI service hidup dan endpoint `/health` berstatus ready.
-2. Pastikan `education_indicators` sudah terisi dari CSV.
-3. Jalankan batch prediction dari endpoint/API UI yang tersedia.
-4. Hasil prediksi akan tersimpan di tabel `predictions`.
-5. Data dengan confidence rendah akan ditandai untuk review manusia.
+```text
+http://localhost:8000
+```
 
-## Verifikasi
+## Akun Demo
+
+Gunakan akun berikut untuk testing lokal setelah seed dan reset password berjalan.
+
+| Role | Username | Password |
+| --- | --- | --- |
+| Admin | `admin` | `pintarin` |
+| Dinas | `dinas` | `pintarindinas` |
+| CSR | `csr` | `pintarincsr` |
+| Sekolah | `school` | `pintarinschool` |
+
+Catatan production:
+
+- Jangan gunakan credential demo untuk production publik.
+- Buat akun baru dengan password kuat.
+- Batasi akses admin hanya untuk anggota yang berwenang.
+
+## Testing dan Quality Gate
+
+Command utama sebelum deploy:
 
 ```bash
 npm run lint:web
@@ -441,102 +851,297 @@ npm run build:web
 npm run test:api
 ```
 
-Audit data AI yang direkomendasikan:
+Command tambahan yang direkomendasikan:
 
-```sql
-SELECT source_dataset, COUNT(*) total_rows, COUNT(DISTINCT kecamatan) total_kecamatan,
-       MIN(year) min_year, MAX(year) max_year
-FROM education_indicators
-GROUP BY source_dataset;
+```bash
+npm --prefix apps/api ci --dry-run --ignore-scripts --no-audit --no-fund
+npm --prefix apps/web ci --dry-run --ignore-scripts --no-audit --no-fund
+npm audit --workspaces --omit=dev --audit-level=high
 ```
+
+Smoke test lokal:
+
+```text
+GET http://localhost:5000/api/health
+GET http://localhost:5173
+GET http://localhost:5173/dashboard/csr/riwayat
+GET http://localhost:5173/dashboard/officer/review
+```
+
+Status verifikasi lokal terakhir:
+
+| Command | Status |
+| --- | --- |
+| `npm run lint:web` | PASS |
+| `npm run build:web` | PASS |
+| `npm run test:api` | PASS, 20/20 test |
+| API health lokal | PASS |
+| Frontend dashboard smoke test lokal | PASS |
 
 ## Security
 
-PINTARIN sudah memiliki beberapa fondasi keamanan:
+Fondasi keamanan yang sudah tersedia:
 
 - JWT authentication.
-- Role-based access control.
-- Protected routes di frontend.
+- Role-based access control di backend.
+- Protected route di frontend.
 - Helmet untuk HTTP security headers.
-- CORS allowlist via `CLIENT_URLS`.
-- Rate limiter global dan login limiter.
+- CORS allowlist melalui `CLIENT_URL` atau `CLIENT_URLS`.
+- Global rate limiter.
+- Login rate limiter.
+- Gen AI rate limiter.
 - Password hashing dengan bcrypt.
-- Admin database registry agar tabel/field yang boleh diedit tetap whitelisted.
+- Admin database registry dan whitelist field.
 - Password hash tidak diekspos di Manage Database.
-- Audit log untuk aksi penting.
+- Audit log untuk aktivitas penting.
+- API key Gemini hanya dibaca di backend.
 
-Checklist sebelum deploy publik:
+Checklist wajib sebelum production:
 
-- Ganti `JWT_SECRET` dengan nilai acak panjang.
-- Jangan gunakan credential demo untuk production.
-- Jangan menaruh `GEMINI_API_KEY` di frontend.
-- Pastikan `CLIENT_URLS` hanya berisi domain resmi.
-- Gunakan DB user non-root dengan password kuat.
-- Aktifkan `TRUST_PROXY=true` jika API ada di belakang reverse proxy.
-- Gunakan Redis untuk rate limiter jika API berjalan multi-instance.
+- Ganti `JWT_SECRET` dengan secret acak minimal 64 karakter.
+- Rotasi API key yang pernah dipakai di development jika akan dipakai production.
+- Jangan commit `.env`.
+- Gunakan DB user non-root.
+- Pastikan `CLIENT_URLS` hanya berisi domain frontend resmi.
+- Set `NODE_ENV=production`.
+- Set `TRUST_PROXY=true` jika API berada di belakang reverse proxy.
+- Pastikan AI service tidak diekspos publik jika tidak diperlukan.
+- Gunakan HTTPS untuk semua service.
 - Backup database secara berkala.
-- Jangan expose AI service langsung ke publik jika tidak perlu.
+
+## Scalability dan Maintainability
+
+### Scalability
+
+Struktur project mendukung pemisahan service:
+
+- Frontend dapat di-host sebagai static build.
+- API dapat berjalan sebagai service Node.js terpisah.
+- AI inference service dapat diskalakan terpisah dari API.
+- Database dapat dipindahkan ke managed MySQL.
+
+Catatan untuk skala lebih besar:
+
+- Rate limiter in-memory cukup untuk demo atau single instance. Untuk multi-instance production, gunakan Redis-backed rate limiter.
+- Tambahkan observability untuk error rate, latency, dan request volume.
+- Gunakan backup otomatis database.
+- Pisahkan service AI dari public internet jika memungkinkan.
+- Tambahkan load test sederhana sebelum membuka akses luas.
+
+### Maintainability
+
+Pola codebase:
+
+- Backend memakai struktur domain module: `controller`, `service`, `repository`, `routes`.
+- Frontend memakai feature-based structure.
+- Service layer frontend memusatkan call API.
+- Permission backend dikelola melalui constants.
+- Manage Database memakai registry agar tidak semua tabel/field bebas diedit.
+- Komponen UI reusable dipakai untuk kartu, panel, badge, table, empty state, dan layout dashboard.
+- Test regresi tersedia untuk logic penting seperti role guard, rate limiter, school request, CSR aid, Gen AI, admin database, dan predictions.
+
+### Clean UI dan Responsiveness
+
+Pembaruan UI terbaru:
+
+- Riwayat pengajuan CSR dan Sekolah dibuat lebih sederhana dan mudah dibaca.
+- Validasi CSR dan Validasi Sekolah di role Dinas dibuat lebih user friendly.
+- Fitur Review role Dinas dirapihkan.
+- Kartu riwayat memakai komponen reusable `DashboardRecordCard`.
+- Layout menggunakan responsive utility agar tetap terbaca pada desktop, tablet, dan mobile.
 
 ## Deploy
 
-Baca [Deployment Readiness](docs/DEPLOYMENT_READINESS.md) sebelum deploy publik.
+Baca dokumen tambahan:
 
-Ringkasan target deploy:
+- `docs/DEPLOYMENT_READINESS.md`
+- `docs/CAPSTONE_CHECKLIST_EVIDENCE.md`
+- `docs/UI_MOCKUP_AND_QA.md`
 
-- Frontend: Vercel atau static hosting lain.
-- API: Railway, Render, Fly.io, VPS, atau container platform.
-- AI Service: container/VPS yang mendukung TensorFlow.
-- Database: MySQL production managed service atau VPS yang diamankan.
+### Rekomendasi Arsitektur Deploy
 
-Deploy demo capstone layak setelah checklist wajib selesai. Deploy untuk banyak user production membutuhkan tambahan observability, Redis-backed rate limit, backup, dan load test sederhana.
+| Service | Rekomendasi |
+| --- | --- |
+| Frontend | Vercel atau Netlify |
+| API Express | Railway, Render, Fly.io, VPS, atau container platform |
+| Database | Managed MySQL atau MySQL VPS yang diamankan |
+| AI Service | Render/Fly.io/VPS/container yang mendukung TensorFlow |
+| Model artifact | Private release artifact, object storage, atau private container image |
+
+### Frontend Deploy
+
+Build command:
+
+```bash
+npm --workspace apps/web run build
+```
+
+Output directory:
+
+```text
+apps/web/dist
+```
+
+Environment:
+
+```env
+VITE_API_BASE_URL=https://api-domain-production.com/api
+```
+
+### API Deploy
+
+Start command:
+
+```bash
+npm --workspace apps/api run start
+```
+
+Environment production:
+
+```env
+NODE_ENV=production
+PORT=5000
+CLIENT_URLS=https://frontend-domain-production.com
+TRUST_PROXY=true
+DB_HOST=...
+DB_PORT=3306
+DB_USER=...
+DB_PASSWORD=...
+DB_NAME=...
+JWT_SECRET=...
+JWT_EXPIRES_IN=1d
+AI_SERVICE_URL=https://ai-service-domain.com
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-2.5-flash
+RATE_LIMIT_ENABLED=true
+```
+
+### AI Service Deploy
+
+Start command:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+Environment:
+
+```env
+PINTARIN_AI_MODEL_DIR=/app/models
+```
+
+### Database Deploy
+
+Langkah minimum:
+
+1. Buat database MySQL production.
+2. Buat DB user non-root dengan password kuat.
+3. Jalankan migration `001` sampai `007` secara berurutan.
+4. Jalankan seed/import sesuai kebutuhan demo.
+5. Pastikan API production memakai credential database production.
+6. Aktifkan backup berkala.
+
+### Checklist Setelah Deploy
+
+- Frontend URL dapat dibuka.
+- API `/api/health` mengembalikan status sukses.
+- AI `/health` mengembalikan `ready`.
+- Login demo/non-demo berhasil sesuai environment.
+- Dashboard admin terbuka.
+- Map Risk menampilkan data.
+- Pengajuan sekolah dapat dibuat dan divalidasi.
+- Proposal CSR dapat dibuat dan divalidasi.
+- Riwayat CSR sekolah hanya menampilkan bantuan tersalurkan untuk sekolah terkait.
+- Gen AI menjawab jika `GEMINI_API_KEY` diaktifkan.
+- CORS hanya mengizinkan domain frontend resmi.
+
+## Checklist Capstone
+
+| Checklist | Status | Bukti |
+| --- | --- | --- |
+| Menggunakan networking calls untuk berinteraksi dengan API | PASS | Axios service layer di `apps/web/src/lib/api.js` dan service dashboard |
+| Menggunakan module bundler | PASS | Vite di `apps/web/package.json` |
+| Membangun RESTful API untuk Front-End | PASS | Express routes di `apps/api/src/app.js` |
+| RESTful API menyimpan data | PASS | Repository MySQL di modul school requests, CSR aid, profiles, admin database |
+| RESTful URL mengikuti konvensi | PASS | Endpoint `/api/school-requests`, `/api/csr-aid`, `/api/predictions`, dll |
+| Integrasi AI/ML sebagai fitur utama | PASS | FastAPI AI service, Express AI bridge, predictions dashboard |
+| Fitur utama berjalan tanpa crash | PASS | Lint, build, API test, dan smoke test lokal lulus |
+| Mockup UI | PASS | UI aplikasi dan dokumen `docs/UI_MOCKUP_AND_QA.md` |
+| Layout responsive | PASS | Tailwind responsive utilities dan layout dashboard |
+| RESTful API menyimpan data ke database | PASS | MySQL2 dan migration aktif |
+| API menggunakan Express | PASS | `express` di `apps/api/package.json` |
+| Tools rekomendasi Bootstrap/Tailwind CSS/Axios | PASS | Project memakai Tailwind CSS dan Axios |
+| Deployment aplikasi web ke server | READY | Masuk tahap deploy setelah env production dan hosting dipilih |
+| Rekomendasi hosting GitHub Pages/Netlify/Vercel | PASS | Frontend cocok untuk Vercel/Netlify; backend perlu Railway/Render/VPS |
 
 ## Troubleshooting
 
-### Gen AI tidak menjawab
+### Login Gagal
 
-- Pastikan `GEMINI_API_KEY` tersedia di env API.
-- Pastikan API dapat mengakses endpoint Gemini.
-- Cek rate limit Gen AI.
-- Cek log endpoint `/api/gen-ai/chat`.
+- Pastikan API berjalan.
+- Pastikan database sudah dimigrasikan dan di-seed.
+- Pastikan password demo sudah di-reset dengan `seed:passwords`.
+- Pastikan `JWT_SECRET` tersedia.
+- Pastikan `CLIENT_URL` atau `CLIENT_URLS` sesuai origin frontend.
 
-### AI service tidak ready
+### Dashboard Kosong
 
-- Pastikan file berikut ada di `apps/ai/models` atau `PINTARIN_AI_MODEL_DIR`:
-  - `pintarin_metadata.json`.
-  - `pintarin_risk_scoring.keras`.
-  - `pintarin_hybrid_recommendation.keras`.
-  - `pintarin_scaler.pkl`.
-  - `pintarin_le_kecamatan.pkl`.
-- Pastikan dependency Python sudah terpasang.
-- Cek endpoint `/health` pada AI service.
-
-### Data peta atau dashboard kosong
-
-- Pastikan migration sudah dijalankan.
 - Pastikan seed utama sudah dijalankan.
 - Pastikan `seed:ai-data` sudah dijalankan.
-- Pastikan batch prediction sudah menghasilkan data di `predictions`.
+- Pastikan tabel `analytics_snapshots`, `regions`, `schools`, dan `predictions` memiliki data.
+- Cek response `/api/analytics/summary`.
 
-### Login gagal atau redirect salah
+### Map Risk Tidak Muncul
 
-- Pastikan user aktif di tabel `users`.
-- Pastikan role user sesuai route dashboard.
-- Bersihkan session browser lalu login ulang.
-- Pastikan `CLIENT_URLS` sesuai origin frontend.
+- Pastikan file `apps/web/public/geojson/bandung-kecamatan.geojson` tersedia.
+- Pastikan endpoint `/api/regions` mengembalikan data.
+- Pastikan frontend dapat mengakses API.
 
-## Standar Pengembangan
+### AI Service Tidak Ready
 
-- Ikuti struktur module per domain di `apps/api/src/modules`.
-- Jangan akses tabel langsung dari frontend.
-- Gunakan service dan repository layer untuk perubahan backend.
-- Gunakan registry Manage Database untuk whitelist tabel dan field admin.
-- Jangan expose secret di repo.
-- Tambahkan test untuk perubahan logic penting.
-- Jalankan build dan test sebelum deploy.
+- Pastikan model artifact tersedia di `apps/ai/models` atau `PINTARIN_AI_MODEL_DIR`.
+- Pastikan dependency Python sudah terpasang.
+- Cek endpoint `http://localhost:8000/health`.
+- Pastikan `AI_SERVICE_URL` di API benar.
 
-## Status Audit Terakhir
+### Gen AI Tidak Menjawab
 
-- Database aktif sinkron dengan registry Manage Database.
-- Tabel legacy yang tidak dipakai sudah dihapus dari schema aktif.
-- Dataset AI runtime sudah sesuai dengan `PINTARIN_MASTER_FINAL_5000_TERBARU.csv`.
-- Test API lulus pada audit terakhir: `7/7`.
+- Pastikan `GEMINI_API_KEY` ada di env API.
+- Pastikan key tidak ditaruh di frontend.
+- Cek rate limiter Gen AI.
+- Cek endpoint `/api/gen-ai/chat`.
+
+### CORS Error
+
+- Pastikan origin frontend masuk `CLIENT_URL` atau `CLIENT_URLS`.
+- Untuk production, jangan gunakan wildcard jika tidak perlu.
+- Restart API setelah env berubah.
+
+### Riwayat Bantuan CSR Sekolah Tercampur
+
+- Pastikan migration `007_csr_aid_distribution_flow.sql` sudah dijalankan.
+- Pastikan `final_school_id` terisi ketika bantuan ditetapkan untuk sekolah penerima.
+- Pastikan status bantuan yang masuk riwayat sekolah adalah `Disalurkan`.
+
+## Catatan Audit Terakhir
+
+Audit terakhir dilakukan pada 2026-06-05.
+
+Hasil utama:
+
+- `npm run lint:web`: PASS.
+- `npm run build:web`: PASS.
+- `npm run test:api`: PASS, 20/20 test.
+- API health lokal: PASS.
+- Frontend dashboard smoke test lokal: PASS.
+- Riwayat bantuan CSR untuk role sekolah sudah dibatasi ke bantuan `Disalurkan` dan sekolah penerima yang sesuai.
+- Visual riwayat pengajuan CSR/Sekolah sudah disederhanakan.
+- Visual validasi CSR, validasi sekolah, dan review Dinas sudah dirapihkan.
+- Nilai CSR pada Overview Admin memakai total nilai CSR terbaru dari snapshot analitik.
+- Tidak ada dead import yang tersisa dari perubahan UI terbaru.
+
+Keputusan saat ini:
+
+- **Layak masuk tahap deploy demo/capstone** setelah environment production disiapkan.
+- **Belum dinyatakan production-scale untuk banyak user** sampai Redis-backed rate limit, observability, backup database, dan load test sederhana ditambahkan.
+

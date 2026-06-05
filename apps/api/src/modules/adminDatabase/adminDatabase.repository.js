@@ -1,37 +1,82 @@
 const { pool } = require("../../db/connection");
 
 const quoteIdentifier = (value) => `\`${value}\``;
+const columnCache = new Map();
 
-const getSelectableColumns = (config) => {
-  return config.fields
-    .filter((field) => !field.virtual)
-    .map((field) => quoteIdentifier(field.name));
+const getColumnSet = async (tableName) => {
+  if (columnCache.has(tableName)) {
+    return columnCache.get(tableName);
+  }
+
+  const [rows] = await pool.query(
+    `
+    SELECT COLUMN_NAME
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = ?
+    `,
+    [tableName],
+  );
+
+  const columns = new Set(rows.map((row) => row.COLUMN_NAME));
+  columnCache.set(tableName, columns);
+
+  return columns;
 };
 
-const buildSearchClause = (config, search) => {
-  if (!search || config.searchFields.length === 0) {
+const getExistingFieldNames = async (config) => {
+  const columnSet = await getColumnSet(config.tableName);
+
+  return config.fields
+    .filter((field) => !field.virtual && columnSet.has(field.name))
+    .map((field) => field.name);
+};
+
+const buildSearchClause = (config, search, columnSet) => {
+  const searchFields = config.searchFields.filter((fieldName) =>
+    columnSet.has(fieldName),
+  );
+
+  if (!search || searchFields.length === 0) {
     return {
       clause: "",
       values: [],
     };
   }
 
-  const searchColumns = config.searchFields.map(
+  const searchColumns = searchFields.map(
     (fieldName) => `${quoteIdentifier(fieldName)} LIKE ?`,
   );
 
   return {
     clause: `WHERE ${searchColumns.join(" OR ")}`,
-    values: config.searchFields.map(() => `%${search}%`),
+    values: searchFields.map(() => `%${search}%`),
   };
+};
+
+const getOrderColumn = (config, columnSet) => {
+  if (config.orderBy && columnSet.has(config.orderBy)) return config.orderBy;
+  if (columnSet.has("id")) return "id";
+  return [...columnSet][0];
+};
+
+const filterValuesByColumns = async (config, values) => {
+  const columnSet = await getColumnSet(config.tableName);
+
+  return Object.fromEntries(
+    Object.entries(values).filter(([column]) => columnSet.has(column)),
+  );
 };
 
 const listRecords = async (config, { search = "", page = 1, limit = 20 }) => {
   const tableName = quoteIdentifier(config.tableName);
-  const columns = getSelectableColumns(config).join(", ");
+  const columnSet = await getColumnSet(config.tableName);
+  const fieldNames = await getExistingFieldNames(config);
+  const columns = fieldNames.map(quoteIdentifier).join(", ");
   const offset = (page - 1) * limit;
-  const searchClause = buildSearchClause(config, search);
-  const orderBy = quoteIdentifier(config.orderBy || "id");
+  const searchClause = buildSearchClause(config, search, columnSet);
+  const orderColumn = getOrderColumn(config, columnSet);
+  const orderBy = quoteIdentifier(orderColumn);
   const orderDirection = config.orderDirection === "ASC" ? "ASC" : "DESC";
 
   const [countRows] = await pool.query(
@@ -62,7 +107,8 @@ const listRecords = async (config, { search = "", page = 1, limit = 20 }) => {
 
 const getRecordById = async (config, id) => {
   const tableName = quoteIdentifier(config.tableName);
-  const columns = getSelectableColumns(config).join(", ");
+  const fieldNames = await getExistingFieldNames(config);
+  const columns = fieldNames.map(quoteIdentifier).join(", ");
 
   const [rows] = await pool.query(
     `
@@ -79,7 +125,8 @@ const getRecordById = async (config, id) => {
 
 const createRecord = async (config, values) => {
   const tableName = quoteIdentifier(config.tableName);
-  const columns = Object.keys(values);
+  const existingValues = await filterValuesByColumns(config, values);
+  const columns = Object.keys(existingValues);
   const placeholders = columns.map(() => "?").join(", ");
 
   const [result] = await pool.query(
@@ -87,7 +134,7 @@ const createRecord = async (config, values) => {
     INSERT INTO ${tableName} (${columns.map(quoteIdentifier).join(", ")})
     VALUES (${placeholders})
     `,
-    columns.map((column) => values[column]),
+    columns.map((column) => existingValues[column]),
   );
 
   return result.insertId;
@@ -95,7 +142,10 @@ const createRecord = async (config, values) => {
 
 const updateRecord = async (config, id, values) => {
   const tableName = quoteIdentifier(config.tableName);
-  const columns = Object.keys(values);
+  const existingValues = await filterValuesByColumns(config, values);
+  const columns = Object.keys(existingValues);
+
+  if (columns.length === 0) return;
 
   await pool.query(
     `
@@ -103,7 +153,7 @@ const updateRecord = async (config, id, values) => {
     SET ${columns.map((column) => `${quoteIdentifier(column)} = ?`).join(", ")}
     WHERE id = ?
     `,
-    [...columns.map((column) => values[column]), id],
+    [...columns.map((column) => existingValues[column]), id],
   );
 };
 

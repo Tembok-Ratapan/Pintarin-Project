@@ -5,7 +5,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import Badge from "../../../components/ui/Badge";
 import { Card, CardContent } from "../../../components/ui/Card";
 import ScrollStack, {
   ScrollStackItem,
@@ -50,20 +49,17 @@ export default function ProductIntroSection() {
   return (
     <section
       id="product"
-      className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-8 sm:py-16 lg:px-10 xl:px-12"
     >
-      <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-        <div className="lg:sticky lg:top-28">
-          <Badge>Produk</Badge>
-
-          <h2 className="font-heading mt-4 max-w-xl text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-4xl">
-            Bukan sekadar dashboard, tapi sistem pendukung keputusan.
+      <div className="grid gap-8 lg:grid-cols-[0.62fr_1fr] lg:items-start">
+        <div className="max-w-[25rem] lg:sticky lg:top-28">
+          <h2 className="font-heading text-balance text-3xl font-extrabold leading-[1.08] text-[#102A43] sm:text-[2rem]">
+            Bukan Hanya Sebuah Dashboard
           </h2>
 
-          <p className="mt-5 max-w-xl text-pretty text-sm leading-8 text-[#475569] sm:text-base">
-            PINTARIN dirancang untuk membantu stakeholder membaca masalah
-            bantuan pendidikan sebagai alur keputusan: data, prediksi, validasi,
-            lalu rekomendasi aksi.
+          <p className="mt-5 text-pretty text-sm leading-7 text-[#475569] sm:text-base">
+            PINTARIN Dirancang Untuk Membantu Stakeholder Dalam Membaca
+            Masalah Bantuan Pendidikan Agar Penyaluran Tepat Sasaran.
           </p>
         </div>
 
@@ -73,20 +69,23 @@ export default function ProductIntroSection() {
           ))}
         </div>
 
-        <div className="hidden h-[520px] overflow-hidden rounded-[2rem] lg:block">
+        <div className="hidden h-[430px] overflow-hidden rounded-[1.5rem] lg:block">
           <ScrollStack
-            itemDistance={48}
+            itemDistance={34}
             itemScale={0.03}
-            itemStackDistance={22}
-            stackPosition="18%"
+            itemStackDistance={16}
+            stackPosition="15%"
             scaleEndPosition="9%"
-            baseScale={0.87}
+            baseScale={0.85}
             rotationAmount={0}
             blurAmount={0}
             nextSectionId="workflow"
           >
             {productCards.map((feature) => (
-              <ScrollStackItem key={feature.title}>
+              <ScrollStackItem
+                key={feature.title}
+                itemClassName="my-4 h-52 rounded-[1.35rem] p-5 sm:h-56 sm:p-6 lg:h-56 lg:p-6"
+              >
                 <ProductCardContent feature={feature} />
               </ScrollStackItem>
             ))}
@@ -111,25 +110,25 @@ function ProductCardContent({ feature }) {
   const Icon = feature.icon;
 
   return (
-    <div className="flex h-full flex-col justify-between gap-5 md:flex-row md:items-start">
-      <div className="max-w-xl">
-        <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#0F766E]">
+    <div className="flex h-full flex-col justify-between gap-4 md:flex-row md:items-start">
+      <div className="max-w-lg">
+        <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[#0F766E]">
           {feature.eyebrow}
         </p>
 
-        <h3 className="font-heading mt-4 text-balance text-2xl font-extrabold leading-[1.12] text-[#102A43] sm:text-3xl">
+        <h3 className="font-heading mt-3 text-balance text-xl font-extrabold leading-[1.14] text-[#102A43] sm:text-2xl">
           {feature.title}
         </h3>
 
-        <p className="mt-4 text-sm leading-8 text-[#475569] sm:text-base">
+        <p className="mt-3 text-sm leading-7 text-[#475569]">
           {feature.description}
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {feature.points.map((point) => (
             <span
               key={point}
-              className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.08em] text-[#475569] before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#14B8A6] before:content-['']"
+              className="inline-flex items-center gap-2 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#475569] before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#14B8A6] before:content-['']"
             >
               {point}
             </span>
@@ -137,8 +136,8 @@ function ProductCardContent({ feature }) {
         </div>
       </div>
 
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E] shadow-lg shadow-[#5EEAD4]/20 backdrop-blur-2xl sm:h-14 sm:w-14">
-        <Icon size={24} />
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E] shadow-lg shadow-[#5EEAD4]/20 backdrop-blur-2xl">
+        <Icon size={22} />
       </div>
     </div>
   );

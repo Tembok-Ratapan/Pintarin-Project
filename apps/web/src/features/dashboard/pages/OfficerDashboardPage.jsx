@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   BarChart3,
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
@@ -10,10 +11,28 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import Button from "../../../components/ui/Button";
 import LoadingState from "../../../components/feedback/LoadingState";
-import { formatNumber, formatPercent } from "../../../lib/utils";
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+} from "../../../lib/utils";
 import DashboardErrorBanner from "../components/DashboardErrorBanner";
 import DashboardMetricCard from "../components/DashboardMetricCard";
 import DashboardSection from "../components/DashboardSection";
@@ -41,6 +60,34 @@ const getConfidencePercent = (prediction) => {
 
 const defaultOfficerSection = "overview";
 
+const statusColors = {
+  Diajukan: "#0284C7",
+  Ditinjau: "#D97706",
+  Disetujui: "#059669",
+  Ditolak: "#DC2626",
+  Disalurkan: "#0F766E",
+  Selesai: "#14B8A6",
+};
+
+const getDateInputValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getDefaultAnalyticsRange = () => {
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setDate(toDate.getDate() - 29);
+
+  return {
+    fromDate: getDateInputValue(fromDate),
+    toDate: getDateInputValue(toDate),
+  };
+};
+
 const officerSectionMeta = {
   overview: {
     badge: "Ruang Dinas",
@@ -48,13 +95,13 @@ const officerSectionMeta = {
     description: "Ringkasan validasi, prioritas risiko, dan kualitas prediksi.",
   },
   "map-risk": {
-    badge: "Map Risk",
-    title: "Map Risk",
-    description: "Pantau wilayah yang perlu divalidasi dan diprioritaskan.",
+    badge: "",
+    title: "Kota Bandung Map Risk",
+    description: "",
   },
   analytic: {
     badge: "Analitik",
-    title: "Analitik Dinas",
+    title: "Pintarin Analitik",
     description: "Baca antrean validasi dan confidence prediksi AI.",
   },
   "validasi-csr": {
@@ -79,6 +126,328 @@ const officerSectionMeta = {
   },
 };
 
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="rounded-2xl border border-white/70 bg-white/90 px-4 py-3 text-xs shadow-2xl shadow-slate-900/12 ring-1 ring-white/50 backdrop-blur-2xl">
+      <p className="mb-2 font-extrabold text-[#102A43]">{label}</p>
+      <div className="space-y-1.5">
+        {payload.map((item) => (
+          <div
+            key={`${item.dataKey}-${item.name}`}
+            className="flex items-center justify-between gap-5"
+          >
+            <span className="font-semibold text-[#64748B]">{item.name}</span>
+            <span className="font-extrabold text-[#102A43]">
+              {formatNumber(item.value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsChartCard({ badge, title, description, children }) {
+  return (
+    <DashboardSection
+      badge={badge}
+      title={title}
+      description={description}
+      contentClassName="p-5 sm:p-6"
+    >
+      {children}
+    </DashboardSection>
+  );
+}
+
+function OfficerAnalyticsCharts({ analytics, dateRange, onDateRangeChange }) {
+  const daily = getArray(analytics?.daily);
+  const summary = analytics?.summary || {};
+  const schoolStatuses = getArray(analytics?.status_breakdown?.school_requests);
+  const csrStatuses = getArray(analytics?.status_breakdown?.csr_proposals);
+  const statusData = [...schoolStatuses, ...csrStatuses].reduce(
+    (items, item) => {
+      const status = item.status || "Lainnya";
+      const existing = items.find((entry) => entry.status === status);
+
+      if (existing) {
+        existing.total += Number(item.total || 0);
+      } else {
+        items.push({ status, total: Number(item.total || 0) });
+      }
+
+      return items;
+    },
+    [],
+  );
+
+  const cards = [
+    {
+      label: "Pengajuan",
+      value: formatNumber(summary.total_submissions),
+      helper: "Sekolah dan CSR",
+      icon: ClipboardCheck,
+      tone: "teal",
+    },
+    {
+      label: "Minta Bantuan",
+      value: formatNumber(summary.school_requests),
+      helper: "Ajuan sekolah",
+      icon: SlidersHorizontal,
+      tone: "teal",
+    },
+    {
+      label: "Tervalidasi",
+      value: formatNumber(summary.request_validations),
+      helper: "Ajuan selesai ditinjau",
+      icon: CheckCircle2,
+      tone: "green",
+    },
+    {
+      label: "Nilai Bantuan",
+      value: formatCurrency(summary.aid_value),
+      detailValue: formatCurrency(summary.aid_value),
+      helper: "Total ajuan periode ini",
+      icon: BarChart3,
+      tone: "amber",
+    },
+  ];
+
+  const handleDateChange = (field, value) => {
+    if (!value) return;
+
+    onDateRangeChange((current) => {
+      const next = { ...current, [field]: value };
+
+      if (next.fromDate && next.toDate && next.fromDate > next.toDate) {
+        if (field === "fromDate") {
+          next.toDate = value;
+        } else {
+          next.fromDate = value;
+        }
+      }
+
+      return next;
+    });
+  };
+
+  return (
+    <>
+      <div className="flex flex-col justify-between gap-4 rounded-[1.5rem] border border-white/70 bg-white/38 p-4 shadow-xl shadow-slate-300/16 ring-1 ring-white/40 backdrop-blur-2xl lg:flex-row lg:items-stretch">
+        <div className="flex min-h-[4.9rem] items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
+            <CalendarDays size={19} />
+          </span>
+
+          <div className="flex min-h-11 items-center">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0F766E]">
+              Rentang Analitik
+            </p>
+          </div>
+        </div>
+
+        <div className="grid items-end gap-3 rounded-[1.25rem] bg-white/48 p-2 ring-1 ring-white/55 backdrop-blur-xl sm:grid-cols-2">
+          <label className="grid gap-1.5">
+            <span className="px-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[#64748B]">
+              Dari
+            </span>
+            <input
+              type="date"
+              value={dateRange.fromDate}
+              max={dateRange.toDate}
+              onChange={(event) =>
+                handleDateChange("fromDate", event.target.value)
+              }
+              className="min-h-11 rounded-[0.95rem] border border-white/70 bg-white/78 px-3 text-sm font-extrabold text-[#102A43] shadow-sm outline-none ring-1 ring-white/50 transition focus:border-[#5EEAD4]/70 focus:ring-4 focus:ring-[#5EEAD4]/25"
+            />
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="px-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[#64748B]">
+              Sampai
+            </span>
+            <input
+              type="date"
+              value={dateRange.toDate}
+              min={dateRange.fromDate}
+              onChange={(event) =>
+                handleDateChange("toDate", event.target.value)
+              }
+              className="min-h-11 rounded-[0.95rem] border border-white/70 bg-white/78 px-3 text-sm font-extrabold text-[#102A43] shadow-sm outline-none ring-1 ring-white/50 transition focus:border-[#5EEAD4]/70 focus:ring-4 focus:ring-[#5EEAD4]/25"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[21rem_minmax(0,1fr)]">
+        <div className="grid gap-4 self-start">
+          {cards.map((metric) => (
+            <DashboardMetricCard key={metric.label} {...metric} />
+          ))}
+        </div>
+
+        <div className="grid gap-6">
+          <div className="grid gap-6 2xl:grid-cols-[1.25fr_0.75fr]">
+            <AnalyticsChartCard
+              badge="Trend"
+              title="Aktivitas pengajuan"
+              description="Jumlah ajuan sekolah dan proposal CSR per hari."
+            >
+              <div className="h-[19rem]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={daily} margin={{ top: 12, right: 8, left: -14, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="schoolRequests" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0F766E" stopOpacity={0.36} />
+                        <stop offset="95%" stopColor="#0F766E" stopOpacity={0.02} />
+                      </linearGradient>
+                      <linearGradient id="csrProposals" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0284C7" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#0284C7" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="rgba(100,116,139,0.15)" vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#64748B", fontSize: 12, fontWeight: 700 }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#64748B", fontSize: 12, fontWeight: 700 }}
+                    />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="school_requests"
+                      name="Ajuan sekolah"
+                      stroke="#0F766E"
+                      strokeWidth={3}
+                      fill="url(#schoolRequests)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="csr_proposals"
+                      name="Proposal CSR"
+                      stroke="#0284C7"
+                      strokeWidth={3}
+                      fill="url(#csrProposals)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </AnalyticsChartCard>
+
+            <AnalyticsChartCard
+              badge="Status"
+              title="Komposisi status"
+              description="Sebaran status ajuan pada periode aktif."
+            >
+              <div className="grid min-h-[19rem] gap-4 md:grid-cols-[0.9fr_1.1fr] 2xl:grid-cols-1">
+                <div className="h-[13rem]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        dataKey="total"
+                        nameKey="status"
+                        innerRadius={48}
+                        outerRadius={78}
+                        paddingAngle={4}
+                      >
+                        {statusData.map((item) => (
+                          <Cell
+                            key={item.status}
+                            fill={statusColors[item.status] || "#64748B"}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<ChartTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="space-y-2">
+                  {statusData.length === 0 ? (
+                    <p className="rounded-2xl bg-white/42 p-4 text-sm font-semibold text-[#64748B]">
+                      Belum ada status ajuan pada periode ini.
+                    </p>
+                  ) : (
+                    statusData.map((item) => (
+                      <div
+                        key={item.status}
+                        className="flex items-center justify-between gap-3 rounded-2xl bg-white/42 px-3 py-2.5"
+                      >
+                        <span className="flex items-center gap-2 text-sm font-extrabold text-[#102A43]">
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{
+                              backgroundColor:
+                                statusColors[item.status] || "#64748B",
+                            }}
+                          />
+                          {item.status}
+                        </span>
+                        <span className="text-sm font-extrabold text-[#0F766E]">
+                          {formatNumber(item.total)}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </AnalyticsChartCard>
+          </div>
+        </div>
+      </div>
+
+      <AnalyticsChartCard
+        badge="Validasi"
+        title="Validasi dan review AI"
+        description="Ajuan yang sudah divalidasi dibandingkan review prediksi AI per hari."
+      >
+        <div className="h-[18rem]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={daily} margin={{ top: 12, right: 8, left: -14, bottom: 0 }}>
+              <CartesianGrid stroke="rgba(100,116,139,0.15)" vertical={false} />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#64748B", fontSize: 12, fontWeight: 700 }}
+              />
+              <YAxis
+                allowDecimals={false}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#64748B", fontSize: 12, fontWeight: 700 }}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Bar
+                dataKey="request_validations"
+                name="Validasi ajuan"
+                fill="#0F766E"
+                radius={[8, 8, 0, 0]}
+              />
+              <Bar
+                dataKey="ai_reviews"
+                name="Review AI"
+                fill="#F59E0B"
+                radius={[8, 8, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </AnalyticsChartCard>
+    </>
+  );
+}
+
 export default function OfficerDashboardPage() {
   const { section } = useParams();
   const currentSection = section || defaultOfficerSection;
@@ -90,6 +459,8 @@ export default function OfficerDashboardPage() {
     count: 0,
     predictions: [],
   });
+  const [operationalAnalytics, setOperationalAnalytics] = useState(null);
+  const [analyticsRange, setAnalyticsRange] = useState(getDefaultAnalyticsRange);
   const [reloadKey, setReloadKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -123,7 +494,7 @@ export default function OfficerDashboardPage() {
       setErrorMessage("");
 
       try {
-        const [summaryResult, pendingResult, regionsResult] =
+        const [summaryResult, pendingResult, regionsResult, operationsResult] =
           await Promise.allSettled([
             dashboardService.getAnalyticsSummary(controller.signal),
             dashboardService.getPendingReviews({
@@ -131,6 +502,11 @@ export default function OfficerDashboardPage() {
               signal: controller.signal,
             }),
             dashboardService.getRegions(controller.signal),
+            dashboardService.getOfficerOperationalAnalytics({
+              fromDate: analyticsRange.fromDate,
+              toDate: analyticsRange.toDate,
+              signal: controller.signal,
+            }),
           ]);
 
         if (controller.signal.aborted) return;
@@ -145,6 +521,10 @@ export default function OfficerDashboardPage() {
 
         if (regionsResult.status === "fulfilled") {
           setRegions(getArray(regionsResult.value));
+        }
+
+        if (operationsResult.status === "fulfilled") {
+          setOperationalAnalytics(operationsResult.value);
         }
 
         if (pendingResult.status === "rejected") {
@@ -166,7 +546,7 @@ export default function OfficerDashboardPage() {
     fetchData();
 
     return () => controller.abort();
-  }, [reloadKey]);
+  }, [analyticsRange.fromDate, analyticsRange.toDate, reloadKey]);
 
   const metricCards = [
     {
@@ -175,6 +555,7 @@ export default function OfficerDashboardPage() {
       helper: "Prediksi menunggu validasi",
       icon: Clock3,
       tone: "amber",
+      showDetail: false,
     },
     {
       label: "Risiko Tinggi",
@@ -182,6 +563,7 @@ export default function OfficerDashboardPage() {
       helper: "Perlu prioritas keputusan",
       icon: AlertTriangle,
       tone: "red",
+      showDetail: false,
     },
     {
       label: "Confidence Rendah",
@@ -189,6 +571,7 @@ export default function OfficerDashboardPage() {
       helper: "Butuh pemeriksaan manual",
       icon: ShieldCheck,
       tone: "red",
+      showDetail: false,
     },
     {
       label: "Avg Confidence",
@@ -196,6 +579,7 @@ export default function OfficerDashboardPage() {
       helper: `Total prediksi AI ${formatNumber(summary.total_predictions)}`,
       icon: ClipboardCheck,
       tone: "teal",
+      showDetail: false,
     },
   ];
 
@@ -262,9 +646,6 @@ export default function OfficerDashboardPage() {
     if (currentSection === "map-risk") {
       return (
         <DashboardChoroplethPanel
-          badge="Map Risk"
-          title="Map Risk"
-          description="Klik wilayah untuk membaca prioritas validasi."
           regions={regions}
           topRegions={topRiskRegions}
         />
@@ -273,60 +654,11 @@ export default function OfficerDashboardPage() {
 
     if (currentSection === "analytic") {
       return (
-        <>
-          {renderMetricGrid()}
-
-          <DashboardSection
-            badge="Kualitas Data"
-            title="Kesehatan antrean validasi"
-            description="Gunakan angka ini untuk menentukan prioritas kerja harian."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  label: "Antrean",
-                  value: formatNumber(pendingCount),
-                  helper: "Menunggu validasi",
-                  icon: Clock3,
-                },
-                {
-                  label: "Risiko Tinggi",
-                  value: formatNumber(highRiskQueue.length),
-                  helper: "Butuh prioritas",
-                  icon: AlertTriangle,
-                },
-                {
-                  label: "Confidence",
-                  value: formatPercent(avgConfidence),
-                  helper: "Rata-rata prediksi",
-                  icon: BarChart3,
-                },
-              ].map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <div
-                    key={item.label}
-                    className="rounded-[1.35rem] border border-white/70 bg-white/44 p-4 ring-1 ring-white/35"
-                  >
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5EEAD4]/18 text-[#0F766E]">
-                      <Icon size={18} />
-                    </div>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#64748B]">
-                      {item.label}
-                    </p>
-                    <p className="font-heading mt-2 text-2xl font-extrabold text-[#102A43]">
-                      {item.value}
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-[#64748B]">
-                      {item.helper}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </DashboardSection>
-        </>
+        <OfficerAnalyticsCharts
+          analytics={operationalAnalytics}
+          dateRange={analyticsRange}
+          onDateRangeChange={setAnalyticsRange}
+        />
       );
     }
 
@@ -340,20 +672,24 @@ export default function OfficerDashboardPage() {
 
     if (currentSection === "review") {
       return (
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <DashboardSection
-            badge="Human-in-the-Loop"
-            title="Antrian review prediksi"
-            description="Prediksi confidence rendah perlu diperiksa sebelum dipakai sebagai keputusan final."
-          >
-            <PredictionReviewQueuePanel
-              limit={30}
-              onValidated={() => setReloadKey((current) => current + 1)}
-            />
-          </DashboardSection>
+        <>
+          {renderMetricGrid()}
 
-          {decisionGuide}
-        </div>
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <DashboardSection
+              badge="Human-in-the-Loop"
+              title="Antrian review prediksi"
+              description="Prediksi confidence rendah perlu diperiksa sebelum dipakai sebagai keputusan final."
+            >
+              <PredictionReviewQueuePanel
+                limit={30}
+                onValidated={() => setReloadKey((current) => current + 1)}
+              />
+            </DashboardSection>
+
+            {decisionGuide}
+          </div>
+        </>
       );
     }
 
@@ -452,12 +788,14 @@ export default function OfficerDashboardPage() {
       description={sectionMeta.description}
       actions={
         <Button
-          variant="secondary"
+          variant="iconGhost"
+          size="icon"
+          aria-label="Refresh data"
+          title="Refresh data"
           onClick={() => setReloadKey((current) => current + 1)}
           disabled={isLoading}
         >
-          <RotateCcw size={16} />
-          Refresh Data
+          <RotateCcw size={20} />
         </Button>
       }
     >

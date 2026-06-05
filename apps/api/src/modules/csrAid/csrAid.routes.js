@@ -2,7 +2,7 @@ const express = require("express");
 
 const authMiddleware = require("../../middlewares/authMiddleware");
 const roleGuard = require("../../middlewares/roleGuard");
-const { roleGroups } = require("../../constants/permissions");
+const { roles, roleGroups } = require("../../constants/permissions");
 const csrAidController = require("./csrAid.controller");
 
 const router = express.Router();
@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware,
-  roleGuard(roleGroups.CSR_WORKERS),
+  roleGuard([...roleGroups.CSR_WORKERS, roles.SCHOOL]),
   csrAidController.listAidProposals,
 );
 
@@ -26,6 +26,13 @@ router.patch(
   authMiddleware,
   roleGuard(roleGroups.DECISION_MAKERS),
   csrAidController.reviewAidProposal,
+);
+
+router.patch(
+  "/:id/recommendation",
+  authMiddleware,
+  roleGuard(["admin", "csr_partner"]),
+  csrAidController.decideRecommendation,
 );
 
 module.exports = router;

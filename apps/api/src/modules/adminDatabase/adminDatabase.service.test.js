@@ -46,3 +46,20 @@ test("admin database registry excludes removed legacy tables", () => {
     assert.equal(tableRegistry[tableName], undefined);
   }
 });
+
+test("admin database keeps AI generated tables read-only", () => {
+  const readOnlyAiTables = [
+    "predictions",
+    "analytics_snapshots",
+    "education_indicators",
+    "prediction_validations",
+    "csr_match_logs",
+    "audit_logs",
+  ];
+
+  for (const tableName of readOnlyAiTables) {
+    assert.equal(tableRegistry[tableName].canCreate, false);
+    assert.equal(tableRegistry[tableName].canUpdate, false);
+    assert.equal(tableRegistry[tableName].canDelete, false);
+  }
+});

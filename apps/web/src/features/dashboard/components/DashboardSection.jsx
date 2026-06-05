@@ -20,7 +20,7 @@ export default function DashboardSection({
               {badge && <Badge variant="green">{badge}</Badge>}
 
               {title && (
-                <h2 className="font-heading mt-3 text-xl font-extrabold leading-tight text-[#102A43] sm:text-2xl">
+                <h2 className="font-heading mt-3 text-xl font-bold leading-tight text-[#102A43] sm:text-2xl">
                   {title}
                 </h2>
               )}
