@@ -68,6 +68,8 @@ const env = {
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     name: process.env.DB_NAME || "pintarin_db",
+    ssl: toBoolean(process.env.DB_SSL, false),
+    sslRejectUnauthorized: toBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED, true),
   },
 
   jwt: {
