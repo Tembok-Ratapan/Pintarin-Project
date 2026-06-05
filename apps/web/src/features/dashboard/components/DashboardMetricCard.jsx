@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 
 import { Card, CardContent } from "../../../components/ui/Card";
+import { cn } from "../../../lib/utils";
 
 const toneClass = {
   teal: {
@@ -36,6 +37,8 @@ export default function DashboardMetricCard({
   tone = "teal",
   trend,
   showDetail = false,
+  compact = false,
+  className = "",
 }) {
   const theme = toneClass[tone] || toneClass.teal;
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,34 +66,68 @@ export default function DashboardMetricCard({
       aria-expanded={hasDetail ? isExpanded : undefined}
       onClick={toggleDetail}
       onKeyDown={handleKeyDown}
-      className={`group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:bg-white/64 ${
-        hasDetail ? "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F766E]" : ""
-      }`}
+      className={cn(
+        "group h-full overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:bg-white/64",
+        compact && "rounded-[1.35rem] shadow-lg shadow-slate-200/25",
+        hasDetail &&
+          "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F766E]",
+        className,
+      )}
     >
-      <CardContent className="relative p-5">
-        <div className={`absolute inset-x-0 top-0 h-1 ${theme.accent}`} />
+      <CardContent className={cn("relative", compact ? "p-4" : "p-5")}>
+        <div
+          className={`absolute inset-x-0 top-0 ${compact ? "h-0.5" : "h-1"} ${theme.accent}`}
+        />
 
-        <div className="flex items-start justify-between gap-4">
+        <div
+          className={cn(
+            compact
+              ? "relative min-h-[8.5rem] pr-12"
+              : "flex items-start justify-between gap-4",
+          )}
+        >
           <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#64748B]">
+            <p
+              className={cn(
+                "font-extrabold uppercase text-[#64748B]",
+                compact
+                  ? "truncate text-[0.68rem] leading-4 tracking-[0.1em]"
+                  : "text-xs tracking-[0.16em]",
+              )}
+            >
               {label}
             </p>
 
             <p
               title={String(detailValue ?? value ?? "")}
-              className="font-heading mt-3 break-words text-2xl font-extrabold leading-tight text-[#102A43] sm:text-[1.55rem]"
+              className={cn(
+                "font-heading break-words font-extrabold leading-tight text-[#102A43]",
+                compact
+                  ? "mt-2 text-[1.65rem] sm:text-[1.7rem]"
+                  : "mt-3 text-2xl sm:text-[1.55rem]",
+              )}
             >
               {displayValue ?? value}
             </p>
 
             {helper && (
-              <p className="mt-2 text-xs font-medium leading-5 text-[#64748B]">
+              <p
+                className={cn(
+                  "mt-2 font-medium text-[#64748B]",
+                  compact ? "text-[0.78rem] leading-5" : "text-xs leading-5",
+                )}
+              >
                 {helper}
               </p>
             )}
 
             {trend && (
-              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-[#0F766E]">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-xs font-extrabold text-[#0F766E]",
+                  compact ? "mt-3" : "mt-4",
+                )}
+              >
                 <ArrowUpRight size={14} />
                 {trend}
               </div>
@@ -99,9 +136,15 @@ export default function DashboardMetricCard({
 
           {Icon && (
             <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${theme.icon}`}
+              className={cn(
+                "flex shrink-0 items-center justify-center",
+                compact
+                  ? "absolute right-0 top-0 h-10 w-10 rounded-[1rem]"
+                  : "h-11 w-11 rounded-2xl",
+                theme.icon,
+              )}
             >
-              <Icon size={20} />
+              <Icon size={compact ? 18 : 20} />
             </div>
           )}
         </div>

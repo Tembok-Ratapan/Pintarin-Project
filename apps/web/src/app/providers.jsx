@@ -12,12 +12,12 @@ function SmoothScrollProvider({ children }) {
     }
 
     const lenis = new Lenis({
-      duration: 1.35,
-      easing: (value) => Math.min(1, 1.001 - 2 ** (-10 * value)),
       smoothWheel: true,
-      touchMultiplier: 1.18,
-      wheelMultiplier: 0.82,
-      lerp: 0.075,
+      syncTouch: true,
+      touchMultiplier: 1,
+      wheelMultiplier: 0.9,
+      lerp: 0.115,
+      anchors: true,
     });
 
     let frameId;

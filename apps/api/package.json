@@ -9,6 +9,8 @@
     "start": "node src/server.js",
     "test": "node --test \"src/**/*.test.js\"",
     "migrate:fresh": "node src/db/migrations/runFreshMigrations.js",
+    "migrate:ai-bridge": "node src/db/migrations/applyAiPredictionBridge.js",
+    "db:inspect": "node src/db/inspectDatabase.js",
     "seed": "node src/db/seeds/importData.js",
     "seed:passwords": "node src/db/seeds/resetDevPasswords.js",
     "seed:ai-data": "node src/db/seeds/importEducationIndicators.js"

@@ -138,6 +138,8 @@ const getRiskTone = (riskStatus) => {
 };
 
 const defaultSchoolSection = "overview";
+const schoolMetricGridClass =
+  "grid items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
 
 const schoolSectionMeta = {
   overview: {
@@ -1037,9 +1039,9 @@ export default function SchoolDashboardPage() {
     if (currentSection === "riwayat") {
       return (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className={schoolMetricGridClass}>
             {metricCards.map((metric) => (
-              <DashboardMetricCard key={metric.label} {...metric} />
+              <DashboardMetricCard key={metric.label} {...metric} compact />
             ))}
           </div>
 
@@ -1098,9 +1100,9 @@ export default function SchoolDashboardPage() {
       <>
         <SchoolDataCard profile={profile} region={selectedRegion} />
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className={schoolMetricGridClass}>
           {metricCards.map((metric) => (
-            <DashboardMetricCard key={metric.label} {...metric} />
+            <DashboardMetricCard key={metric.label} {...metric} compact />
           ))}
         </div>
 

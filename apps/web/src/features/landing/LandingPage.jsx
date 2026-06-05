@@ -16,7 +16,7 @@ export default function LandingPage() {
           color1="#5EEAD4"
           color2="#CCFBF1"
           color3="#F8FAFC"
-          timeSpeed={0.16}
+          timeSpeed={0}
           colorBalance={-0.05}
           warpStrength={0.7}
           warpFrequency={4.2}

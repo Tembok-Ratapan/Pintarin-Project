@@ -132,6 +132,7 @@ const Grainient = ({
   className = "",
 }) => {
   const containerRef = useRef(null);
+  const shouldAnimateRef = useRef(timeSpeed !== 0 || grainAnimated);
 
   // Effect 1: build WebGL context once, pause when offscreen / tab hidden
   useEffect(() => {
@@ -206,15 +207,29 @@ const Grainient = ({
     let isPageVisible = !document.hidden;
     const t0 = performance.now();
 
-    const loop = (t) => {
+    const renderFrame = (t) => {
       program.uniforms.iTime.value = (t - t0) * 0.001;
       renderer.render({ scene: mesh });
-      raf = requestAnimationFrame(loop);
+    };
+
+    const loop = (t) => {
+      renderFrame(t);
+
+      if (shouldAnimateRef.current) {
+        raf = requestAnimationFrame(loop);
+      } else {
+        raf = 0;
+      }
     };
 
     const tryStart = () => {
-      if (isVisible && isPageVisible && raf === 0)
+      if (!isVisible || !isPageVisible || raf !== 0) return;
+
+      if (shouldAnimateRef.current) {
         raf = requestAnimationFrame(loop);
+      } else {
+        renderFrame(performance.now());
+      }
     };
     const tryStop = () => {
       if (raf !== 0) {
@@ -260,8 +275,9 @@ const Grainient = ({
     if (!container) return;
     const ctx = ctxMap.get(container);
     if (!ctx) return;
-    const { program } = ctx;
+    const { renderer, program, mesh } = ctx;
     const u = program.uniforms;
+    shouldAnimateRef.current = timeSpeed !== 0 || grainAnimated;
 
     u.uTimeSpeed.value = timeSpeed;
     u.uColorBalance.value = colorBalance;
@@ -284,6 +300,7 @@ const Grainient = ({
     u.uColor1.value = new Float32Array(hexToRgb(color1));
     u.uColor2.value = new Float32Array(hexToRgb(color2));
     u.uColor3.value = new Float32Array(hexToRgb(color3));
+    renderer.render({ scene: mesh });
   }, [
     timeSpeed,
     colorBalance,

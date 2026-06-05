@@ -31,6 +31,21 @@ const migrationFiles = [
   "007_csr_aid_distribution_flow.sql",
 ];
 
+const activeTables = [
+  "prediction_validations",
+  "csr_match_logs",
+  "audit_logs",
+  "analytics_snapshots",
+  "school_need_requests",
+  "csr_aid_proposals",
+  "stakeholder_profiles",
+  "education_indicators",
+  "predictions",
+  "schools",
+  "users",
+  "regions",
+];
+
 const createConnection = () => {
   const sslEnabled = toBoolean(process.env.DB_SSL, false);
 
@@ -56,6 +71,15 @@ const main = async () => {
   try {
     console.log("Running fresh PINTARIN migrations...");
     console.log(`Target database: ${process.env.DB_NAME}`);
+
+    await connection.query("SET FOREIGN_KEY_CHECKS = 0");
+
+    for (const tableName of activeTables) {
+      console.log(`Dropping ${tableName} if exists`);
+      await connection.query(`DROP TABLE IF EXISTS ${tableName}`);
+    }
+
+    await connection.query("SET FOREIGN_KEY_CHECKS = 1");
 
     for (const fileName of migrationFiles) {
       const filePath = path.join(__dirname, fileName);

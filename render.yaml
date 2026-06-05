@@ -1,0 +1,75 @@
+services:
+  - type: web
+    name: pintarin-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: apps/api
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.21.1
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CLIENT_URLS
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 4000
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: true
+      - key: DB_SSL_REJECT_UNAUTHORIZED
+        value: true
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: AI_SERVICE_URL
+        value: http://127.0.0.1:8000
+      - key: AI_SERVICE_TIMEOUT_MS
+        value: 30000
+      - key: AI_REVIEW_THRESHOLD
+        value: 0.7
+      - key: AI_BATCH_SIZE
+        value: 50
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_API_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/models
+      - key: GEMINI_TIMEOUT_MS
+        value: 30000
+      - key: GEMINI_MAX_OUTPUT_TOKENS
+        value: 1800
+      - key: GEMINI_TEMPERATURE
+        value: 0.4
+      - key: TRUST_PROXY
+        value: true
+      - key: RATE_LIMIT_ENABLED
+        value: true
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 300
+      - key: LOGIN_RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: LOGIN_RATE_LIMIT_MAX
+        value: 20
+      - key: LOGIN_IDENTIFIER_RATE_LIMIT_MAX
+        value: 8
+      - key: GEN_AI_RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: GEN_AI_RATE_LIMIT_MAX
+        value: 30

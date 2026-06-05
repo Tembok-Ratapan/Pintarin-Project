@@ -88,6 +88,7 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 html.lenis,
@@ -100,7 +101,9 @@ html.lenis body {
 }
 
 .lenis.lenis-smooth [data-lenis-prevent] {
+  scroll-behavior: smooth;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .lenis.lenis-stopped {
@@ -111,6 +114,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overscroll-behavior-y: none;
   background:
     radial-gradient(circle at 12% 0%, rgba(94, 234, 212, 0.2), transparent 32%),
     radial-gradient(
