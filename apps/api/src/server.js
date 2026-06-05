@@ -6,7 +6,7 @@ const startServer = async () => {
   try {
     await testDatabaseConnection()
 
-    app.listen(env.port, () => {
+    app.listen(env.port, '0.0.0.0', () => {
       console.log(`PINTARIN API running on http://localhost:${env.port}`)
     })
   } catch (error) {
