@@ -13,6 +13,8 @@ Project ini dibuat sebagai capstone **CC26-PSU211** dengan konteks utama distrib
 - [Learning Path dan Kontribusi](#learning-path-dan-kontribusi)
 - [Masalah yang Diselesaikan](#masalah-yang-diselesaikan)
 - [Solusi PINTARIN](#solusi-pintarin)
+- [Kesesuaian dengan Project Plan](#kesesuaian-dengan-project-plan)
+- [Dokumentasi Pengerjaan](#dokumentasi-pengerjaan)
 - [Arsitektur Sistem](#arsitektur-sistem)
 - [Stack Teknologi](#stack-teknologi)
 - [Struktur Project](#struktur-project)
@@ -67,7 +69,7 @@ Prinsip produk:
 | Backend | Express RESTful API |
 | AI service | FastAPI inference service |
 | Database | MySQL |
-| Status deploy | Siap masuk tahap deploy demo setelah environment production disiapkan |
+| Status deploy | Siap deploy demo setelah environment production, database, dan artifact AI disiapkan |
 
 ### Anggota Tim
 
@@ -158,6 +160,44 @@ PINTARIN menyediakan:
 - **Riwayat Pengajuan** untuk sekolah dan CSR.
 - **Manage Database** untuk admin dengan whitelist tabel dan field.
 - **Gen AI Assistant** untuk membantu membaca konteks dashboard sesuai role.
+
+## Kesesuaian dengan Project Plan
+
+Project plan CC26-PSU211 menargetkan sistem AI untuk mengidentifikasi risiko pendidikan di Kota Bandung, mengintegrasikan hasil model ke aplikasi web, dan tetap menyediakan validasi manusia. Implementasi saat ini sudah menutup kebutuhan inti tersebut.
+
+| Poin Project Plan | Implementasi di PINTARIN | Status |
+| --- | --- | --- |
+| Identifikasi wilayah/kelompok risiko pendidikan tertinggi | Map Risk, dashboard analyst/viewer, tabel `regions`, `education_indicators`, dan `predictions` | Terimplementasi |
+| Faktor risiko seperti ekonomi, sekolah, dan bantuan | Dataset indikator pendidikan, agregasi wilayah, risk score, vulnerability index, dan coverage PIP | Terimplementasi |
+| Model machine learning untuk skor prioritas bantuan | FastAPI AI service, model Keras, scaler/encoder artifact, batch prediction, dan penyimpanan ke tabel `predictions` | Terimplementasi |
+| Integrasi hasil AI ke aplikasi web | Express AI bridge, endpoint `/api/ai`, `/api/predictions`, dashboard confidence score, dan review queue | Terimplementasi |
+| Stakeholder sekolah, dinas, CSR, dan admin | Dashboard role-based, RBAC backend, pengajuan sekolah, proposal CSR, dan manage database | Terimplementasi |
+| Rule-based dan human-in-the-loop validation | Role Admin/Dinas dapat approve, override, atau flag prediksi AI melalui `prediction_validations` | Terimplementasi |
+
+Catatan batasan: PINTARIN sudah layak untuk demo capstone dan deploy demo setelah environment production disiapkan. Untuk production publik berskala besar, sistem masih perlu observability, backup database otomatis, Redis-backed rate limiter, load test, dan strategi distribusi artifact AI yang jelas.
+
+## Dokumentasi Pengerjaan
+
+Dokumentasi pendukung berada di folder `docs` dan file referensi capstone:
+
+| Dokumen | Fungsi |
+| --- | --- |
+| `README.MD` | Dokumentasi produk utama, setup, API, database, testing, security, dan deploy |
+| `docs/CAPSTONE_CHECKLIST_EVIDENCE.md` | Bukti pemenuhan checklist capstone |
+| `docs/DEPLOYMENT_READINESS.md` | Checklist deploy, environment production, dan catatan operasional |
+| `docs/UI_MOCKUP_AND_QA.md` | Representasi mockup UI, flow pengguna, dan checklist responsif |
+| `Project Plan - CC26-PSU211.pdf` | Rencana awal project, research question, timeline, dan pembagian tugas |
+| `README_PINTARIN_INOVASI_FULLSTACK.md` | Catatan gap inovasi dan fitur fullstack yang perlu diwujudkan |
+
+Bukti pengerjaan yang disarankan untuk dilampirkan pada PPT atau laporan akhir:
+
+- Screenshot landing page dan login.
+- Screenshot dashboard Admin/Dinas, terutama Map Risk, Analitik, Validasi Sekolah, Validasi CSR, dan Review AI.
+- Screenshot dashboard CSR pada AI Matching dan Riwayat Pengajuan.
+- Screenshot dashboard Sekolah pada Pengajuan dan Riwayat Pengajuan.
+- Screenshot terminal untuk `npm run lint:web`, `npm run build:web`, `npm run test:api`, dan `npm audit --workspaces --omit=dev --audit-level=high`.
+- Screenshot struktur database/migration, tabel utama, dan contoh response endpoint API.
+- Screenshot health check API dan AI service setelah deploy.
 
 ## Arsitektur Sistem
 
@@ -1132,16 +1172,15 @@ Hasil utama:
 - `npm run lint:web`: PASS.
 - `npm run build:web`: PASS.
 - `npm run test:api`: PASS, 20/20 test.
-- API health lokal: PASS.
-- Frontend dashboard smoke test lokal: PASS.
+- `npm audit --workspaces --omit=dev --audit-level=high`: PASS, 0 vulnerability.
 - Riwayat bantuan CSR untuk role sekolah sudah dibatasi ke bantuan `Disalurkan` dan sekolah penerima yang sesuai.
 - Visual riwayat pengajuan CSR/Sekolah sudah disederhanakan.
 - Visual validasi CSR, validasi sekolah, dan review Dinas sudah dirapihkan.
 - Nilai CSR pada Overview Admin memakai total nilai CSR terbaru dari snapshot analitik.
 - Tidak ada dead import yang tersisa dari perubahan UI terbaru.
+- AI service belum diverifikasi live pada environment audit karena dependency Python FastAPI/TensorFlow belum terpasang di runtime pemeriksaan; `requirements.txt` dan artifact model lokal sudah tersedia.
 
 Keputusan saat ini:
 
 - **Layak masuk tahap deploy demo/capstone** setelah environment production disiapkan.
-- **Belum dinyatakan production-scale untuk banyak user** sampai Redis-backed rate limit, observability, backup database, dan load test sederhana ditambahkan.
-
+- **Belum dinyatakan production-scale untuk banyak user** sampai artifact AI masuk runtime deploy, Redis-backed rate limit, observability, backup database, dan load test sederhana ditambahkan.

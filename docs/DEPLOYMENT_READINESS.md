@@ -15,7 +15,7 @@ Namun deploy publik baru layak dilakukan setelah item wajib di bawah selesai.
 - Set `CLIENT_URLS` sesuai domain frontend Vercel/production.
 - Set `TRUST_PROXY=true` ketika API berjalan di Railway/Render/Fly.io di belakang reverse proxy.
 - Pastikan MySQL production memakai user non-root dan password kuat.
-- Jalankan migration SQL berurutan dari `001_init_schema.sql` sampai `006_drop_legacy_unused_tables.sql`.
+- Jalankan migration SQL berurutan dari `001_init_schema.sql` sampai `007_csr_aid_distribution_flow.sql`.
 - Jalankan seed/import sesuai kebutuhan demo production.
 - Pastikan file model AI `.keras` dan `.pkl` tersedia di runtime AI service.
 - Set `AI_SERVICE_URL` pada API ke URL internal/public service AI.
@@ -81,9 +81,9 @@ File berikut wajib tersedia di `PINTARIN_AI_MODEL_DIR`:
 
 Karena `.keras` dan `.pkl` di-ignore oleh git, simpan model sebagai release artifact, object storage, atau build ke container image yang private.
 
-## Verifikasi 2026-06-04
+## Verifikasi 2026-06-05
 
-- `npm run test:api`: lulus 17/17.
+- `npm run test:api`: lulus 20/20.
 - `npm run lint:web`: lulus.
 - `npm run build:web`: lulus.
 - `npm --prefix apps/api ci --dry-run --ignore-scripts --no-audit --no-fund`: lulus.
@@ -91,6 +91,8 @@ Karena `.keras` dan `.pkl` di-ignore oleh git, simpan model sebagai release arti
 - `npm audit --workspaces --omit=dev --audit-level=high`: 0 vulnerability.
 - Lockfile subproject `apps/api` dan `apps/web` sudah disinkronkan dengan `package.json`.
 - Tabel AI/generated/log di Manage Database bersifat read-only untuk menjaga integritas data prediksi dan audit.
+
+Catatan audit 2026-06-05: AI service belum diverifikasi live di environment audit karena dependency Python FastAPI/TensorFlow belum terpasang pada runtime pemeriksaan. File `requirements.txt` dan artifact model lokal tersedia; pastikan dependency AI di-install pada runtime deploy dan semua artifact `.keras`/`.pkl` tersedia di `PINTARIN_AI_MODEL_DIR`.
 
 URL deploy belum dicatat di repo. Setelah deploy selesai, isi:
 

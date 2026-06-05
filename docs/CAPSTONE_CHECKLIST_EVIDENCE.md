@@ -1,6 +1,6 @@
 # Capstone Checklist Evidence
 
-Tanggal audit: 2026-06-04
+Tanggal audit: 2026-06-05
 
 Dokumen ini mencatat bukti implementasi checklist capstone PINTARIN. Status `PASS` berarti sudah ada di project dan sudah diverifikasi secara lokal. Status `READY` berarti implementasi siap, tetapi bukti eksternal seperti URL deploy masih harus diisi setelah hosting dilakukan.
 
@@ -14,7 +14,7 @@ Dokumen ini mencatat bukti implementasi checklist capstone PINTARIN. Status `PAS
 | RESTful API dapat menyimpan data | PASS | Modul `schoolRequests`, `csrAid`, `profiles`, dan `adminDatabase` menyimpan data melalui repository MySQL. |
 | RESTful API memakai URL sesuai konvensi RESTful | PASS | Contoh: `GET /api/school-requests`, `POST /api/school-requests`, `PUT /api/school-requests/:id`, `DELETE /api/school-requests/:id`, `PATCH /api/school-requests/:id/review`. |
 | Mengintegrasikan AI/ML sebagai fitur utama | PASS | `apps/ai` menyediakan FastAPI inference service; API Express memiliki bridge `/api/ai` dan modul `predictions`; dashboard menampilkan risk scoring, confidence, dan human review. |
-| Fitur utama berjalan tanpa crash | PASS | Verifikasi lokal: `npm run test:api` lulus 17/17. Build frontend akan menjadi gerbang deploy wajib. |
+| Fitur utama berjalan tanpa crash | PASS | Verifikasi lokal: `npm run test:api` lulus 20/20, `npm run lint:web` lulus, dan `npm run build:web` lulus. |
 | Membuat mockup aplikasi sebagai representasi UI | PASS | Mockup repo-native tersedia di `docs/UI_MOCKUP_AND_QA.md`. |
 | Membangun layout responsif | PASS | Frontend memakai Tailwind responsive utilities (`sm`, `md`, `lg`, `xl`) pada landing dan dashboard. |
 | RESTful API dapat menyimpan data ke database | PASS | Database MySQL dipakai melalui `mysql2`; migration dan repository layer tersedia di `apps/api/src/db` dan `apps/api/src/modules`. |
@@ -40,12 +40,14 @@ Status terbaru:
 
 | Command | Status | Catatan |
 | --- | --- | --- |
-| `npm run test:api` | PASS | 17 test lulus. |
+| `npm run test:api` | PASS | 20 test lulus. |
 | `npm --prefix apps/api ci --dry-run --ignore-scripts --no-audit --no-fund` | PASS | Lockfile subproject API sudah sinkron. |
 | `npm --prefix apps/web ci --dry-run --ignore-scripts --no-audit --no-fund` | PASS | Lockfile subproject web sudah sinkron. |
 | `npm run lint:web` | PASS | Diverifikasi pada audit lokal. |
 | `npm run build:web` | PASS | Diverifikasi pada audit lokal. |
 | `npm audit --workspaces --omit=dev --audit-level=high` | PASS | Tidak ada vulnerability high pada audit lokal. |
+
+Catatan: AI service belum diverifikasi live pada environment audit karena dependency Python FastAPI/TensorFlow belum terpasang di runtime pemeriksaan. Untuk deploy, jalankan `pip install -r apps/ai/requirements.txt` dan pastikan artifact model `.keras`/`.pkl` tersedia.
 
 ## Catatan Deploy
 
