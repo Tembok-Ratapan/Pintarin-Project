@@ -38,10 +38,6 @@ if (clientUrls.length === 0) {
   throw new Error("Missing required environment variable: CLIENT_URL or CLIENT_URLS");
 }
 
-if (!process.env.PORT) {
-  throw new Error("Missing required environment variable: PORT");
-}
-
 if (!process.env.JWT_SECRET) {
   throw new Error("Missing required environment variable: JWT_SECRET");
 }
