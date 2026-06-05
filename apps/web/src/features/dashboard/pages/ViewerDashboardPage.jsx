@@ -440,7 +440,7 @@ export default function ViewerDashboardPage({ isPublic = false }) {
           {errorMessage && (
             <DashboardErrorBanner
               title="Ringkasan viewer belum bisa dimuat."
-              description={`${errorMessage} Pastikan backend berjalan di http://localhost:5000.`}
+              description={`${errorMessage} Pastikan konfigurasi API deployment sudah benar.`}
             />
           )}
 

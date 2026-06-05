@@ -13,6 +13,7 @@ import { formatNumber, formatPercent } from "../../../lib/utils";
 import Badge from "../../../components/ui/Badge";
 import { Card, CardContent } from "../../../components/ui/Card";
 import LoadingState from "../../../components/feedback/LoadingState";
+import { API_BASE_URL } from "../../../app/config";
 
 const mapStats = [
   {
@@ -234,9 +235,9 @@ export default function RiskMapSection() {
           <CardContent className="p-5">
             <p className="text-sm font-semibold text-red-700">{errorMessage}</p>
             <p className="mt-1 text-sm text-[#64748B]">
-              Pastikan backend berjalan di{" "}
-              <strong>http://localhost:5000</strong> dan file GeoJSON tersedia
-              di <strong>public/geojson/bandung-kecamatan.geojson</strong>.
+              Pastikan API <strong>{API_BASE_URL}</strong> dapat diakses dan
+              file GeoJSON tersedia di{" "}
+              <strong>/geojson/bandung-kecamatan.geojson</strong>.
             </p>
           </CardContent>
         </Card>

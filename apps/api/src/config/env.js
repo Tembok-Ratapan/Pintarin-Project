@@ -29,6 +29,7 @@ const parseCsv = (value) => {
   return String(value || "")
     .split(",")
     .map((item) => item.trim())
+    .map((item) => item.replace(/\/+$/, ""))
     .filter(Boolean);
 };
 

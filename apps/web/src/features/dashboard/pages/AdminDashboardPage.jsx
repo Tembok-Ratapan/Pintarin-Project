@@ -376,7 +376,7 @@ export function AdminControlCenterPage() {
           {errorMessage && (
             <DashboardErrorBanner
               title="Sebagian data dashboard belum bisa dimuat."
-              description={`${errorMessage} Pastikan backend berjalan di http://localhost:5000.`}
+              description={`${errorMessage} Pastikan konfigurasi API deployment sudah benar.`}
             />
           )}
 
@@ -682,7 +682,7 @@ export default function AdminDashboardPage() {
           {errorMessage && (
             <DashboardErrorBanner
               title="Sebagian data overview belum bisa dimuat."
-              description={`${errorMessage} Pastikan backend berjalan di http://localhost:5000.`}
+              description={`${errorMessage} Pastikan konfigurasi API deployment sudah benar.`}
             />
           )}
 
